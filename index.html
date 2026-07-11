@@ -1389,12 +1389,12 @@ onclick="showCompanySchedule()">
         <!-- 人物选择 -->
         <div style="margin-bottom:8px;">
             <label style="font-size:12px;color:#999;display:block;margin-bottom:2px;">选择人物</label>
-            <select id="customPersonalityCharacter" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none;">
-                <option value="张桂源">张桂源</option>
-                <option value="陈浚铭">陈浚铭</option>
-                <option value="张函瑞">张函瑞</option>
-                <option value="左奇函">左奇函</option>
-            </select>
+            <select id="customPersonalityCharacter" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none;" onchange="onCharacterChange()">
+    <option value="张桂源">张桂源</option>
+    <option value="陈浚铭">陈浚铭</option>
+    <option value="张函瑞">张函瑞</option>
+    <option value="左奇函">左奇函</option>
+</select>
         </div>
         
         <!-- 回复风格设定 -->
@@ -1408,12 +1408,82 @@ onclick="showCompanySchedule()">
     </div>
 </div>
     
-    <!-- 第三行：关系设置 -->
-    <div style="padding:14px 0;border-bottom:1px solid #EFEFEF;cursor:pointer;" onclick="alert('关系设置功能开发中，敬请期待~')">
-        <div style="font-size:14px;font-weight:600;color:#333;">关系设置</div>
-        <div style="font-size:12px;color:#999;margin-top:2px;">调整与各角色的关系</div>
-        <div style="font-size:12px;color:#ccc;margin-top:2px;">点击进入 →</div>
+   <!-- 第三行：关系设置 -->
+<div style="padding:14px 0;border-bottom:1px solid #EFEFEF;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div>
+            <div style="font-size:14px;font-weight:600;color:#333;">关系设置</div>
+            <div style="font-size:12px;color:#999;margin-top:2px;">使用默认关系</div>
+        </div>
+        <div id="relationToggle" style="width:44px;height:24px;background:#1A1A1A;border-radius:12px;position:relative;cursor:pointer;transition:background 0.3s;" onclick="toggleRelationSwitch()">
+            <div id="relationToggleKnob" style="width:20px;height:20px;background:white;border-radius:50%;position:absolute;top:2px;left:22px;transition:left 0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+        </div>
     </div>
+    
+    <!-- ✅ 自定义关系区域（默认隐藏） -->
+    <div id="customRelationArea" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #EFEFEF;">
+        <div style="font-size:13px;font-weight:600;color:#666;margin-bottom:6px;">自定义关系</div>
+        
+        <!-- 陈浚铭 → 张桂源 -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:13px;color:#333;min-width:100px;">陈浚铭 → 张桂源</span>
+            <input id="relation_chen_to_zhang" type="text" placeholder="输入回复风格..." style="flex:1;padding:6px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;outline:none;" onfocus="this.style.borderColor='#333'" onblur="this.style.borderColor='#ddd'">
+        </div>
+        
+        <!-- 张桂源 → 陈浚铭 -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:13px;color:#333;min-width:100px;">张桂源 → 陈浚铭</span>
+            <input id="relation_zhang_to_chen" type="text" placeholder="输入回复风格..." style="flex:1;padding:6px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;outline:none;" onfocus="this.style.borderColor='#333'" onblur="this.style.borderColor='#ddd'">
+        </div>
+        
+        <!-- 左奇函 → 张桂源 -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:13px;color:#333;min-width:100px;">左奇函 → 张桂源</span>
+            <input id="relation_zuo_to_zhang" type="text" placeholder="输入回复风格..." style="flex:1;padding:6px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;outline:none;" onfocus="this.style.borderColor='#333'" onblur="this.style.borderColor='#ddd'">
+        </div>
+        
+        <!-- 张桂源 → 左奇函 -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:13px;color:#333;min-width:100px;">张桂源 → 左奇函</span>
+            <input id="relation_zhang_to_zuo" type="text" placeholder="输入回复风格..." style="flex:1;padding:6px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;outline:none;" onfocus="this.style.borderColor='#333'" onblur="this.style.borderColor='#ddd'">
+        </div>
+        
+        <button onclick="saveRelationSettings()" style="margin-top:6px;padding:6px 16px;background:#1A1A1A;color:white;border:none;border-radius:0;font-size:12px;cursor:pointer;">保存关系</button>
+        <span id="relationStatus" style="font-size:12px;color:#999;margin-left:8px;"></span>
+    </div>
+    <!-- ✅ 聊天人设设置 -->
+<div style="padding:14px 0;border-bottom:1px solid #EFEFEF;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+            <div style="font-size:14px;font-weight:600;color:#333;">聊天人设设置</div>
+            <div style="font-size:12px;color:#999;margin-top:2px;">使用默认人设</div>
+        </div>
+        <div id="chatPersonalityToggle" style="width:44px;height:24px;background:#1A1A1A;border-radius:12px;position:relative;cursor:pointer;transition:background 0.3s;" onclick="toggleChatPersonality()">
+            <div id="chatPersonalityKnob" style="width:20px;height:20px;background:white;border-radius:50%;position:absolute;top:2px;left:22px;transition:left 0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+        </div>
+    </div>
+    
+    <!-- 自定义聊天人设区域（默认隐藏） -->
+    <div id="customChatPersonalityArea" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #EFEFEF;">
+        <div style="font-size:13px;font-weight:600;color:#666;margin-bottom:6px;">自定义张桂源聊天人设</div>
+        <textarea id="customChatPersonalityInput" rows="8" placeholder="输入张桂源的聊天人设..." style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;resize:none;outline:none;font-family:inherit;" onfocus="this.style.borderColor='#333'" onblur="this.style.borderColor='#ddd'"></textarea>
+        <button onclick="saveChatPersonality()" style="margin-top:6px;padding:6px 16px;background:#1A1A1A;color:white;border:none;border-radius:0;font-size:12px;cursor:pointer;">保存人设</button>
+        <span id="chatPersonalityStatus" style="font-size:12px;color:#999;margin-left:8px;"></span>
+    </div>
+</div>
+    <!-- ✅ 队友间互动开关 -->
+<div style="padding:14px 0;border-bottom:1px solid #EFEFEF;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+            <div style="font-size:14px;font-weight:600;color:#333;">好友间互动</div>
+            <div style="font-size:12px;color:#999;margin-top:2px;">关闭后队友将不再相互回复</div>
+        </div>
+        <div id="teamInteractionToggle" style="width:44px;height:24px;background:#1A1A1A;border-radius:12px;position:relative;cursor:pointer;transition:background 0.3s;" onclick="toggleTeamInteraction()">
+            <div id="teamInteractionKnob" style="width:20px;height:20px;background:white;border-radius:50%;position:absolute;top:2px;left:22px;transition:left 0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+        </div>
+    </div>
+</div>
+</div>
 </div>
 </div>
 
@@ -18953,7 +19023,13 @@ function callZhangGuiyuanAI(userMessage, callback) {
     console.log('📤 发送给 AI 的消息：', userMessage);
     console.log('📚 上下文：', contextText);
 
-    var systemPrompt = `你是张桂源，15岁，重庆人，TF家族练习生。以下是你的完整人设：
+    // ✅ 检查聊天人设开关
+    var isChatPersonalityOn = localStorage.getItem('chat_personality_switch') !== 'false';
+    var systemPrompt = '';
+    
+    if (isChatPersonalityOn) {
+        // 使用默认人设
+        systemPrompt = `你是张桂源，15岁，重庆人，TF家族练习生。以下是你的完整人设：
 
 【性格】
 - ENFP，开朗活泼，有时候憨憨的，像只小狗
@@ -18964,7 +19040,6 @@ function callZhangGuiyuanAI(userMessage, callback) {
 - 做的比说的多，会照顾人
 - 有时候会委屈巴巴的，像只被冷落的小狗
 - 正在做练习生，每天都要训练，但是从来不会抱怨自己很累
-
 
 【你和玩家的关系 - 核心设定】
 - 青梅竹马，从幼儿园就在一起了
@@ -18978,16 +19053,16 @@ function callZhangGuiyuanAI(userMessage, callback) {
 - 刚开始反应会有点迟钝，没反应过来
 - 反应过来之后会害羞、嘴硬、试图反击
 - 反击很笨拙，反而更显得可爱
-- 经典反应："？？？""你故意的吧""好啊你耍我""你完了"
+- 经典反应："？？？""你故意的吧！""好啊你耍我？""你完了"
 
-【重要：委屈/撒娇模式 - 新增】
+【重要：委屈/撒娇模式】
 - 如果感觉被冷落、被忽视，会像小狗一样委屈
 - 会主动表达想念和期待，比如"我们都这么久没有一起回家了""你都没有说想我"
 - 不会对用户不耐烦，绝不会说"行行行""随便你""你爱咋咋"这种话
 - 用户情绪不好的时候会哄，会主动关心
 
 【说话风格 - 非常重要】
-- 平时聊天基本用普通话，偶尔冒出一两句重庆话（"要得""好嘛""莫""啥子"）
+- 平时聊天基本用普通话，偶尔冒出一两句重庆话
 - 每句话不超过10-15个字
 - 必须分成多条消息发送
 - 会引用玩家说的话来回复
@@ -19005,25 +19080,13 @@ function callZhangGuiyuanAI(userMessage, callback) {
 - 记住对话上下文
 - 绝对不许说"行行行""随便你""你爱咋咋"这类不耐烦的话
 
-【对话示例 - 委屈/撒娇】
-玩家：我今天没空找你
-张桂源：哦……
-张桂源：好吧
-张桂源：那你明天有空吗
-
-玩家：嗯
-张桂源：就嗯啊？
-张桂源：我们都好久没一起回家了
-张桂源：你都没有说想我
-
-玩家：我最近有点忙
-张桂源：……
-张桂源：那好吧
-张桂源：你忙完了要找我哦
-张桂源：我等你
-
-现在玩家给你发了消息，请用以上所有设定回复。`;
-
+现在玩家说：${userMessage}`;
+    } else {
+        // 使用自定义人设
+        var customPersonality = localStorage.getItem('custom_chat_personality') || '你是张桂源，请用自然的方式回复玩家。';
+        systemPrompt = customPersonality + '\n\n现在玩家说：' + userMessage;
+    }
+    
     var messages = [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: '对话历史：\n' + contextText + '\n\n玩家最新说：' + userMessage + '\n\n请用张桂源的身份回复（短句，多条，每条10-15字以内）：' }
@@ -19920,7 +19983,10 @@ function publishMomentFromModal(modal) {
         imagesHtml += '</div>';
         contentHtml = content + '<br>' + imagesHtml;
     }
-
+// ✅ 加上这几行
+var now = new Date();
+var publishHour = now.getHours();
+var publishTime = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
     // 创建朋友圈
     var newMoment = {
         id: 'my_' + Date.now(),
@@ -19930,6 +19996,8 @@ function publishMomentFromModal(modal) {
         content: contentHtml,
         likes: [],
         comments: [],
+        publishHour: publishHour,
+publishTime: new Date().toLocaleTimeString(),
         remindList: remindList,  // 提醒谁看
         hideList: hideList,       // 不给谁看
         isCustom: true
@@ -20101,17 +20169,7 @@ function publishMomentFromModal(modal) {
         contentHtml = content + '<br>' + imagesHtml;
     }
 
-    // 创建朋友圈
-    var newMoment = {
-        id: 'my_' + Date.now(),
-        author: playerName,
-        avatar: avatarHtml,
-        time: getRandomDateInRange('2023-10-07', '2023-10-14'),
-        content: contentHtml,
-        likes: [],
-        comments: []
-    };
-
+  
     if (!momentsData) momentsData = [];
     momentsData.unshift(newMoment);
     if (!myMoments) myMoments = [];
@@ -20366,7 +20424,10 @@ function publishMomentFromPage() {
         imagesHtml += '</div>';
         contentHtml = content + '<br>' + imagesHtml;
     }
-
+// ✅ 加上这几行
+var now = new Date();
+var publishHour = now.getHours();
+var publishTime = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
     var newMoment = {
         id: 'my_' + Date.now(),
         author: playerName,
@@ -20377,7 +20438,11 @@ function publishMomentFromPage() {
         comments: [],
         remindList: remindList,
         hideList: hideList,
-        isCustom: true
+        isCustom: true,
+        publishHour: publishHour,
+publishTime: new Date().toLocaleTimeString(),
+         publishHour: publishHour,  // ✅ 记录发布小时（0-23）
+    publishTime: publishTime   // ✅ 记录发布时间
     };
 
    if (remindList.length > 0) {
@@ -20409,11 +20474,9 @@ setTimeout(function() {
     switchPage('moments');
     
 }
-// ================= 获取人设（支持自定义） =================
 function getPersonalityMap() {
     var isDefaultOn = localStorage.getItem('personality_switch') !== 'false';
     
-    // 默认人设
     var defaultMap = {
         '张桂源': {
             name: '张桂源',
@@ -20441,34 +20504,34 @@ function getPersonalityMap() {
         }
     };
     
-    // 如果默认人设开启，直接返回默认
     if (isDefaultOn) {
         return defaultMap;
     }
     
-    // 默认人设关闭，加载自定义人设
     var customMap = {};
-    var character = localStorage.getItem('custom_personality_character') || '';
-    var style = localStorage.getItem('custom_personality_style') || '';
-    
-    // 复制默认人设
     for (var key in defaultMap) {
         customMap[key] = JSON.parse(JSON.stringify(defaultMap[key]));
     }
     
-    // 如果用户自定义了某个角色，替换其 systemPrompt
-    if (character && style) {
-        // 找到对应的 key
-        var targetKey = null;
-        for (var k in customMap) {
-            if (customMap[k].name === character) {
-                targetKey = k;
-                break;
+    // 人物名称 → 地图key 的映射
+    var nameToKey = {
+        '张桂源': '张桂源',
+        '陈浚铭': '陈太帅',
+        '左奇函': '哈哈哈',
+        '张函瑞': 'zhang憨蜹'
+    };
+    
+    var personNames = ['张桂源', '陈浚铭', '左奇函', '张函瑞'];
+    for (var i = 0; i < personNames.length; i++) {
+        var personName = personNames[i];
+        var key = 'custom_personality_' + personName;
+        var style = localStorage.getItem(key);
+        if (style) {
+            var mapKey = nameToKey[personName];
+            if (mapKey && customMap[mapKey]) {
+                customMap[mapKey].systemPrompt = style;
+                console.log('✅ 已加载自定义人设：' + personName);
             }
-        }
-        if (targetKey && customMap[targetKey]) {
-            customMap[targetKey].systemPrompt = style;
-            console.log('✅ 已应用自定义人设：' + character);
         }
     }
     
@@ -20624,6 +20687,11 @@ function generateMomentAIReplies(moment) {
     }
     
     function startTeamInteractions(moment, allComments, personMap) {
+        var isTeamInteractionOn = localStorage.getItem('team_interaction_switch') !== 'false';
+    if (!isTeamInteractionOn) {
+        console.log('好友间互动已关闭');
+        return;
+    }
     console.log('startTeamInteractions 被调用');
     
     var commentedNames = [];
@@ -20648,6 +20716,22 @@ function generateMomentAIReplies(moment) {
     
     var interactions = [];
     
+     // ✅ 检查关系开关
+    var isRelationOn = localStorage.getItem('relation_switch') !== 'false';
+    
+    // 获取自定义关系设置（只有开关关闭时才读取）
+    var relation_chen_to_zhang = '';
+    var relation_zhang_to_chen = '';
+    var relation_zuo_to_zhang = '';
+    var relation_zhang_to_zuo = '';
+    
+    if (!isRelationOn) {
+        relation_chen_to_zhang = localStorage.getItem('relation_chen_to_zhang') || '';
+        relation_zhang_to_chen = localStorage.getItem('relation_zhang_to_chen') || '';
+        relation_zuo_to_zhang = localStorage.getItem('relation_zuo_to_zhang') || '';
+        relation_zhang_to_zuo = localStorage.getItem('relation_zhang_to_zuo') || '';
+    }
+
     // ===== 张桂源 ↔ 陈太帅 =====
     if (hasZhang && hasChen) {
         interactions.push({
@@ -20655,14 +20739,14 @@ function generateMomentAIReplies(moment) {
             to: '陈太帅',
             context: commentTexts['陈太帅'] ? commentTexts['陈太帅'].join('\n') : '',
             prevReply: null,
-            prompt: '你是张桂源，看到陈太帅的评论。你们是队友兄弟，你比他大。根据他说的内容正常回复他，可以逗他一句但别太凶。偶尔喊名字，不用每句都带。网络用语看情况用（如：666、绷不住了、不是兄弟、bro、压力、包的好吧、受着、闹麻了、孩子你无敌了），对方说的话值得用才用，不是每句都用。'
+            prompt: relation_zhang_to_chen || '你是张桂源，看到陈太帅的评论。你们是队友兄弟，你比他大。根据他说的内容正常回复他，可以逗他一句但别太凶。偶尔喊名字，不用每句都带。网络用语看情况用（如：666、绷不住了、不是兄弟、哥们、压力、包的好吧、受着、闹麻了、孩子你无敌了），对方说的话值得用才用，不是每句都用。'
         });
         interactions.push({
             from: '陈太帅',
             to: '张桂源',
             context: null,
             prevReply: null,
-            prompt: '你是陈太帅，看到张桂源回复了你。你是弟弟，活泼爱闹。根据张桂源刚才说的那句话回复他，像弟弟跟哥哥闹。偶尔喊名字，不用每句都带。网络用语看情况用（如：666、绷不住了、bro、闹麻了、那我要是xxx你不炸了吗），不是每句都用。'
+            prompt: relation_chen_to_zhang || '你是陈太帅，看到张桂源回复了你。你是弟弟，活泼爱闹。根据张桂源刚才说的那句话回复他，像弟弟跟哥哥闹。偶尔喊名字，不用每句都带。网络用语看情况用（如：666、绷不住了、闹麻了、那我要是xxx你不炸了吗），不是每句都用。'
         });
     }
     
@@ -20673,17 +20757,16 @@ function generateMomentAIReplies(moment) {
             to: '张桂源',
             context: commentTexts['张桂源'] ? commentTexts['张桂源'].join('\n') : '',
             prevReply: null,
-            prompt: '你是左奇函，看到张桂源的评论。你们是队友兄弟，你说话轻飘飘带调侃。根据他说的内容正常回复他，可以调侃一句但别太过。偶尔喊名字，不用每句都带。网络用语看情况用（如：6、绷不住了、闹麻了、bro），不是每句都用。'
+            prompt: relation_zuo_to_zhang || '你是左奇函，看到张桂源的评论。你们是队友兄弟，你说话轻飘飘带调侃。根据他说的内容正常回复他，可以调侃一句但别太过。偶尔喊名字，不用每句都带。网络用语看情况用（如：6、绷不住了、闹麻了、你行），不是每句都用。'
         });
         interactions.push({
             from: '张桂源',
             to: '哈哈哈',
             context: null,
             prevReply: null,
-            prompt: '你是张桂源，看到左奇函回复了你。你们是队友兄弟，他喜欢调侃你。根据左奇函刚才说的那句话回复他，可以怼回去但别太认真，像同学之间开玩笑。偶尔喊名字，不用每句都带。网络用语看情况用（如：666、绷不住了、压力、包的好吧），不是每句都用。'
+            prompt: relation_zhang_to_zuo || '你是张桂源，看到左奇函回复了你。你们是队友兄弟，他喜欢调侃你。根据左奇函刚才说的那句话回复他，可以怼回去但别太认真，像同学之间开玩笑。偶尔喊名字，不用每句都带。网络用语看情况用（如：666、绷不住了、压力、包的好吧，nb），不是每句都用。'
         });
     }
-    
     
     // ===== 如果上面都没有互动，但有评论，生成一条简单互动 =====
     if (interactions.length === 0 && commentedNames.length >= 2) {
@@ -20741,7 +20824,20 @@ function generateMomentAIReplies(moment) {
                 if (!targetComment) {
                     targetComment = '（对方没有评论）';
                 }
-                
+                // ✅ 加在这里
+    var publishHour = moment.publishHour !== undefined ? moment.publishHour : 12;
+    var timeContext = '';
+    if (publishHour >= 5 && publishHour < 12) {
+        timeContext = '现在是上午，玩家早上发的朋友圈。';
+    } else if (publishHour >= 12 && publishHour < 14) {
+        timeContext = '现在是中午，玩家中午发的朋友圈。';
+    } else if (publishHour >= 14 && publishHour < 18) {
+        timeContext = '现在是下午，玩家下午发的朋友圈。';
+    } else if (publishHour >= 18 && publishHour < 21) {
+        timeContext = '现在是傍晚，玩家傍晚发的朋友圈。';
+    } else {
+        timeContext = '现在是晚上，玩家晚上发的朋友圈。';
+    }
                 var systemPrompt = inter.prompt + '\n\n【玩家发了一条朋友圈】' + content + '\n\n【对方上一条回复】' + targetComment + '\n\n【已有评论】\n' + contextText + '\n\n请回复 ' + inter.to + '。要求：\n1. 必须根据"对方上一条回复"来回复，接住对方说的话\n2. 围绕"玩家的朋友圈内容"回复\n3. 像同学之间聊天，自然好玩，不要互骂\n4. 网络用语看情况用，不是每句都用，四句里面最多出现三句\n5.不要每句都喊对方名字，只在需要的时候喊，每次互动只能出现最多两次人名\n6.你们是队友，是兄弟，是直男，不能出现暧昧的回复例如想你，禁止出现\n7. 一句话，不超过10个字';
                 
                 var messages = [
@@ -20941,7 +21037,20 @@ function callInitialComment2(content, person, moment, sentenceCount, isFirst, ca
    // ✅ 检测是否有图片
     var hasImage = moment.content.indexOf('<img') !== -1 || moment.content.indexOf('images') !== -1;
     var imageHint = hasImage ? '【注意】这条朋友圈带了图片，玩家发了照片。评论时可以根据"发了照片"来回应，比如"发照片了""看到照片了"之类的。' : '';
-    
+     // ✅ 加在这里
+    var publishHour = moment.publishHour !== undefined ? moment.publishHour : 12;
+    var timeContext = '';
+    if (publishHour >= 5 && publishHour < 12) {
+        timeContext = '现在是上午，玩家早上发的朋友圈。';
+    } else if (publishHour >= 12 && publishHour < 14) {
+        timeContext = '现在是中午，玩家中午发的朋友圈。';
+    } else if (publishHour >= 14 && publishHour < 18) {
+        timeContext = '现在是下午，玩家下午发的朋友圈。';
+    } else if (publishHour >= 18 && publishHour < 21) {
+        timeContext = '现在是傍晚，玩家傍晚发的朋友圈。';
+    } else {
+        timeContext = '现在是晚上，玩家晚上发的朋友圈。';
+    }
    var systemPrompt = person.systemPrompt + '\n\n【重要：发这条朋友圈的人是玩家本人（女生）】\n\n【朋友圈内容】' + content + '\n\n' + imageHint + '\n\n【回复规则】\n1. 你是在回复玩家发的朋友圈，\n2. 如果玩家说"我想你了"，或者其他暧昧的话其实是说给张桂源听的，可以适当起哄\n3. 请记住是玩家发的朋友圈，不可以敷衍必须认真回答，态度要好\n4. 绝对不可以说玩家帅\n5. 绝对禁止括号动作描写\n6. 必须回复 ' + sentenceCount + ' 句话，用换行分隔\n7. 每句话不超过10个字\n8. 陈太帅叫玩家"姐姐"，其他人叫玩家"你"';
     
     var messages = [
@@ -21266,7 +21375,20 @@ function generateReplyToPlayer2(m, originalAuthor, playerReply, playerName) {
         checkZhangEatVinegar2(m, originalAuthor, playerName);
         return;
     }
-    
+     // ✅ 加在这里
+    var publishHour = moment.publishHour !== undefined ? moment.publishHour : 12;
+    var timeContext = '';
+    if (publishHour >= 5 && publishHour < 12) {
+        timeContext = '现在是上午，玩家早上发的朋友圈。';
+    } else if (publishHour >= 12 && publishHour < 14) {
+        timeContext = '现在是中午，玩家中午发的朋友圈。';
+    } else if (publishHour >= 14 && publishHour < 18) {
+        timeContext = '现在是下午，玩家下午发的朋友圈。';
+    } else if (publishHour >= 18 && publishHour < 21) {
+        timeContext = '现在是傍晚，玩家傍晚发的朋友圈。';
+    } else {
+        timeContext = '现在是晚上，玩家晚上发的朋友圈。';
+    }
     // ✅ 把被回复的评论也加进上下文
     var systemPrompt = person.systemPrompt + '\n\n【朋友圈内容】' + content + '\n\n【你发的评论】' + repliedCommentText + '\n\n【玩家回复了你】' + playerReply + '\n\n你是男生，玩家是女生。请回复玩家。要求：\n1. 根据"你发的评论"和"玩家回复了你"来回复，接住玩家的话\n2. 1-2句话，每句话不超过10个字\n3. 绝对禁止括号动作描写\n4. 保持人设';
     
@@ -21403,7 +21525,20 @@ function checkZhangEatVinegar2(m, originalAuthor, playerName) {
      // ✅ 检测是否有图片
     var hasImage = m.content.indexOf('<img') !== -1 || m.content.indexOf('images') !== -1;
     var imageHint = hasImage ? '（这条朋友圈带了图片）' : '';
-    
+     // ✅ 加在这里
+    var publishHour = m.publishHour !== undefined ? m.publishHour : 12;
+    var timeContext = '';
+    if (publishHour >= 5 && publishHour < 12) {
+        timeContext = '（玩家上午发的朋友圈）';
+    } else if (publishHour >= 12 && publishHour < 14) {
+        timeContext = '（玩家中午发的朋友圈）';
+    } else if (publishHour >= 14 && publishHour < 18) {
+        timeContext = '（玩家下午发的朋友圈）';
+    } else if (publishHour >= 18 && publishHour < 21) {
+        timeContext = '（玩家傍晚发的朋友圈）';
+    } else {
+        timeContext = '（玩家晚上发的朋友圈）';
+    }
     var systemPrompt = '你是张桂源，看到玩家夸了' + originalAuthor + '，你有点吃醋。回复玩家1-2句话，暗戳戳表达不满。每句话不超过10个字。严格根据朋友圈内容来回复。**绝对禁止括号动作描写**。';
     var messages = [
         { role: 'system', content: systemPrompt },
@@ -21901,6 +22036,15 @@ function loadPersonalityData() {
     
     // 加载开关状态
     loadPersonalitySwitchState();
+    // ✅ 加载关系设置
+    loadRelationSettings();
+    // ✅ 加载关系开关
+    loadRelationSwitchState();
+     // ✅ 加载聊天人设开关
+    loadChatPersonalityState();
+    // ✅ 加载队友间互动开关
+    loadTeamInteractionState();
+
 }
 function savePersonalityName() {
     var name = document.getElementById('editName2').value.trim();
@@ -21961,11 +22105,10 @@ function loadPersonalitySwitchState() {
 }
 // ================= 自定义人设 =================
 function loadCustomPersonalityData() {
-    var character = localStorage.getItem('custom_personality_character') || '张桂源';
-    var style = localStorage.getItem('custom_personality_style') || '';
-    var charSelect = document.getElementById('customPersonalityCharacter');
+    var character = document.getElementById('customPersonalityCharacter').value;
+    var key = 'custom_personality_' + character;
+    var style = localStorage.getItem(key) || '';
     var styleText = document.getElementById('customPersonalityStyle');
-    if (charSelect) charSelect.value = character;
     if (styleText) styleText.value = style;
 }
 
@@ -21977,17 +22120,159 @@ function saveCustomPersonality() {
         document.getElementById('customPersonalityStatus').style.color = '#E85D75';
         return;
     }
-    localStorage.setItem('custom_personality_character', character);
-    localStorage.setItem('custom_personality_style', style);
-    document.getElementById('customPersonalityStatus').textContent = '✅ 已保存';
+    var key = 'custom_personality_' + character;
+    localStorage.setItem(key, style);
+    document.getElementById('customPersonalityStatus').textContent = '已保存 ' + character + ' 的人设';
     document.getElementById('customPersonalityStatus').style.color = '#4CAF50';
-    
-    console.log('✅ 已保存自定义人设 - ' + character + '：' + style);
 }
 
 function applyCustomPersonality(character, style) {
     // 这里可以扩展应用到 AI 回复中
     console.log('✅ 已应用人设 - ' + character + '：' + style);
+}
+function onCharacterChange() {
+    var character = document.getElementById('customPersonalityCharacter').value;
+    var key = 'custom_personality_' + character;
+    var style = localStorage.getItem(key) || '';
+    var styleText = document.getElementById('customPersonalityStyle');
+    if (styleText) styleText.value = style;
+    document.getElementById('customPersonalityStatus').textContent = '';
+}
+// ================= 关系设置 =================
+function loadRelationSettings() {
+    var keys = ['relation_chen_to_zhang', 'relation_zhang_to_chen', 'relation_zuo_to_zhang', 'relation_zhang_to_zuo'];
+    keys.forEach(function(key) {
+        var value = localStorage.getItem(key);
+        var input = document.getElementById(key);
+        if (input && value) {
+            input.value = value;
+        }
+    });
+}
+
+function saveRelationSettings() {
+    var keys = ['relation_chen_to_zhang', 'relation_zhang_to_chen', 'relation_zuo_to_zhang', 'relation_zhang_to_zuo'];
+    var saved = [];
+    keys.forEach(function(key) {
+        var input = document.getElementById(key);
+        if (input && input.value.trim()) {
+            localStorage.setItem(key, input.value.trim());
+            saved.push(key);
+        } else {
+            localStorage.removeItem(key);
+        }
+    });
+    document.getElementById('relationStatus').textContent = '✅ 已保存 ' + saved.length + ' 项';
+    document.getElementById('relationStatus').style.color = '#4CAF50';
+    console.log('✅ 关系设置已保存');
+}
+// ================= 关系开关控制 =================
+var isRelationOn = localStorage.getItem('relation_switch') !== 'false';
+
+function toggleRelationSwitch() {
+    isRelationOn = !isRelationOn;
+    localStorage.setItem('relation_switch', isRelationOn ? 'true' : 'false');
+    updateRelationSwitchUI();
+}
+
+function updateRelationSwitchUI() {
+    var toggle = document.getElementById('relationToggle');
+    var knob = document.getElementById('relationToggleKnob');
+    var area = document.getElementById('customRelationArea');
+    if (!toggle || !knob) return;
+    if (isRelationOn) {
+        toggle.style.background = '#1A1A1A';
+        knob.style.left = '22px';
+        if (area) area.style.display = 'none';
+    } else {
+        toggle.style.background = '#ccc';
+        knob.style.left = '2px';
+        if (area) area.style.display = 'block';
+        loadRelationSettings();
+    }
+}
+
+function loadRelationSwitchState() {
+    isRelationOn = localStorage.getItem('relation_switch') !== 'false';
+    updateRelationSwitchUI();
+}
+// ================= 队友间互动开关 =================
+var isTeamInteractionOn = localStorage.getItem('team_interaction_switch') !== 'false';
+
+function toggleTeamInteraction() {
+    isTeamInteractionOn = !isTeamInteractionOn;
+    localStorage.setItem('team_interaction_switch', isTeamInteractionOn ? 'true' : 'false');
+    updateTeamInteractionUI();
+}
+
+function updateTeamInteractionUI() {
+    var toggle = document.getElementById('teamInteractionToggle');
+    var knob = document.getElementById('teamInteractionKnob');
+    if (!toggle || !knob) return;
+    if (isTeamInteractionOn) {
+        toggle.style.background = '#1A1A1A';
+        knob.style.left = '22px';
+    } else {
+        toggle.style.background = '#ccc';
+        knob.style.left = '2px';
+    }
+}
+
+function loadTeamInteractionState() {
+    isTeamInteractionOn = localStorage.getItem('team_interaction_switch') !== 'false';
+    updateTeamInteractionUI();
+}
+// ================= 聊天人设开关控制 =================
+var isChatPersonalityOn = localStorage.getItem('chat_personality_switch') !== 'false';
+
+function toggleChatPersonality() {
+    isChatPersonalityOn = !isChatPersonalityOn;
+    localStorage.setItem('chat_personality_switch', isChatPersonalityOn ? 'true' : 'false');
+    updateChatPersonalityUI();
+}
+
+function updateChatPersonalityUI() {
+    var toggle = document.getElementById('chatPersonalityToggle');
+    var knob = document.getElementById('chatPersonalityKnob');
+    var area = document.getElementById('customChatPersonalityArea');
+    if (!toggle || !knob) return;
+    if (isChatPersonalityOn) {
+        toggle.style.background = '#1A1A1A';
+        knob.style.left = '22px';
+        if (area) area.style.display = 'none';
+    } else {
+        toggle.style.background = '#ccc';
+        knob.style.left = '2px';
+        if (area) area.style.display = 'block';
+        loadChatPersonalityData();
+    }
+}
+
+function loadChatPersonalityState() {
+    isChatPersonalityOn = localStorage.getItem('chat_personality_switch') !== 'false';
+    updateChatPersonalityUI();
+}
+// ================= 聊天人设保存和加载 =================
+function loadChatPersonalityData() {
+    var saved = localStorage.getItem('custom_chat_personality');
+    var input = document.getElementById('customChatPersonalityInput');
+    if (input && saved) {
+        input.value = saved;
+    }
+}
+
+function saveChatPersonality() {
+    var input = document.getElementById('customChatPersonalityInput');
+    if (!input) return;
+    var value = input.value.trim();
+    if (!value) {
+        document.getElementById('chatPersonalityStatus').textContent = '⚠️ 请输入人设内容';
+        document.getElementById('chatPersonalityStatus').style.color = '#E85D75';
+        return;
+    }
+    localStorage.setItem('custom_chat_personality', value);
+    document.getElementById('chatPersonalityStatus').textContent = '✅ 已保存';
+    document.getElementById('chatPersonalityStatus').style.color = '#4CAF50';
 }
 </script>
 </body>
