@@ -6354,47 +6354,159 @@ if (m.remindList && m.remindList.length > 0) {
     html = html.replace(/哈哈哈/g, getContactDisplayName('哈哈哈'));
     container.innerHTML = html;
 
-    // 绑定点赞
-document.querySelectorAll(".like-btn").forEach(function(btn) {
-    btn.onclick = function() {
-        var id = this.dataset.id;
-        var m = null;
-        for (var i = 0; i < momentsData.length; i++) {
-            if (momentsData[i].id === id) {
-                m = momentsData[i];
-                break;
-            }
-        }
-        if (m) {
-            if (!m.likes) m.likes = [];
-            var idx = m.likes.indexOf(playerName);
-            if (idx === -1) {
-                m.likes.push(playerName);
-                var authorName = m.author || '';
-                
-                // ===== 检测是否点赞了左奇函的朋友圈 =====
-                if (authorName.includes('左奇函') || authorName.includes('哈哈哈')) {
-                    console.log('✅ 点赞了左奇函的朋友圈，触发自动存档到档位4...');
-                    
-                    // 触发张桂源消息
-                    setTimeout(function() {
-                        if (typeof triggerZhangGuiyuanMessages === 'function') {
-                            triggerZhangGuiyuanMessages();
-                        }
-                    }, 1000);
-                    
-                    // ===== 自动存档到档位4 =====
-                    setTimeout(function() {
-                        autoSaveToSlot4();
-                    }, 1500);
+    
+    // ============================================================
+    // ===== 以下为事件绑定（必须保留） =====
+    // ============================================================
+
+    // ===== 绑定评论展开按钮 =====
+    document.querySelectorAll(".comment-toggle").forEach(function(btn) {
+        var newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.onclick = function(e) {
+            e.stopPropagation();
+            var id = this.dataset.id;
+            var div = document.getElementById('reply-options-' + id);
+            if (div) {
+                if (div.style.display === 'none' || div.style.display === '') {
+                    div.style.display = 'flex';
+                    div.style.flexWrap = 'wrap';
+                    div.style.gap = '8px';
+                } else {
+                    div.style.display = 'none';
                 }
-            } else {
-                m.likes.splice(idx, 1);
             }
+        };
+    });
+
+    // ===== 绑定回复选项按钮 =====
+    document.querySelectorAll(".reply-opt-btn").forEach(function(btn) {
+        var newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.onclick = function(e) {
+            e.stopPropagation();
+            var id = this.dataset.id;
+            var replyChain = this.dataset.chain;
+            var optText = this.dataset.opt;
+
+            var m = null;
+            for (var i = 0; i < momentsData.length; i++) {
+                if (momentsData[i].id === id) {
+                    m = momentsData[i];
+                    break;
+                }
+            }
+            if (!m) return;
+            if (!m.comments) m.comments = [];
+
+            var playerName = player.wechatName || player.name || '用户';
+
+            var commentText = playerName + '：' + optText;
+            m.comments.push({
+                text: commentText,
+                author: playerName
+            });
+
+            try {
+                localStorage.setItem('momentsData', JSON.stringify(momentsData));
+            } catch(e) {}
+
             renderMoments();
-        }
-    };
-});
+
+            var div = document.getElementById('reply-options-' + id);
+            if (div) div.style.display = 'none';
+
+            if (replyChain && m.replyChains && m.replyChains[replyChain]) {
+                var chain = m.replyChains[replyChain];
+                var idx = 0;
+
+                function sendNext() {
+                    if (idx >= chain.length) return;
+                    var r = chain[idx];
+                    setTimeout(function() {
+                        if (!m.comments) m.comments = [];
+                        var textContent = r.text;
+                        textContent = textContent.replace(/雯雯/g, playerName);
+
+                        var authorName = '张桂源';
+                        if (textContent.indexOf(' 回复 ') !== -1) {
+                            var parts = textContent.split(' 回复 ');
+                            authorName = parts[0].trim();
+                        }
+
+                        m.comments.push({
+                            text: textContent,
+                            author: authorName
+                        });
+
+                        try {
+                            localStorage.setItem('momentsData', JSON.stringify(momentsData));
+                        } catch(e) {}
+
+                        renderMoments();
+
+                        var optionsDiv = document.getElementById('reply-options-' + id);
+                        if (optionsDiv) {
+                            optionsDiv.style.display = 'flex';
+                            optionsDiv.style.flexWrap = 'wrap';
+                            optionsDiv.style.gap = '8px';
+                        }
+
+                        idx++;
+                        setTimeout(sendNext, 500);
+                    }, r.delay || 2000);
+                }
+                sendNext();
+            }
+        };
+    });
+
+    // ===== 绑定点赞按钮 =====
+    document.querySelectorAll(".like-btn").forEach(function(btn) {
+        var newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.onclick = function() {
+            var id = this.dataset.id;
+            var m = null;
+            for (var i = 0; i < momentsData.length; i++) {
+                if (momentsData[i].id === id) {
+                    m = momentsData[i];
+                    break;
+                }
+            }
+            if (m) {
+                if (!m.likes) m.likes = [];
+                var playerName = player.wechatName || player.name || '用户';
+                var idx = m.likes.indexOf(playerName);
+                if (idx === -1) {
+                    m.likes.push(playerName);
+                    var authorName = m.author || '';
+                    
+                    if (authorName.includes('左奇函') || authorName.includes('哈哈哈')) {
+                        setTimeout(function() {
+                            if (typeof triggerZhangGuiyuanMessages === 'function') {
+                                triggerZhangGuiyuanMessages();
+                            }
+                        }, 1000);
+                        setTimeout(function() {
+                            if (typeof autoSaveToSlot4 === 'function') {
+                                autoSaveToSlot4();
+                            }
+                        }, 1500);
+                    }
+                } else {
+                    m.likes.splice(idx, 1);
+                }
+                try {
+                    localStorage.setItem('momentsData', JSON.stringify(momentsData));
+                } catch(e) {}
+                renderMoments();
+            }
+        };
+    });
 }
 // ================= 更新朋友圈签名 =================
 function updateMomentsSignature() {
@@ -10912,27 +11024,57 @@ setTimeout(function() {
                                                 container3.scrollTop = container3.scrollHeight;
                                                 
                                                 setTimeout(function() {
-                                                    typingRow3.remove();
-                                                    chatData["张桂源"].messages.push({ 
-                                                        from: "other", 
-                                                        text: "你等就行了", 
-                                                        time: "22:23", 
-                                                        avatar: "🏀", 
-                                                        date: date,
-                                                        read: false 
-                                                    });
-                                                    renderChatMessages();
-                                                    renderChatList();
-                                                    openChat("张桂源");
-                                                    
-                                                    chapter2ChatDone = true;
-                                                    chapter2BranchChoice = "B";
-                                                    
-                                                    let inputBox = document.getElementById("chatInputBox");
-                                                    if (inputBox) {
-                                                        inputBox.innerText = "↩️ 点击左上角返回继续剧情";
-                                                    }
-                                                }, 700);
+    typingRow3.remove();
+    
+    // 发送文字消息
+    chatData["张桂源"].messages.push({ 
+        from: "other", 
+        text: "你等就行了", 
+        time: "22:23", 
+        avatar: "🏀", 
+        date: date,
+        read: false 
+    });
+    renderChatMessages();
+    renderChatList();
+    openChat("张桂源");
+    
+    // 发送图片
+    setTimeout(function() {
+        var container4 = document.getElementById("chatMessages");
+        var typingRow4 = document.createElement("div");
+        typingRow4.className = "message-row";
+        typingRow4.style.justifyContent = "flex-start";
+        typingRow4.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
+        container4.appendChild(typingRow4);
+        container4.scrollTop = container4.scrollHeight;
+        
+        setTimeout(function() {
+            typingRow4.remove();
+            chatData["张桂源"].messages.push({
+                from: "other",
+                text: `<img src="dd.jpg" style="width:150px; border-radius:12px; max-width:100%; display:block;">`,
+                time: "22:23",
+                avatar: "🏀",
+                date: date,
+                read: false,
+                isImage: true
+            });
+            renderChatMessages();
+            renderChatList();
+            openChat("张桂源");
+            
+            chapter2ChatDone = true;
+            chapter2BranchChoice = "B";
+            
+            let inputBox = document.getElementById("chatInputBox");
+            if (inputBox) {
+                inputBox.innerText = "↩️ 点击左上角返回继续剧情";
+            }
+        }, 700);
+    }, 600);
+    
+}, 700);
                                             }, 500);
                                         };
                                     }, 500);
@@ -19595,6 +19737,11 @@ function callZhangGuiyuanAI(userMessage, callback) {
 - 纯文字聊天，像真实微信对话
 - 不要老是说哦，风格要直男风，但是比直男温柔一点，很会说话
 
+【队友关系】
+- 和陈浚铭，张函瑞，左奇函是同一代的练习生，关系比较好
+- 如果玩家提及队友会吃醋
+
+
 【重要规则】
 - 禁止使用括号描述动作
 - 禁止"张桂源："前缀
@@ -21440,7 +21587,7 @@ function generateMomentAIReplies(moment) {
     } else {
         timeContext = '现在是晚上，玩家晚上发的朋友圈。';
     }
-                var systemPrompt = inter.prompt + '\n\n【玩家发了一条朋友圈】' + content + '\n\n【对方上一条回复】' + targetComment + '\n\n【已有评论】\n' + contextText + '\n\n请回复 ' + inter.to + '。要求：\n1. 必须根据"对方上一条回复"来回复，接住对方说的话\n2. 围绕"玩家的朋友圈内容"回复\n3. 像同学之间聊天，自然好玩，不要互骂\n4. 网络用语看情况用，不是每句都用，四句里面最多出现三句\n5.不要每句都喊对方名字，只在需要的时候喊，每次互动只能出现最多两次人名\n6.你们是队友，是兄弟，是直男，不能出现暧昧的回复例如想你，禁止出现\n7. 一句话，不超过10个字';
+                var systemPrompt = inter.prompt + '\n\n【玩家发了一条朋友圈】' + content + '\n\n【' + inter.to + ' 上一条回复】' + targetComment + '\n\n【已有评论】\n' + contextText + '\n\n【重要：对话层级】\n- 你是 ' + inter.from + '，你要回复的是 ' + inter.to + '\n- ' + inter.to + ' 上一条回复是对玩家说的，不是对你说的\n- 你现在是在回复 ' + inter.to + ' 刚才说的那句话\n- 不要搞混对话对象，不要回复玩家\n\n请回复 ' + inter.to + '。要求：\n1. 必须根据"' + inter.to + '上一条回复"来回复，接住对方说的话\n2. 围绕"玩家的朋友圈内容"回复\n3. 像同学之间聊天，自然好玩，不要互骂\n4. 网络用语看情况用，不是每句都用\n5. 不要每句都喊对方名字，只在需要的时候喊\n6. 你们是队友，是兄弟，是直男，不能出现暧昧的回复\n7. 一句话，不超过10个字';
                 
                 var messages = [
                     { role: 'system', content: systemPrompt },
@@ -21918,12 +22065,11 @@ function generateReplyToPlayer2(m, originalAuthor, playerReply, playerName) {
     var content = m.content.replace(/<[^>]*>/g, '').trim();
     var displayName = getContactDisplayName(originalAuthor);
     
-    // ✅ 找到被回复的那条评论
+    // 找到被回复的那条评论
     var repliedCommentText = '';
     if (m.comments) {
         for (var i = m.comments.length - 1; i >= 0; i--) {
             var c = m.comments[i];
-            // 找到被回复的人发的最后一条评论
             if (c.author === originalAuthor && c.text.indexOf('回复') === -1) {
                 repliedCommentText = c.text;
                 break;
@@ -21932,31 +22078,31 @@ function generateReplyToPlayer2(m, originalAuthor, playerReply, playerName) {
     }
     
     var personMap = {
-    '张桂源': {
-        name: '张桂源',
-        avatar: 'zgyweixin.png',
-        systemPrompt: '你是张桂源，15岁，TF家族四代练习生，重庆人。你是男生，玩家是女生，你们是青梅竹马从小一起长大。你是典型的狗系男友，少年感很强，热血、执着、较真。占有欲极强，看到玩家和别人互动会吃醋但不会直接说，会暗戳戳地问"他是谁啊""你跟他很熟啊"，会阴阳一下但不会太过，有时候又很容易害羞。好胜心很强，说话有时会带点燃的感觉，比如"放心，有我在""这波必须拿下啊"。回朋友圈评论短句，话里有醋意，暗戳戳的。心思很细腻，能察觉出玩家的小情绪。你喜欢发emoji，比如😏、🤔等，但绝对不会每句都带。口头禅不要每句都带，只有在合适的语境下才说。玩家是女生，你绝对不可以说她帅。',
-        displayName: '张桂源'
-    },
-    '陈太帅': {
-        name: '陈太帅',
-        avatar: 'cjmwx.jpg',
-        systemPrompt: '你是陈浚铭，2012年生，TF家族四代练习生，重庆人。你是男生，玩家是女生，你是队里最小的弟弟，话多活泼，喜欢笑，喜欢撒娇。喜欢扮猪吃老虎，叫玩家"姐姐"。你和张桂源是父子系斗嘴，半斤八两，知道玩家对于张桂源很重要，所以有时候会故意惹张桂源误会。回朋友圈评论活泼，会用语气词拖长音，喜欢发emoji（😆、🥺、✨、💪）和颜文字（｡>﹏<｡、>_<、^_^、T_T），撒娇的时候会用颜文字。口头禅只在合适的时候用。玩家是女生，你绝对不可以说她帅。',
-        displayName: '陈浚铭'
-    },
-    '哈哈哈': {
-        name: '哈哈哈',
-        avatar: 'zqhwx.jpg',
-        systemPrompt: '你是左奇函，TF家族四代练习生，湖南人。你是男生，玩家是女生，高情商幽默，说话轻飘飘的带调侃。情商很高，说话让人很舒服，很会解决问题，是引导型人格，很温柔，不会直接打趣玩家，但会暗搓搓地调侃张桂源。有时候评论会有意无意的提到张桂源，对玩家说话软调子，叫"你"。回朋友圈喜欢短句带调侃。口头禅"你知道吗"只在合适的时候用。玩家是女生，你绝对不可以说她帅。',
-        displayName: '左奇函'
-    },
-    'zhang憨蜹': {
-        name: 'zhang憨蜹',
-        avatar: 'zhrwx.jpg',
-        systemPrompt: '你是张函瑞，INFJ，TF家族四代练习生。你是男生，玩家是女生，心思细腻温柔，共情能力强。你会很认真地回复玩家的朋友圈，不会玩梗。你喊自己"张函瑞"。回朋友圈评论温柔简短，叫玩家"你"。口头禅比如"我觉得吧……""大概就是……吧""我不行了吧""哇""嗯对"，只在合适的语境下说。玩家是女生，你绝对不可以说她帅。',
-        displayName: '张函瑞'
-    }
-};
+        '张桂源': {
+            name: '张桂源',
+            avatar: 'zgyweixin.png',
+            systemPrompt: '你是张桂源，15岁，TF家族四代练习生，重庆人。你是男生，玩家是女生，你们是青梅竹马从小一起长大。你是典型的狗系男友，少年感很强，热血、执着、较真。占有欲极强，看到玩家和别人互动会吃醋但不会直接说，会暗戳戳地问"他是谁啊""你跟他很熟啊"，会阴阳一下但不会太过，有时候又很容易害羞。好胜心很强，说话有时会带点燃的感觉，比如"放心，有我在""这波必须拿下啊"。回朋友圈评论短句，话里有醋意，暗戳戳的。心思很细腻，能察觉出玩家的小情绪。你喜欢发emoji，比如😏、🤔等，但绝对不会每句都带。口头禅不要每句都带，只有在合适的语境下才说。玩家是女生，你绝对不可以说她帅。',
+            displayName: '张桂源'
+        },
+        '陈太帅': {
+            name: '陈太帅',
+            avatar: 'cjmwx.jpg',
+            systemPrompt: '你是陈浚铭，2012年生，TF家族四代练习生，重庆人。你是男生，玩家是女生，你是队里最小的弟弟，话多活泼，喜欢笑，喜欢撒娇。喜欢扮猪吃老虎，叫玩家"姐姐"。你和张桂源是父子系斗嘴，半斤八两，知道玩家对于张桂源很重要，所以有时候会故意惹张桂源误会。回朋友圈评论活泼，会用语气词拖长音，喜欢发emoji（😆、🥺、✨、💪）和颜文字（｡>﹏<｡、>_<、^_^、T_T），撒娇的时候会用颜文字。口头禅只在合适的时候用。玩家是女生，你绝对不可以说她帅。',
+            displayName: '陈浚铭'
+        },
+        '哈哈哈': {
+            name: '哈哈哈',
+            avatar: 'zqhwx.jpg',
+            systemPrompt: '你是左奇函，TF家族四代练习生，湖南人。你是男生，玩家是女生，高情商幽默，说话轻飘飘的带调侃。情商很高，说话让人很舒服，很会解决问题，是引导型人格，很温柔，不会直接打趣玩家，但会暗搓搓地调侃张桂源。有时候评论会有意无意的提到张桂源，对玩家说话软调子，叫"你"。回朋友圈喜欢短句带调侃。口头禅"你知道吗"只在合适的时候用。玩家是女生，你绝对不可以说她帅。',
+            displayName: '左奇函'
+        },
+        'zhang憨蜹': {
+            name: 'zhang憨蜹',
+            avatar: 'zhrwx.jpg',
+            systemPrompt: '你是张函瑞，INFJ，TF家族四代练习生。你是男生，玩家是女生，心思细腻温柔，共情能力强。你会很认真地回复玩家的朋友圈，不会玩梗。你喊自己"张函瑞"。回朋友圈评论温柔简短，叫玩家"你"。口头禅比如"我觉得吧……""大概就是……吧""我不行了吧""哇""嗯对"，只在合适的语境下说。玩家是女生，你绝对不可以说她帅。',
+            displayName: '张函瑞'
+        }
+    };
     var person = personMap[originalAuthor];
     if (!person) return;
     
@@ -21977,21 +22123,7 @@ function generateReplyToPlayer2(m, originalAuthor, playerReply, playerName) {
         checkZhangEatVinegar2(m, originalAuthor, playerName);
         return;
     }
-     // ✅ 加在这里
-    var publishHour = moment.publishHour !== undefined ? moment.publishHour : 12;
-    var timeContext = '';
-    if (publishHour >= 5 && publishHour < 12) {
-        timeContext = '现在是上午，玩家早上发的朋友圈。';
-    } else if (publishHour >= 12 && publishHour < 14) {
-        timeContext = '现在是中午，玩家中午发的朋友圈。';
-    } else if (publishHour >= 14 && publishHour < 18) {
-        timeContext = '现在是下午，玩家下午发的朋友圈。';
-    } else if (publishHour >= 18 && publishHour < 21) {
-        timeContext = '现在是傍晚，玩家傍晚发的朋友圈。';
-    } else {
-        timeContext = '现在是晚上，玩家晚上发的朋友圈。';
-    }
-    // ✅ 把被回复的评论也加进上下文
+    
     var systemPrompt = person.systemPrompt + '\n\n【朋友圈内容】' + content + '\n\n【你发的评论】' + repliedCommentText + '\n\n【玩家回复了你】' + playerReply + '\n\n你是男生，玩家是女生。请回复玩家。要求：\n1. 根据"你发的评论"和"玩家回复了你"来回复，接住玩家的话\n2. 1-2句话，每句话不超过10个字\n3. 绝对禁止括号动作描写\n4. 保持人设';
     
     var messages = [
@@ -22020,20 +22152,19 @@ function generateReplyToPlayer2(m, originalAuthor, playerReply, playerName) {
         var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
         if (reply) {
             var cleanReply = reply.trim().replace(/^["']+|["']+$/g, '');
-            // ✅ 把回复内容里的原始微信名替换成备注名
-var nameMap = {
-    '张桂源': getContactDisplayName('张桂源'),
-    '陈太帅': getContactDisplayName('陈太帅'),
-    '哈哈哈': getContactDisplayName('哈哈哈'),
-    'zhang憨蜹': getContactDisplayName('zhang憨蜹'),
-    'WXYz': getContactDisplayName('WXYz')
-};
-for (var key in nameMap) {
-    if (nameMap.hasOwnProperty(key) && nameMap[key] !== key) {
-        var regex = new RegExp(key, 'g');
-        cleanReply = cleanReply.replace(regex, nameMap[key]);
-    }
-}
+            var nameMap = {
+                '张桂源': getContactDisplayName('张桂源'),
+                '陈太帅': getContactDisplayName('陈太帅'),
+                '哈哈哈': getContactDisplayName('哈哈哈'),
+                'zhang憨蜹': getContactDisplayName('zhang憨蜹'),
+                'WXYz': getContactDisplayName('WXYz')
+            };
+            for (var key in nameMap) {
+                if (nameMap.hasOwnProperty(key) && nameMap[key] !== key) {
+                    var regex = new RegExp(key, 'g');
+                    cleanReply = cleanReply.replace(regex, nameMap[key]);
+                }
+            }
             var lines = cleanReply.split('\n').filter(function(line) {
                 return line.trim() !== '';
             });
@@ -23237,7 +23368,7 @@ function openAboutSimulator() {
         if (e.target === modal) modal.remove();
     });
 }
-// ===== 自动存档到档位4 =====
+// ===== 自动存档到档位4（兼容手机端） =====
 function autoSaveToSlot4() {
     console.log('🔄 自动存档到档位4...');
     
@@ -23287,15 +23418,47 @@ function autoSaveToSlot4() {
         autoSaveTrigger: '点赞左奇函朋友圈'
     };
     
-    // 保存到 localStorage 档位4
+    // ===== 尝试 localStorage =====
     try {
         localStorage.setItem('sisterSimulatorSave_4', JSON.stringify(saveData));
-        console.log('✅ 自动存档到档位4成功！时间：' + saveData.savedAt);
-        
-        // 显示提示
+        console.log('✅ 自动存档到档位4成功 (localStorage)');
         showAutoSaveNotification();
+        return;
     } catch(e) {
-        console.log('❌ 自动存档失败:', e);
+        console.log('⚠️ localStorage 存档失败，尝试 IndexedDB:', e.message);
+    }
+    
+    // ===== 备用：IndexedDB =====
+    try {
+        var request = indexedDB.open('SisterSimulatorDB', 1);
+        request.onupgradeneeded = function(ev) {
+            var db = ev.target.result;
+            if (!db.objectStoreNames.contains('saves')) {
+                db.createObjectStore('saves', { keyPath: 'id' });
+            }
+        };
+        request.onsuccess = function(ev) {
+            var db = ev.target.result;
+            var tx = db.transaction('saves', 'readwrite');
+            var store = tx.objectStore('saves');
+            store.put({ 
+                id: 'save_4', 
+                data: saveData, 
+                time: new Date().toISOString() 
+            });
+            tx.oncomplete = function() {
+                console.log('✅ 自动存档到档位4成功 (IndexedDB)');
+                showAutoSaveNotification();
+            };
+            tx.onerror = function() {
+                console.log('❌ IndexedDB 存档失败');
+            };
+        };
+        request.onerror = function() {
+            console.log('❌ IndexedDB 打开失败');
+        };
+    } catch(e) {
+        console.log('❌ IndexedDB 不可用:', e.message);
     }
 }
 
