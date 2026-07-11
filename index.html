@@ -10192,11 +10192,11 @@ function switchPage(pageId) {
         
         let story = `五月十号，张桂源生日的前一天。
 
-你放学之后没回家，拐去了学校旁边那条商业街。你想给他买个生日礼物。去年你送的是一个小手办——在学校旁边小店淘的，不贵，但他很喜欢，放床头了。
+你放学之后没回家，拐去了学校旁边那条商业街。你想给他买个生日礼物。去年你送的是一个小手办，他很喜欢
 
 今年送什么呢。你站在商场一楼，看着各种各样的店铺，有点拿不定主意。
 
-你知道他什么都不缺，但又觉得什么都想给他买一点。你摸了摸口袋里的钱——攒了几个月，够买一件像样的东西了。
+你知道他什么都不缺，但又觉得什么都想给他买一点，就更不知道买什么了
 
 你看了看左边的运动用品店，又看了看右边的饰品店，最后目光落在中间那家卖小物件的店里。`;
 
@@ -10205,63 +10205,35 @@ function switchPage(pageId) {
     }
 
     function showGiftBranch() {
-        document.getElementById("branchArea").innerHTML = `
-            <div style="margin:16px 0;"><strong>✨ 你要买什么礼物？</strong></div>
-            <button class="branch-btn" data-gift="A">A. 一双护膝，黑色的，上面有个小小的篮球图案</button>
-            <button class="branch-btn" data-gift="B">B. 一条发带，深蓝色的，简约的款式</button>
-            <button class="branch-btn" data-gift="C">C. 一个小小的库里钥匙扣</button>
-            <button class="branch-btn" data-gift="D">D. 一个保温杯，黑色的，磨砂质感</button>
-        `;
-        
-        document.querySelectorAll(".branch-btn").forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                let choice = e.target.dataset.gift;
-                chapter2GiftChoice = choice;
-                currentChapter2Step = 1;  // 记录已经选了礼物
-    // 手动触发保存
-    saveCurrentState();
-                let giftText = "";
-                
-                if (choice === "A") {
-                    giftText = `<div style="background:#FFF0F5; padding:16px; border-radius:16px; margin-top:8px;">你拿起那双护膝摸了摸，很软，里层是绒的。你想起他上次说训练的时候膝盖又磕了，说的时候语气很随意，像是已经不觉得疼了。但你知道他膝盖上的淤青一块叠着一块，青的紫的黄的，从来没消干净过。
+    document.getElementById("branchArea").innerHTML = `
+        <div style="margin:16px 0;"><strong>你要买什么礼物？</strong></div>
+        <button class="branch-btn" data-gift="A">A. 一个紫色的毛绒帽子</button>
+        <button class="branch-btn" data-gift="B">B. 一对小狗耳朵</button>
+    `;
+    
+    document.querySelectorAll(".branch-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            let choice = e.target.dataset.gift;
+            chapter2GiftChoice = choice;
+            currentChapter2Step = 1;
+            saveCurrentState();
+            let giftText = "";
+            
+            if (choice === "A") {
+                giftText = `<div style="background:#FFF0F5; padding:16px; border-radius:16px; margin-top:8px;">你拿起那个紫色的毛绒帽子，上面是个张大嘴巴的怪兽，布料软软的，摸起来很舒服。走出商场的时候你把纸袋抱在怀里，想着他收到的时候大概会先"哇"一声，嘴上说着我不适合这么可爱的东西吧，但是又会立刻戴到头上，对着镜子左看右看，然后问你"帅不"。你想到这些，脚步轻快了一些。`;
+            } else {
+                giftText = `<div style="background:#FFF0F5; padding:16px; border-radius:16px; margin-top:8px;">你拿起那对小狗耳朵，毛茸茸的，是棕色的，耳朵软软的。你不知道自己为啥忽然想送他这个，只是你觉得他戴上的样子，一定会很可爱。虽然不知道他会不会戴，他收到的时候，一开始肯定会嫌弃地说"让我戴这个你认真的吗"
 
-你拿着护膝去了收银台。
-
-走出商场的时候你把纸袋抱在怀里，想着他收到的时候大概会先愣一下，然后低头摸摸，再抬头看你。他可能会说"你买这个干嘛，我又不疼"，但你看到他戴了，然后你会说"戴就戴嘛，又不是给你看的"，然后他会笑一下，耳朵红红的，嘟囔一句"是是是，给你看的"。
-
-你想完这些，脚步快了一些。`;
-                } else if (choice === "B") {
-                    giftText = `<div style="background:#FFF0F5; padding:16px; border-radius:16px; margin-top:8px;">你拿起那条发带看了看，深蓝色的，简约的款式，布料摸起来吸汗。你想起他训练的时候头发总会被汗打湿，额前的碎发黏在皮肤上，他有时候会不耐烦地拨一下，然后又继续跳。
-
-你想象他戴着这条发带的样子——深蓝色衬他的肤色，头发被拢起来，露出一整张脸，眉毛粗粗的，眼睛亮亮的。你想到这个画面的时候耳根热了一下，然后迅速把发带拿到收银台结了账。
-
-走出商场的时候你把纸袋抱在怀里，想着他收到的时候大概会先拿起来看两眼，然后挑眉看你一眼说"你眼光还行嘛"。你想着他那个得意的样子，嘴角翘了一下。`;
-                } else if (choice === "C") {
-                    giftText = `<div style="background:#FFF0F5; padding:16px; border-radius:16px; margin-top:8px;">你站在那个小架子前面看了很久。
-
-那个钥匙扣不大，库里的剪影，投篮的姿势，跟当年他给你的那个有点像。但这个是新的，亮亮的，还没被摸过。
-
-你想起那个旧的现在挂在你书包上，磨得边角都发白了。你每天背着它上学、放学，走路的时候它会晃来晃去，有时候拍在书包上发出轻轻的响声。你从来没想过要换掉它，因为那是他给你的。
-
-但你买一个给他的时候，你想着他收到会说什么——大概会先"咦"一声，然后拿起来翻来覆去地看，然后笑着说"你咋买个跟我那个一样的"。你想着到时候怎么回他——你就说"不是一样的，这个是投篮的姿势，你那个是运球的姿势，不一样"。他大概会说你眼睛真尖，然后把它挂在书包上，跟当年挂那个旧的一样。
-
-你把这个新的钥匙扣放在手心里握了一下，然后去结了账。`;
-                } else {
-                    giftText = `<div style="background:#FFF0F5; padding:16px; border-radius:16px; margin-top:8px;">你拿起那个保温杯看了看，黑色的，磨砂质感，上面什么图案都没有，简简单单的。你拧开盖子看了一眼里面，不锈钢的，没有异味。你想起他说训练中心的水有时候凉得快，冬天的时候喝冷水胃不舒服——他跟你提过一次，说完就忘了，但你记住了。
-
-你想着他收到的时候大概会先"哦"一声，然后拧开盖子看看里面，说一句"这个不错诶"。然后他可能会每天带着它训练，早上灌一壶热水，休息的时候坐在角落里慢慢喝。你想着他在训练室里捧着那个黑杯子喝水的样子，觉得这个礼物买对了。
-
-你拿着保温杯去了收银台，结完账走出来的时候天边已经泛了一点橘色。你抱着纸袋走得很快，像是急着要把这个决定落地成真的东西送到他手上。`;
-                }
-                
-                document.getElementById("storyContent").innerHTML += `<div style="margin-top:16px;">${giftText}</div>`;
-                document.getElementById("branchArea").innerHTML = "";
-                showOpenPhoneButton();
-                
-            });
+你拿着那对小狗耳朵去结账，收银台的姐姐看了你一眼，笑了一下。你有点不好意思地付了钱，然后把纸袋抱在怀里。`;
+            }
+            
+            document.getElementById("storyContent").innerHTML += `<div style="margin-top:16px;">${giftText}</div>`;
+            document.getElementById("branchArea").innerHTML = "";
+            showOpenPhoneButton();
+            
         });
-    }
-
+    });
+}
         function showOpenPhoneButton() {
         let commonText = `（共通线）你摸出手机，给他发了一条消息。`;
         document.getElementById("storyContent").innerHTML += `<div style="margin-top:16px;">${commonText}</div>`;
@@ -10374,62 +10346,52 @@ function switchPage(pageId) {
                 // 刷新聊天
                 openChat("张桂源");
                 
-                // 自动返回剧情页面
-                setTimeout(function() {
-                    // 关闭聊天详情，返回聊天列表
-                    document.getElementById("chatListScreen").style.display = "block";
-                    document.getElementById("chatDetailScreen").style.display = "none";
-                    // 切换到剧情页面
-                    switchPage("story");
-                    document.getElementById("chapterSelectPage").style.display = "none";
-                    document.getElementById("storyDetailPage").style.display = "block";
-                    document.getElementById("chapterTitle").innerText = "第2章 · 他和他的朋友";
-                    // 显示后续剧情
-                    showChapter2ContinuedStory();
-                }, 1000);
+                
             };
         });
     }
-            function showChapter2ContinuedStory() {
-        let continuedStory = `你等着他回。等了五分钟，没回。你想想，这个点他应该在训练，手机可能不在手边。你把手机揣回兜里，继续走。
+           function showChapter2ContinuedStory() {
+    var storyContent = `
+你等着他回。等了五分钟，没回。你想想，这个点他应该在训练，手机可能不在手边。你把手机揣回兜里，继续走。
 
 可是走着走着，你步子就慢了。
 
 你想起来，以前每一个五月十号，你都是在想明天要怎么给他过生日。你想过买什么样的蛋糕，想过要不要偷偷买一个小礼物放在他家门口，想过他收到的时候会是什么表情。那些小小的计划填满了五月的夜晚，让你觉得第二天是有盼头的。
 
-但今年这些都不会发生了。他明天不会在家。他在训练中心。他身边有新的朋友，他们会给他买蛋糕，插蜡烛，唱生日歌。他也许还是会想起你，但那种"一起过生日"的完整记忆，从今年开始，就会多出不属于你的那部分。
+但今年这些都不会发生了。他明天不会在家，他会在训练中心。他身边有新的朋友，他们会给他买蛋糕，插蜡烛，唱生日歌，可能他还是会想起你，但那种"零点一起过生日"的记忆，从今年开始再也不会有了。
 
 你想着这些，眼睛有点酸。你加快了脚步，想快点回家。
 
-晚上九点多，你坐在房间里写作业，手机终于亮了。`;
-        
-        document.getElementById("storyContent").innerHTML += `<div style="margin-top:16px;">${continuedStory}</div>`;
-        document.getElementById("branchArea").innerHTML = "";
-        
-        // 显示打开手机按钮（第二轮聊天）
-        document.getElementById("branchArea").innerHTML = `
-            <button id="openPhoneBtn2" class="branch-btn" style="text-align:center;">📱 打开手机</button>
-        `;
-        
-        document.getElementById("openPhoneBtn2").addEventListener("click", function() {
-            // 切换到聊天页面
-            switchPage("chat");
-            
-            // 模拟点击张桂源聊天
+晚上九点多，你坐在房间里写作业，手机终于亮了。
+`;
+    
+    document.getElementById("storyContent").innerHTML = `
+        <div style="background:#F8F8F8;border-radius:24px;padding:20px;line-height:1.7;font-size:14px;color:#333;white-space:pre-line;margin-bottom:12px;">
+            ${storyContent}
+        </div>
+    `;
+    
+    document.getElementById("branchArea").innerHTML = `
+        <button id="openPhoneBtn2" class="branch-btn" style="text-align:center;background:#E85D75;color:white;font-weight:600;padding:14px;border-radius:16px;border:none;width:100%;font-size:14px;cursor:pointer;margin-top:4px;">
+            📱 打开手机
+        </button>
+    `;
+    
+    document.getElementById("openPhoneBtn2").addEventListener("click", function() {
+        switchPage("chat");
+        setTimeout(function() {
+            var contactEl = document.querySelector('.chat-contact[data-contact="张桂源"]');
+            if (contactEl) {
+                contactEl.click();
+            } else {
+                openChat("张桂源");
+            }
             setTimeout(function() {
-                let contactEl = document.querySelector('.chat-contact[data-contact="张桂源"]');
-                if (contactEl) {
-                    contactEl.click();
-                } else {
-                    openChat("张桂源");
-                }
-                
-                setTimeout(function() {
-                    showChapter2SecondChat();
-                }, 300);
+                showChapter2SecondChat();
             }, 300);
-        });
-    }
+        }, 300);
+    });
+}
         function showChapter2SecondChat() {
         let date = "2023年5月10日 周二";
         
@@ -10638,8 +10600,8 @@ function switchPage(pageId) {
         modal.className = "option-modal";
         modal.innerHTML = `
             <div style="margin-bottom:12px; font-weight:600;">请选择你的回应</div>
-            <button class="option-btn" data-choice="A">A. 「没空，我睡了。」（赌气）</button>
-            <button class="option-btn" data-choice="B">B. 「有空，怎么了。」（轻声回应）</button>
+            <button class="option-btn" data-choice="A">A. 没空，我睡了</button>
+            <button class="option-btn" data-choice="B">B. 有空，怎么了</button>
         `;
         document.body.appendChild(modal);
         
@@ -10823,11 +10785,12 @@ function switchPage(pageId) {
     }
       
 
-
-    // ================= 分支A结局 =================
-         // ================= 分支A结局 =================
-    function showBranchAEnding() {
-        let ending = `你看着那个"哦"，心里更闷了。你把手机扣在枕头底下，翻了个身，闭上眼睛。
+// ================= 分支A结局 =================
+function showBranchAEnding() {
+    // 清空当前内容，显示独立页面
+    document.getElementById("storyContent").innerHTML = `
+        <div style="background:#F8F8F8;border-radius:24px;padding:20px;line-height:1.7;font-size:14px;color:#333;white-space:pre-line;">
+你看着那个"哦"，心里更闷了。你把手机扣在枕头底下，翻了个身，闭上眼睛。
 
 你其实没睡。你躺在床上，盯着窗帘缝漏进来的光，听窗外偶尔经过的车声，脑子里翻来覆去地想——他会不会觉得你莫名其妙？他会不会觉得你生气了？他会不会干脆不来找你了？
 
@@ -10855,104 +10818,97 @@ function switchPage(pageId) {
 
 你没吃完。你把剩下的放进冰箱，把那张纸条夹进了日记本里。
 
-然后你拿出手机，给张桂源发了一条消息：`;
+然后你拿出手机，给张桂源发了一条消息：
+        </div>
+    `;
+    
+    chapter2Progress = 3;
+    localStorage.setItem("chapter2_progress", "3");
+    localStorage.setItem("chapter2_story_html", document.getElementById("storyContent").innerHTML);
+    localStorage.setItem("chapter2_branch_choice", "A");
+    
+    document.getElementById("branchArea").innerHTML = `
+        <button id="openPhoneBtn3" class="branch-btn" style="text-align:center;background:#E85D75;color:white;font-weight:600;padding:14px;border-radius:16px;border:none;width:100%;font-size:14px;cursor:pointer;margin-top:4px;">
+            📱 打开手机
+        </button>
+    `;
+    
+    document.getElementById("openPhoneBtn3").addEventListener("click", function() {
+        switchPage("chat");
+        var date = "2023年5月10日 周二";
         
-        document.getElementById("storyContent").innerHTML += `<div style="margin-top:16px;">${ending}</div>`;
+        chatData["张桂源"].messages.push({ 
+            from: "me", 
+            text: "生日快乐。", 
+            time: "08:30", 
+            avatar: "🐰", 
+            date: date,
+            read: true
+        });
         
-        // ========== 保存分支A结局 ==========
-        chapter2Progress = 3;
-        localStorage.setItem("chapter2_progress", "3");
-        localStorage.setItem("chapter2_story_html", document.getElementById("storyContent").innerHTML);
-        localStorage.setItem("chapter2_branch_choice", "A");
-        // ========== 保存结束 ==========
-        
-        // 显示打开手机按钮
-        document.getElementById("branchArea").innerHTML = `
-            <button id="openPhoneBtn3" class="branch-btn" style="text-align:center;">📱 打开手机</button>
-        `;
-        
-        document.getElementById("openPhoneBtn3").addEventListener("click", function() {
-            switchPage("chat");
-            let date = "2023年5月10日 周二";
-            
+        setTimeout(function() {
             chatData["张桂源"].messages.push({ 
                 from: "me", 
-                text: "生日快乐。", 
-                time: "08:30", 
+                text: "生日礼物给你妈妈了，回来记得拆", 
+                time: "08:31", 
                 avatar: "🐰", 
                 date: date,
                 read: true
             });
+            renderChatMessages();
+            renderChatList();
+            openChat("张桂源");
             
-            setTimeout(() => {
-                chatData["张桂源"].messages.push({ 
-                    from: "me", 
-                    text: "生日礼物给你妈妈了，回来记得拆", 
-                    time: "08:31", 
-                    avatar: "🐰", 
-                    date: date,
-                    read: true
+            var inputBox = document.getElementById("chatInputBox");
+            if (inputBox) {
+                inputBox.innerText = "↩️ 点击左上角返回结束生日剧情";
+            }
+            
+            document.getElementById("chatBackBtn").onclick = function() {
+                document.getElementById("chatListScreen").style.display = "block";
+                document.getElementById("chatDetailScreen").style.display = "none";
+                switchPage("story");
+                document.getElementById("chapterSelectPage").style.display = "none";
+                document.getElementById("storyDetailPage").style.display = "block";
+                document.getElementById("chapterTitle").innerText = "第2章 · 生日和新的名字";
+                
+                document.getElementById("branchArea").innerHTML = `
+                    <button id="endBirthdayBtnA" class="end-chapter-btn" style="background:#E85D75;color:white;border:none;padding:14px;border-radius:30px;font-size:1rem;font-weight:600;margin-top:20px;cursor:pointer;width:100%;">
+                        📖 结束生日剧情
+                    </button>
+                    <div style="font-size:12px;color:#999;text-align:center;margin-top:8px;">点击结束生日剧情后，继续第二章后续内容</div>
+                `;
+                document.getElementById("endBirthdayBtnA").addEventListener("click", function() {
+                    showRouteInvite();
                 });
-                renderChatMessages();
-                renderChatList();
-                openChat("张桂源");
-                
-                // 修改输入框提示
-                let inputBox = document.getElementById("chatInputBox");
-                if (inputBox) {
-                    inputBox.innerText = "↩️ 点击左上角返回结束生日剧情";
-                }
-                
-                // 重写返回按钮
-                document.getElementById("chatBackBtn").onclick = function() {
-                    document.getElementById("chatListScreen").style.display = "block";
-                    document.getElementById("chatDetailScreen").style.display = "none";
-                    switchPage("story");
-                    document.getElementById("chapterSelectPage").style.display = "none";
-                    document.getElementById("storyDetailPage").style.display = "block";
-                    document.getElementById("chapterTitle").innerText = "第2章 · 生日和新的名字";
-                    
-                    // ========== 显示结束生日剧情按钮 ==========
-                    document.getElementById("branchArea").innerHTML = `
-                        <button id="endBirthdayBtnA" class="end-chapter-btn">📖 结束生日剧情</button>
-                        <div style="font-size:12px; color:#999; text-align:center; margin-top:8px;">点击结束生日剧情后，继续第二章后续内容</div>
-                    `;
-                    document.getElementById("endBirthdayBtnA").addEventListener("click", function() {
-                        // 调用路演邀请
-                        showRouteInvite();
-                    });
-                    // ========== 结束生日剧情按钮 ==========
-                };
-            }, 500);
-        });
-    }
+            };
+        }, 500);
+    });
+}
 
-    // ================= 分支B结局 =================
-            // ================= 分支B结局 =================
-    function showBranchBEnding() {
-        // 切换到剧情页面
-        switchPage("story");
-        document.getElementById("chapterSelectPage").style.display = "none";
-        document.getElementById("storyDetailPage").style.display = "block";
-        document.getElementById("chapterTitle").innerText = "第2章 · 生日和新的名字";
-        
-        let story = `他说完这句话就没再回了。你看着屏幕，心跳快了一点点。你把手机放在桌上，假装写作业，但一个字也没写进去。
+// ================= 分支B结局 =================
+function showBranchBEnding() {
+    switchPage("story");
+    document.getElementById("chapterSelectPage").style.display = "none";
+    document.getElementById("storyDetailPage").style.display = "block";
+    document.getElementById("chapterTitle").innerText = "第2章 · 生日和新的名字";
+    
+    document.getElementById("storyContent").innerHTML = `
+        <div style="background:#F8F8F8;border-radius:24px;padding:20px;line-height:1.7;font-size:14px;color:#333;white-space:pre-line;">
+他说完这句话就没再回了。你看着屏幕，心跳快了一点点。你把手机放在桌上，假装写作业，但一个字也没写进去。
 
 你等到快十二点。
 
 你妈已经睡了，客厅的灯关着，你房间只开了一盏台灯。你穿着睡衣坐在床上，手里攥着手机，困得上下眼皮打架，但就是不想睡。
 
-快十二点的时候，有人敲门。
+你刚想发信息问张桂源是不是整你的时候，听到有人敲门。
 
-不是门铃，是轻轻的、怕吵醒别人的那种敲门声。三下。间隔得刚刚好。
-
-你从床上弹起来，光着脚跑到门口，从猫眼往外看——楼道里黑漆漆的，只有声控灯亮着，微弱的光线里站着一个穿连帽卫衣的身影，头发被帽子压得有点乱，手里端着一个东西。
+敲门的声音很轻，但你怕家里人听到，立马从床上弹起来，光着脚跑到门口，从猫眼往外看——楼道里黑漆漆的，只有声控灯亮着，微弱的光线里站着一个身影，手里端着一个东西，闪着亮亮的火光。
 
 你打开门。
 
-楼道里很黑，你家的灯光从你背后泄出去。他站在那道光和黑暗的交界处。手里端着一盘蛋糕，六寸的，奶油抹得匀匀的——店里买的那种，上面插了一根蜡烛，火苗在他面前晃晃悠悠地跳。
+楼道里很黑，只有后面的声控灯亮着微弱的光。他手里端着一个小小的蛋糕，上面插了一根蜡烛，火苗在他面前晃晃悠悠地跳，眼睫毛下面拖着一小片暖黄色的阴影。
 
-他看起来像是刚从外面赶过来的，卫衣拉链没拉好，头发有点乱，呼吸还带着跑过之后的急促。但他整个人被那根蜡烛的光映着，眼睫毛下面有一小片暖黄色的影子，卧蚕鼓鼓的，嘴角圆圆的，在笑。
 
 "怎么这么慢。"他说，声音压得很低，怕吵醒屋里的人。
 
@@ -10960,37 +10916,45 @@ function switchPage(pageId) {
 
 "我来过生日啊。"他说得理所当然，"今天是我生日。"
 
-"你明天不是要训练吗？"
+"你今天不是要训练吗？还不睡"
 
-"明天是明天的事，今天过完再说明天。"他把那盘蛋糕往前递了递，"你拿着，我的手好酸。"
+"对啊，不过没事"他把那盘蛋糕往前递了递，"你拿着，我的手好酸。"
 
 你接过那盘蛋糕，低头看了一眼。奶油抹得匀匀的，水果整整齐齐的，上面插了一根蜡烛。
 
-"我帮你多许一个愿。"他说。
+"你许愿了吗？"
 
-"今天是你生日，你自己许。"
+"没有。等你一起。"
 
-"我许过了。这个名额让给你。"他看着你，眼睛里映着那根蜡烛的火苗，亮晶晶的，又认真又有点不好意思，"每年都是我们一起过的，今年不能一起过了，所以我想……至少零点的时候能让你吃到一口。"
+你愣了一下，抬头看他。他把两只手插进睡裤口袋里，肩膀缩了缩，像是楼道里有点冷。蜡烛的火光在他脸上晃，他右脸上那三颗痣清清楚楚的。他垂着眼看着蛋糕，又抬起来看你，嘴角还翘着。
 
-你看着他。
+"快一点，蜡烛要烧完了。"他说，声音软软的，"我偷偷溜下去买的，我妈都不知道。"
 
-楼道很黑，声控灯已经灭了。只有你房间漏出来的光和这根蜡烛，在他脸上摇摇晃晃的。他站在那片光里，穿着那件洗得有点发白的卫衣，头发乱乱的，呼吸慢慢平下来了。他看起来有点傻，有点局促，像是不太确定自己做这件事到底对不对。
+你看着他。他站在黑暗里，站在那一小簇火光中间，穿着睡衣睡裤，头发翘着，耳朵在火光里一点点变红。
 
-"你这个人……"你说，声音有点哑。
+"你先许。"你说。
 
-"我怎么了。"
+"一起。"
 
-"怎么这么肉麻。"
+"你生日，你先许。"
 
-他笑了，卧蚕鼓起来。"行，我肉麻，你快许愿，蜡烛要烧完了。"
+他看了你两秒，嘴唇动了动，想说什么又咽回去了。然后他低下头，看着那根蜡烛。火苗映在他眼睛里，一跳一跳的。他闭上眼，睫毛垂下来，在眼下投了一小片毛茸茸的影子。眉心微微蹙着——很认真地、很用力地在想一个愿望。
 
-你看着他，摇了摇头："你许。你生日你许两次。"
+大概三四秒。他睁开眼。
 
-"我许过了——"
+第一下没看你，先看了一眼蜡烛，像是确认火还烧着。然后他的目光慢慢抬起来，飘到你脸上，停了一下，又飘开，落在你肩膀后面黑漆漆的楼道里。但马上又飘回来了，定在你眼睛的位置，不动了。
 
-"那你许第二遍，反正我不许。"
+他耳朵红红的。火光底下看得特别清楚，从耳垂一路红到耳尖。
 
-他愣了一下，然后笑了。这次笑得很轻，嘴角翘了一点点。他低下头，闭上眼睛。
+"许的啥子。"你问。
+
+他眨了两下眼，嘴角压了压，没压住，翘起来一点。"不告诉你。"他说，声音比刚才低了一点，像是许完那个愿之后整个人变软了一截，"说了就不灵了。"
+
+他往前凑了凑，下巴往你这边伸："你快尝一口，我挑了好久。"
+
+你拿起叉子，挑了一小块。奶油甜而不腻，蛋糕胚松软，草莓新鲜的，微酸刚好中和了甜味。你嚼了嚼，咽下去。
+
+"怎么样？"他凑得很近，眼睛亮亮的，一眨不眨地盯着你看。火光照在他脸上，他整个人像一只蹲在门口等投喂的什么小动物。
 
 蜡烛的火光照在他脸上，他右脸上的三颗痣看得清清楚楚。他的睫毛很长，闭上眼睛的时候在眼下投了一小片阴影。他安静了两秒钟，然后睁开眼睛。
 
@@ -11030,31 +10994,29 @@ function switchPage(pageId) {
 
 你关上门，靠着门板站了一会儿。
 
-蛋糕还在你手里，蜡烛烧到了底。你把那根蜡烛拿起来，蜡油还有点烫。你捏着它，站在门口好一会儿，才转身走回房间。`;
+蛋糕还在你手里，蜡烛烧到了底。你把那根蜡烛拿起来，蜡油还有点烫。你捏着它，站在门口好一会儿，才转身走回房间。
+        </div>
+    `;
+    
+    chapter2Progress = 3;
+    localStorage.setItem("chapter2_progress", "3");
+    localStorage.setItem("chapter2_story_html", document.getElementById("storyContent").innerHTML);
+    localStorage.setItem("chapter2_branch_choice", "B");
+    
+    document.getElementById("branchArea").innerHTML = `
+        <button id="endBirthdayBtnB" class="end-chapter-btn" style="background:#E85D75;color:white;border:none;padding:14px;border-radius:30px;font-size:1rem;font-weight:600;margin-top:20px;cursor:pointer;width:100%;">
+            📖 结束生日剧情
+        </button>
+        <div style="font-size:12px;color:#999;text-align:center;margin-top:8px;">点击结束生日剧情后，继续第二章后续内容</div>
+    `;
+    
+    document.getElementById("endBirthdayBtnB").addEventListener("click", function() {
+        showRouteInvite();
+    });
+}
+  
+         
         
-        // 追加到已有剧情后面
-        document.getElementById("storyContent").innerHTML += `<div style="margin-top:16px;">${story}</div>`;
-        
-        // ========== 保存分支B结局 ==========
-        chapter2Progress = 3;
-        localStorage.setItem("chapter2_progress", "3");
-        localStorage.setItem("chapter2_story_html", document.getElementById("storyContent").innerHTML);
-        localStorage.setItem("chapter2_branch_choice", "B");
-        // ========== 保存结束 ==========
-        
-        document.getElementById("branchArea").innerHTML = "";
-        
-        // ========== 显示结束生日剧情按钮 ==========
-        document.getElementById("branchArea").innerHTML = `
-            <button id="endBirthdayBtnB" class="end-chapter-btn">📖 结束生日剧情</button>
-            <div style="font-size:12px; color:#999; text-align:center; margin-top:8px;">点击结束生日剧情后，继续第二章后续内容</div>
-        `;
-        document.getElementById("endBirthdayBtnB").addEventListener("click", function() {
-            // 调用路演邀请
-            showRouteInvite();
-        });
-        // ========== 结束生日剧情按钮 ==========
-    }
           // ================= 路演邀请（弹窗版） =================
     function showRouteInvite() {
         // 先切换到剧情页面
@@ -12077,11 +12039,13 @@ function switchPage(pageId) {
         document.getElementById("storyDetailPage").style.display = "block";
         document.getElementById("chapterTitle").innerText = "第2章 · 生日和新的名字";
         
-        let story = `你站在石梯坎旁边等了大概十分钟。秋天的傍晚凉意已经开始往下沉了，你缩了缩脖子，看着远处的天慢慢从蓝变橘再变灰。
+        let story = `秋天的傍晚凉意已经开始往下沉了，远处的天慢慢从蓝变橘。
 
-然后你听到脚步声，蹬蹬蹬蹬跑过来的那种，老远就认得出。
+你等了大概有十分钟，看见张桂源带着一个人往你这边走来
 
-他跑过来的时候还穿着舞台上的衣服，妆没卸干净，额头上还有汗。他后面跟着两个人——陈浚铭跑得最快，像一颗弹珠一样弹到你面前，然后猛地刹住车。他仰头看着你，然后咧嘴笑了，声音清脆地喊了一声："姐姐！"
+看到你后，张桂源拉了一下旁边的男生，向你跑来
+
+他跑过来的时候妆都没卸，额头上还有汗。他后面跟着一个人——像一颗弹珠一样弹到你面前，然后猛地刹住车。他看着你，然后咧嘴笑了，喊了一声："姐姐好！"
 
 他喊完又重复了一遍："姐姐！张桂源说的就是你啊！"
 
@@ -12089,15 +12053,15 @@ function switchPage(pageId) {
 
 "他经常说你——"陈浚铭回头指着张桂源，"他说他有个从小一起长大的朋友，特别——"
 
-"陈浚铭。"张桂源在后面打断他，声音有点紧。
+"陈浚铭。"张桂源在后面打断他
 
-陈浚铭完全没理他，转回来继续仰头看着你："他说你——"
+陈浚铭完全没理他，转回来继续看着你："他说你——"
 
 "陈浚铭你再说话不请你吃饭了。"张桂源快步走过来，站到你旁边。
 
-"哦。"陈浚铭瘪了一下嘴，但眼睛还是亮晶晶地看着你，"姐姐你叫什么名字啊，我加你微信好不好，以后来找你玩——"
+"哦。"陈浚铭瘪了一下嘴，但眼睛还是亮晶晶地看着你，好奇地凑在你身边"姐姐你叫什么名字啊，我加你联系方式好不好，以后来找你玩——"
 
-"你加什么微信。"张桂源说。
+"你加什么微信？"张桂源说，把陈浚洺往他身边拉
 
 "我加姐姐微信啊，你不是也——"
 
@@ -12105,17 +12069,16 @@ function switchPage(pageId) {
 
 "你上次还说——"
 
-张桂源伸手捂住了他的嘴。陈浚铭在他手心里含含糊糊地挣扎，唔唔唔的。
+张桂源伸手捂住了他的嘴，陈浚铭在他手心里含含糊糊地挣扎，唔唔唔的。
 
-陈奕恒走在最后面，慢慢地走过来。他看到你，笑了一下，站到旁边安静地没说话。
 
-"走走走去吃饭。"陈浚铭好不容易挣脱出来，拍了一下张桂源的胳膊，"你请客你请客！"
+"走走走去吃饭。"陈浚铭好不容易挣脱出来，拍了一下张桂源的胳膊，"好不容易张桂源请吃饭"
 
-"我请就我请。"张桂源看了你一眼，"走吧，你想吃啥子。"
+张桂源看了你一眼，"走吧，你想吃啥子。"
 
-你们在附近找了一家小店，围着一张桌子坐下。陈浚铭坐在你对面，陈奕恒坐你旁边，张桂源坐在陈浚铭旁边。
+你们在附近找了一家小店，围着一张桌子坐下。陈浚铭坐在你对面，张桂源坐在你旁边。
 
-陈浚铭撑着下巴看你，眼睛圆溜溜的，十一岁的脸上全是好奇。"姐姐你多大了呀，你比张桂源小一岁吗？那你现在读——"
+陈浚铭撑着下巴看你，眼睛圆溜溜的，脸上全是好奇。"姐姐你多大了呀，你比张桂源小一岁吗？那你现在读——"
 
 "你查户口呢。"张桂源打断他。
 
@@ -12125,41 +12088,21 @@ function switchPage(pageId) {
 
 "因为她是你的朋友啊。"陈浚铭理直气壮地说，"你的朋友就是我的朋友。"
 
-张桂源张了张嘴，没找到反驳的话。他的筷子在碗里拨了一下，最终只低头夹了一口菜。
-
-陈浚铭继续叭叭叭地说训练的事，说了好一会儿，忽然又转向你："姐姐你平时会来看我们训练吗？你来的时候告诉我一声，我——"
-
-"她来不是为了看你。"张桂源终于插了一句。
-
-"我知道啊，"陈浚铭转头看他，笑嘻嘻的，"她是来看你的嘛。但是你也来看我训练的呀，我们每天都一起训练的，那她来看你不就等于也来看我了。"
-
 张桂源："......你这什么逻辑。"
 
 "小学生的逻辑。"陈浚铭说得很得意。
 
-你被陈浚铭那句"她是来看你的嘛"搞得耳朵有点烫，低头假装喝汤。
+陈浚铭在对面吸溜着酸辣粉，嘴巴周围一圈红油。"姐姐你点的什么面啊，好不好吃——"他伸过头来看你的碗，"哇这个蛋看起来好好吃。"
 
-陈奕恒坐在你旁边，安静地吃饭。他偶尔看你一眼，你注意到的时候他就会飞快地移开，然后假装在看别的方向。过了一会儿他把一碗蛋花汤推到你面前，小声说："这个，不辣。"然后继续低头吃饭了。
+"你自己不是有吗。"张桂源在旁边说了一句。
 
-"陈奕恒你真好。"陈浚铭探过头来，"你帮我也推一碗。"
+"我的不是蛋啊，我的是粉"陈浚铭低头看了一眼，"我就看看嘛"
 
-"你自己有。"陈奕恒说。
+饭吃完了。陈浚铭还在叽叽喳喳，说今天路演哪一段没跳好、哪一段被老师夸了。张桂源一直在听，偶尔回一句嘴。
 
-"我想喝你推的那碗。"
+你看着他们，忽然觉得这个画面有点奇怪——你坐在他们旁边，像是被临时拉进来的那个人。他们说的话你大部分都听得懂，但又好像听不懂那些藏在话底下的东西——那些训练的疲惫、努力、互相支撑的日常。
 
-"你自己。"
-
-陈浚铭瘪了瘪嘴，转头看着你，"姐姐你看他——"
-
-你笑了一下。张桂源在对面低头吃饭，看了你一眼又收回去。过了一会儿他又看了你一眼，眉头微微动了一下。
-
-你注意到他看你的次数，好像比平时多了那么一点。但你不知道是什么原因。
-
-饭吃完了。陈浚铭还在叽叽喳喳，说今天路演哪一段没跳好、哪一段被老师夸了。张桂源一直在听，偶尔回一句嘴。你看着他们，忽然觉得这个画面有点奇怪——你坐在他们旁边，像是被临时拉进来的那个人。他们说的话你大部分都听得懂，但又好像听不懂那些藏在话底下的东西——那些训练的疲惫、努力、互相支撑的日常。
-
-你插不上话。你低头喝了一口汤，没说话。
-
-走出店门的时候，陈浚铭还不忘回头喊了一句："姐姐加微信！你加我好不好——"
+临走的时候，陈浚铭像故意似的又对你说："姐姐你加我好不好"
 
 "你作业写完了吗。"张桂源的声音从旁边飘过来。
 
@@ -12167,15 +12110,7 @@ function switchPage(pageId) {
 
 "那你也回去再要微信。"张桂源说完顿了一下，"......不是，你加她干嘛。"
 
-"多个姐姐嘛！"陈浚铭跑过来两步，仰着脸看你，"姐姐下次来看我们训练吧，桂源哥训练的时候——"
-
-"陈浚铭。"
-
-"好嘛好嘛我不说了。"陈浚铭缩了缩脖子
-
-陈奕恒站在旁边低头笑了一下，没说话。
-
-街对面那辆商务车已经打着双闪等了一会儿了。张桂源转过身来看着你："那我先回去了。"
+街对面那辆商务车已经打着双闪等了一会儿了。张桂源转过身来看着你："那我先回公司了"
 
 "嗯。"
 
@@ -12183,9 +12118,7 @@ function switchPage(pageId) {
 
 "好。"
 
-他转身走了两步，陈浚铭跟在后面蹦蹦跳跳的，陈奕恒慢悠悠地在最后。走到车门口的时候，张桂源回头看了一眼——你还在原地站着。他看到你在，又转回去了。
-
-你走过转角的时候，身后那些声音越来越远了。秋天晚上的风从江边吹过来，你低头走了一段，发现自己嘴角是翘着的。`;
+`;
         
         document.getElementById("storyContent").innerHTML += `<div style="margin-top:16px;">${story}</div>`;
         document.getElementById("branchArea").innerHTML = "";
