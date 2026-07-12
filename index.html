@@ -3410,189 +3410,189 @@ function getAllSavesFromIndexedDB() {
         return saves;
     }
     
-    // 保存到指定存档位
-        function saveToSlot(slotId) {
-        const saveData = {
-            player: {
-                name: player.name,
-                nickname: player.nickname,
-                wechatName: player.wechatName,
-                weiboName: player.weiboName,
-                love: player.love,
-                expose: player.expose,
-                dark: player.dark,
-                danger: player.danger,
-                fans: player.fans,
-                allMyWeibo: allMyWeibo || [],
-                 transactions: player.transactions || [] 
-            },
-            currentChapter: currentChapter,
-            chapterCompleted: chapterCompleted,
-            meetCount: meetCount,
-            usedMeetIndices: usedMeetIndices || [],
-            unlockedChapters: unlockedChapters,
-            completedChapters: completedChapters,
-            // ========== 聊天数据（安全保存） ==========
-            chatData: {
-                "张桂源": {
-                    messages: (chatData["张桂源"] && chatData["张桂源"].messages) ? chatData["张桂源"].messages : [],
-                    roundCompleted: (chatData["张桂源"] && chatData["张桂源"].roundCompleted) ? chatData["张桂源"].roundCompleted : false
-                },
-                "WXYz": {
-                    messages: (chatData["WXYz"] && chatData["WXYz"].messages) ? chatData["WXYz"].messages : [],
-                    roundCompleted: (chatData["WXYz"] && chatData["WXYz"].roundCompleted) ? chatData["WXYz"].roundCompleted : false
-                }
-            },
-            // ========== 朋友圈 ==========
-            allMoments: allMoments || [],
-            myMoments: myMoments || [],
-            momentsData: momentsData || [],
-            // ========== 微博 ==========
-            allArtistWeibo: allArtistWeibo || [],
-            allMyWeibo: allMyWeibo || [],
-            // ========== 礼物日记来信 ==========
-            gifts: gifts || [],
-            diaryEntries: diaryEntries || [],
-            letters: letters || [],
-                    // 在 saveData 对象中添加：
-        friendRequests: friendRequests,
-        hasNewFriendRequest: hasNewFriendRequest,
-        friends: friends,
-         contactRemarks: contactRemarks || {},
-            // ========== 剧情内容 ==========
-            savedAt: new Date().toLocaleString(),
-            chapterTitle: currentChapter === 1 ? "重庆的夏天永远不会结束" : (currentChapter === 2 ? "生日和新的名字" : "心动"),
-            storyContent: document.getElementById("storyContent")?.innerHTML || "",
-            branchArea: document.getElementById("branchArea")?.innerHTML || ""
-        };
-        
-        localStorage.setItem(`sisterSimulatorSave_${slotId}`, JSON.stringify(saveData));
-        alert(`✅ 已保存到存档 ${slotId}`);
-        renderSaveManagerModal();
-    }
-    
-       function loadFromSlot(slotId) {
-    const saveData = localStorage.getItem(`sisterSimulatorSave_${slotId}`);
-    if (!saveData) {
-        alert("该存档位为空");
-        return false;
-    }
+    function saveToSlot(slotId) {
+    var saveData = {
+        player: {
+            name: player.name || '',
+            nickname: player.nickname || '',
+            wechatName: player.wechatName || '',
+            weiboName: player.weiboName || '',
+            love: player.love || 30,
+            expose: player.expose || 0,
+            dark: player.dark || 0,
+            danger: player.danger || 0,
+            fans: player.fans || 500,
+            wise: player.wise || 0,
+            money: player.money || 0,
+            stress: player.stress || 10,
+            stamina: player.stamina || 25,
+            transactions: (player.transactions || []).slice(-50)
+        },
+        currentChapter: currentChapter || 1,
+        chapterCompleted: chapterCompleted || false,
+        meetCount: meetCount || 0,
+        usedMeetIndices: (usedMeetIndices || []).slice(-20),
+        unlockedChapters: unlockedChapters || [true, false, false, false],
+        completedChapters: completedChapters || [false, false, false, false],
+        chatData: chatData || {},
+        allMoments: (allMoments || []).slice(0, 20),
+        myMoments: (myMoments || []).slice(0, 20),
+        momentsData: (momentsData || []).slice(0, 20),
+        allArtistWeibo: (allArtistWeibo || []).slice(0, 20),
+        allMyWeibo: (allMyWeibo || []).slice(0, 20),
+        gifts: (gifts || []).slice(0, 30),
+        diaryEntries: (diaryEntries || []).slice(0, 20),
+        letters: letters || [],
+        friendRequests: friendRequests || [],
+        hasNewFriendRequest: hasNewFriendRequest || false,
+        friends: friends || [],
+        contactRemarks: contactRemarks || {},
+        myCards: (myCards || []).slice(0, 30),
+        cardSets: cardSets || [],
+        zhang_dialogue_done: localStorage.getItem('zhang_dialogue_done') === 'true',
+        chapter1_all_tasks_triggered: localStorage.getItem('chapter1_all_tasks_triggered') === 'true',
+        savedAt: new Date().toLocaleString(),
+        chapterTitle: currentChapter === 1 ? "重庆的夏天永远不会结束" : (currentChapter === 2 ? "生日和新的名字" : "心动"),
+    savedAt: new Date().toLocaleString()  // 加这行
+    };
 
+    var jsonStr = JSON.stringify(saveData);
+    var savedToLocal = false;
+    var savedToIndexed = false;
+
+    // ===== 1. 尝试 localStorage =====
     try {
-        const data = JSON.parse(saveData);
-
-        // 恢复玩家数据
-        player.name = data.player.name;
-        player.nickname = data.player.nickname;
-        player.wechatName = data.player.wechatName;
-        player.weiboName = data.player.weiboName;
-        player.love = data.player.love;
-        player.expose = data.player.expose;
-        player.dark = data.player.dark;
-        player.danger = data.player.danger;
-        player.fans = data.player.fans;
-        player.transactions = data.player.transactions || [];
-
-        // 恢复进度
-        currentChapter = data.currentChapter;
-        chapterCompleted = data.chapterCompleted;
-        meetCount = data.meetCount || 0;
-        usedMeetIndices = data.usedMeetIndices || [];
-
-        // 恢复章节状态
-        if (data.unlockedChapters) unlockedChapters = data.unlockedChapters;
-        if (data.completedChapters) completedChapters = data.completedChapters;
-
-        // 恢复聊天
-        if (data.chatData) {
-            if (data.chatData["张桂源"]) {
-                chatData["张桂源"].messages = data.chatData["张桂源"].messages;
-                chatData["张桂源"].roundCompleted = data.chatData["张桂源"].roundCompleted;
-            }
-            if (data.chatData["WXYz"]) {
-                chatData["WXYz"].messages = data.chatData["WXYz"].messages;
-                chatData["WXYz"].roundCompleted = data.chatData["WXYz"].roundCompleted;
-            }
-        }
-// 恢复收支记录
-player.transactions = data.player.transactions || [];
-        // 恢复朋友圈
-        if (data.allMoments) allMoments = data.allMoments;
-        if (data.myMoments) myMoments = data.myMoments;
-        if (data.momentsData) momentsData = data.momentsData;
-
-        // 恢复微博
-        if (data.allArtistWeibo) allArtistWeibo = data.allArtistWeibo;
-        if (data.allMyWeibo) allMyWeibo = data.allMyWeibo;
-        // 恢复微博数据（用存档的数据覆盖内存）
-if (data.allMyWeibo) {
-    allMyWeibo = data.allMyWeibo.slice(); // 复制存档中的微博
-    console.log('✅ 读取存档微博数据，共 ' + allMyWeibo.length + ' 条');
-} else {
-    allMyWeibo = [];
-    console.log('✅ 存档中没有微博数据，已清空');
-}
-
-        // 恢复礼物日记来信
-        if (data.gifts) gifts = data.gifts;
-        if (data.diaryEntries) diaryEntries = data.diaryEntries;
-        if (data.letters) letters = data.letters;
-
-        // ✅ 恢复备注数据（从存档读取，覆盖全局）
-        if (data.contactRemarks) {
-            contactRemarks = data.contactRemarks;
-        } else {
-            contactRemarks = {};
-        }
-        // 同步保存到 localStorage（但只作为缓存，实际数据在存档中）
-        saveRemarks();
-
-        // 恢复好友申请
-        if (data.friendRequests) friendRequests = data.friendRequests;
-        if (data.hasNewFriendRequest !== undefined) hasNewFriendRequest = data.hasNewFriendRequest;
-        if (data.friends) friends = data.friends;
-
-        // ... 后续恢复剧情代码保持不变 ...
-
-        // 刷新界面
-        renderChatList();
-        renderMoments();
-        renderWeibo();
-        renderMyPage();
-        updateLetterRedDot();
-
-        // 切换到游戏界面
-        document.getElementById("startScreen").style.display = "none";
-        document.getElementById("gameScreen").style.display = "flex";
-
-        // 刷新聊天消息显示
-        if (currentChatContact && chatData[currentChatContact]) {
-            renderChatMessages();
-        }
-
-        // 刷新章节列表
-        renderChapterList();
-        updateChapterStatusHint();
-
-        alert(`✅ 读取存档 ${slotId} 成功！\n📖 当前进度：第${currentChapter}章\n❤️ 当前爱意值：${player.love}`);
-
-        return true;
-
+        localStorage.setItem('sisterSimulatorSave_' + slotId, jsonStr);
+        console.log('✅ localStorage 保存成功');
+        savedToLocal = true;
     } catch(e) {
-        console.error("读取存档失败:", e);
-        alert("读取存档失败，存档文件可能已损坏");
-        return false;
+        console.log('localStorage 保存失败:', e.message);
     }
-}
-    
-    // 删除指定存档位
-    function deleteSlot(slotId) {
-        if (confirm(`确定要删除存档 ${slotId} 吗？`)) {
-            localStorage.removeItem(`sisterSimulatorSave_${slotId}`);
-            alert(`✅ 已删除存档 ${slotId}`);
-            renderSaveManagerModal();
+
+    // ===== 2. 无论 localStorage 是否成功，都尝试 IndexedDB =====
+    try {
+        var request = indexedDB.open('SisterSimulatorDB', 1);
+        request.onupgradeneeded = function(ev) {
+            var db = ev.target.result;
+            if (!db.objectStoreNames.contains('saves')) {
+                db.createObjectStore('saves', { keyPath: 'id' });
+            }
+        };
+        request.onsuccess = function(ev) {
+            var db = ev.target.result;
+            var tx = db.transaction('saves', 'readwrite');
+            var store = tx.objectStore('saves');
+            store.put({
+                id: 'save_' + slotId,
+                data: saveData,
+                time: new Date().toISOString()
+            });
+            tx.oncomplete = function() {
+                console.log('✅ IndexedDB 保存成功');
+                savedToIndexed = true;
+                if (!savedToLocal) {
+                    alert('✅ 已保存到存档 ' + slotId + ' (IndexedDB)');
+                    renderSaveManagerModal();
+                } else {
+                    alert('✅ 已保存到存档 ' + slotId);
+                    renderSaveManagerModal();
+                }
+            };
+            tx.onerror = function() {
+                console.log('IndexedDB 保存失败:', tx.error);
+                if (!savedToLocal) {
+                    alert('❌ 保存失败，请清理存储空间后重试');
+                }
+            };
+        };
+        request.onerror = function() {
+            console.log('IndexedDB 打开失败');
+            if (!savedToLocal) {
+                alert('❌ 保存失败，请清理存储空间后重试');
+            }
+        };
+    } catch(e) {
+        console.log('IndexedDB 不可用:', e.message);
+        if (!savedToLocal) {
+            alert('❌ 保存失败: ' + e.message);
         }
     }
+}
+      function loadFromSlot(slotId) {
+    console.log('🔄 尝试读取存档 ' + slotId);
+    
+    // ===== 第一步：尝试 localStorage =====
+    var localData = localStorage.getItem('sisterSimulatorSave_' + slotId);
+    if (localData) {
+        try {
+            var data = JSON.parse(localData);
+            // 判断数据格式：如果有 data.data 说明是 IndexedDB 格式
+            var gameData = data.data || data;
+            restoreGameData(gameData);
+            alert('✅ 读取存档 ' + slotId + ' 成功');
+            return;
+        } catch(e) {
+            console.log('localStorage 解析失败:', e.message);
+        }
+    }
+    
+    // ===== 第二步：尝试 IndexedDB =====
+    try {
+        var request = indexedDB.open('SisterSimulatorDB', 1);
+        request.onupgradeneeded = function(ev) {
+            var db = ev.target.result;
+            if (!db.objectStoreNames.contains('saves')) {
+                db.createObjectStore('saves', { keyPath: 'id' });
+            }
+        };
+        request.onsuccess = function(ev) {
+            var db = ev.target.result;
+            var tx = db.transaction('saves', 'readonly');
+            var store = tx.objectStore('saves');
+            var getRequest = store.get('save_' + slotId);
+            getRequest.onsuccess = function() {
+                var result = getRequest.result;
+                if (!result || !result.data) {
+                    alert('该存档位为空');
+                    return;
+                }
+                 restoreGameData(result.data);
+                alert('✅ 读取存档 ' + slotId + ' 成功 (IndexedDB)');
+            };
+            getRequest.onerror = function() {
+                alert('读取存档失败');
+            };
+        };
+        request.onerror = function() {
+            alert('数据库打开失败');
+        };
+    } catch(e) {
+        alert('读取存档失败: ' + e.message);
+    }
+}
+    function deleteSlot(slotId) {
+    if (!confirm('确定要删除存档 ' + slotId + ' 吗？')) return;
+    
+    // 删除 localStorage
+    localStorage.removeItem('sisterSimulatorSave_' + slotId);
+    
+    // 删除 IndexedDB
+    try {
+        var request = indexedDB.open('SisterSimulatorDB', 1);
+        request.onsuccess = function(ev) {
+            var db = ev.target.result;
+            var tx = db.transaction('saves', 'readwrite');
+            var store = tx.objectStore('saves');
+            store.delete('save_' + slotId);
+            tx.oncomplete = function() {
+                alert('✅ 已删除存档 ' + slotId);
+                renderSaveManagerModal();
+            };
+        };
+    } catch(e) {
+        console.log('IndexedDB 删除失败:', e);
+    }
+}
         // 关闭选项弹窗（只关闭弹窗，不清除聊天状态）
     function closeOptionModal() {
         let modal = document.querySelector(".option-modal");
@@ -3601,19 +3601,27 @@ if (data.allMyWeibo) {
         }
         // 注意：不设置 zhangWaitingForOption = false
     }
-   function renderSaveManagerModal() {
+   // ===== 存档管理弹窗 =====
+// ===== 存档管理弹窗（同时支持 localStorage 和 IndexedDB，localStorage 优先）=====
+function renderSaveManagerModal() {
     var modal = document.createElement("div");
     modal.className = "save-manager-modal";
+    modal.style.cssText = "position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;";
 
-    // ✅ 异步读取 IndexedDB 和 localStorage
     var saves = [];
-    
-    // 先检查 localStorage 的存档1-4
-    for (var i = 1; i <= 4; i++) {
+
+    // ===== 1. 先读 localStorage =====
+    for (var i = 1; i <= 5; i++) {
         var data = localStorage.getItem('sisterSimulatorSave_' + i);
         if (data) {
             try {
-                saves.push({ id: i, data: JSON.parse(data), source: 'localStorage' });
+                var parsed = JSON.parse(data);
+                // 检查数据是否有效
+                if (parsed.savedAt && parsed.player && parsed.player.love !== undefined) {
+                    saves.push({ id: i, data: parsed, source: 'localStorage' });
+                } else {
+                    saves.push({ id: i, data: null, source: 'localStorage' });
+                }
             } catch(e) {
                 saves.push({ id: i, data: null, source: 'localStorage' });
             }
@@ -3621,54 +3629,183 @@ if (data.allMyWeibo) {
             saves.push({ id: i, data: null, source: 'localStorage' });
         }
     }
-    
-    // 检查存档5（自动存档）先从 IndexedDB 读取
-    if (typeof loadFromIndexedDB === 'function') {
-        loadFromIndexedDB(5).then(function(result) {
-            if (result && result.data) {
-                saves.push({ id: 5, data: result.data, source: 'IndexedDB' });
-            } else {
-                // IndexedDB 没有，检查 localStorage
-                var autoData = localStorage.getItem('sisterSimulatorAutoSave');
-                if (autoData) {
-                    try {
-                        saves.push({ id: 5, data: JSON.parse(autoData), source: 'localStorage' });
-                    } catch(e) {
-                        saves.push({ id: 5, data: null, source: 'localStorage' });
+
+    // ===== 2. 再读 IndexedDB，如果 localStorage 没有才用 =====
+    try {
+        var request = indexedDB.open('SisterSimulatorDB', 1);
+        request.onupgradeneeded = function(ev) {
+            var db = ev.target.result;
+            if (!db.objectStoreNames.contains('saves')) {
+                db.createObjectStore('saves', { keyPath: 'id' });
+            }
+        };
+        request.onsuccess = function(ev) {
+            var db = ev.target.result;
+            var tx = db.transaction('saves', 'readonly');
+            var store = tx.objectStore('saves');
+            var getAll = store.getAll();
+            getAll.onsuccess = function() {
+                var results = getAll.result;
+                var indexedMap = {};
+                results.forEach(function(item) {
+                    var idStr = item.id.replace('save_', '').replace('chapter2_save_', '');
+                    var id = parseInt(idStr);
+                    if (id >= 1 && id <= 5 && item.data) {
+                        // 检查数据是否有效
+                        if (item.data.savedAt && item.data.player && item.data.player.love !== undefined) {
+                            indexedMap[id] = item.data;
+                        }
                     }
-                } else {
-                    saves.push({ id: 5, data: null, source: 'localStorage' });
+                });
+
+                // 合并：localStorage 有就用 localStorage，没有才用 IndexedDB
+                var finalSaves = [];
+                for (var j = 1; j <= 5; j++) {
+                    // 检查 localStorage 有没有有效数据
+                    var hasLocal = false;
+                    var localData = null;
+                    for (var k = 0; k < saves.length; k++) {
+                        if (saves[k].id === j && saves[k].data !== null) {
+                            hasLocal = true;
+                            localData = saves[k].data;
+                            break;
+                        }
+                    }
+
+                    if (hasLocal && localData) {
+                        finalSaves.push({ id: j, data: localData, source: 'localStorage' });
+                    } else if (indexedMap[j]) {
+                        finalSaves.push({ id: j, data: indexedMap[j], source: 'IndexedDB' });
+                    } else {
+                        finalSaves.push({ id: j, data: null, source: 'localStorage' });
+                    }
                 }
-            }
+
+                saves = finalSaves;
+                buildSaveManagerUI(modal, saves);
+            };
+            getAll.onerror = function() {
+                // 如果 IndexedDB 读取失败，直接用 localStorage 的数据
+                buildSaveManagerUI(modal, saves);
+            };
+        };
+        request.onerror = function() {
+            // 如果 IndexedDB 打开失败，直接用 localStorage 的数据
             buildSaveManagerUI(modal, saves);
-        }).catch(function() {
-            // IndexedDB 出错，走 localStorage
-            var autoData = localStorage.getItem('sisterSimulatorAutoSave');
-            if (autoData) {
-                try {
-                    saves.push({ id: 5, data: JSON.parse(autoData), source: 'localStorage' });
-                } catch(e) {
-                    saves.push({ id: 5, data: null, source: 'localStorage' });
-                }
-            } else {
-                saves.push({ id: 5, data: null, source: 'localStorage' });
-            }
-            buildSaveManagerUI(modal, saves);
-        });
-    } else {
-        // 没有 IndexedDB，走 localStorage
-        var autoData = localStorage.getItem('sisterSimulatorAutoSave');
-        if (autoData) {
-            try {
-                saves.push({ id: 5, data: JSON.parse(autoData), source: 'localStorage' });
-            } catch(e) {
-                saves.push({ id: 5, data: null, source: 'localStorage' });
-            }
-        } else {
-            saves.push({ id: 5, data: null, source: 'localStorage' });
-        }
+        };
+    } catch(e) {
+        // 如果 IndexedDB 不可用，直接用 localStorage 的数据
         buildSaveManagerUI(modal, saves);
     }
+
+    document.body.appendChild(modal);
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.remove();
+    };
+}
+function buildSaveManagerUI(modal, saves) {
+    var savesHtml = '<div class="save-manager-content" style="background:white;border-radius:24px;padding:20px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15);">';
+    savesHtml += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid #EFEFEF;padding-bottom:12px;">';
+    savesHtml += '<div style="font-size:18px;font-weight:700;color:#1A1A1A;">📂 存档管理</div>';
+    savesHtml += '<button onclick="this.closest(\'.save-manager-content\').parentElement.remove()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#999;">×</button>';
+    savesHtml += '</div>';
+
+    for (var i = 0; i < saves.length; i++) {
+        var save = saves[i];
+        var id = save.id;
+        var data = save.data;
+        var source = save.source || 'localStorage';
+
+        if (data) {
+            var sourceLabel = source === 'IndexedDB' ? '📦 IndexedDB' : '💾 localStorage';
+            var savedAt = data.savedAt || '未知';
+            var love = data.player ? data.player.love : '?';
+            var chapter = data.currentChapter || 1;
+            var chapterName = data.chapterTitle || '';
+
+            savesHtml += '<div class="save-slot" style="background:#F8F8F8;border-radius:16px;padding:16px;margin-bottom:12px;' + (id === 5 ? 'border:2px solid #E85D75;' : '') + '">';
+            savesHtml += '<div class="slot-title" style="font-weight:600;font-size:15px;color:#1A1A1A;">' + (id === 5 ? '💾 自动存档' : '📁 存档 ' + id) + '</div>';
+            savesHtml += '<div class="slot-info" style="font-size:13px;color:#666;margin-top:4px;">📖 第' + chapter + '章 · ' + chapterName + '</div>';
+            savesHtml += '<div class="slot-info" style="font-size:13px;color:#666;">❤️ 爱意值：' + love + '</div>';
+            savesHtml += '<div class="slot-info" style="font-size:13px;color:#666;">📅 保存时间：' + savedAt + '</div>';
+            savesHtml += '<div class="slot-info" style="font-size:11px;color:#999;margin-top:2px;">📍 ' + sourceLabel + '</div>';
+            savesHtml += '<div class="save-slot-buttons" style="display:flex;gap:10px;margin-top:10px;">';
+            savesHtml += '<button class="btn-load" data-slot="' + id + '" style="padding:6px 16px;background:#E85D75;color:white;border:none;border-radius:20px;font-size:12px;cursor:pointer;">读取</button>';
+            if (id !== 5) {
+                savesHtml += '<button class="btn-overwrite" data-slot="' + id + '" style="padding:6px 16px;background:#FFB347;color:white;border:none;border-radius:20px;font-size:12px;cursor:pointer;">覆盖</button>';
+                savesHtml += '<button class="btn-delete" data-slot="' + id + '" style="padding:6px 16px;background:#E85D75;color:white;border:none;border-radius:20px;font-size:12px;cursor:pointer;">删除</button>';
+            }
+            savesHtml += '</div></div>';
+        } else {
+            savesHtml += '<div class="save-slot empty" style="background:#F8F8F8;border-radius:16px;padding:16px;margin-bottom:12px;opacity:0.6;">';
+            savesHtml += '<div class="slot-title" style="font-weight:600;font-size:15px;color:#1A1A1A;">' + (id === 5 ? '💾 自动存档' : '📁 存档 ' + id) + '</div>';
+            savesHtml += '<div class="slot-info" style="font-size:13px;color:#999;">空存档</div>';
+            if (id !== 5) {
+                savesHtml += '<div class="save-slot-buttons" style="display:flex;gap:10px;margin-top:10px;">';
+                savesHtml += '<button class="btn-overwrite" data-slot="' + id + '" style="padding:6px 16px;background:#FFB347;color:white;border:none;border-radius:20px;font-size:12px;cursor:pointer;">保存到此</button>';
+                savesHtml += '</div>';
+            }
+            savesHtml += '</div>';
+        }
+    }
+
+    savesHtml += '</div>';
+    modal.innerHTML = savesHtml;
+
+    // ===== 绑定按钮事件 =====
+    modal.querySelectorAll('[data-slot]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var slot = parseInt(this.dataset.slot);
+            var action = this.classList.contains('btn-load') ? 'load' :
+                         this.classList.contains('btn-overwrite') ? 'overwrite' : 'delete';
+
+            if (action === 'load') {
+                if (slot === 5) {
+                    loadAutoSave().then(function(data) {
+                        restoreGameData(data);
+                        document.getElementById("startScreen").style.display = "none";
+                        document.getElementById("gameScreen").style.display = "flex";
+                        renderChapterList();
+                        updateStaminaDisplay();
+                        alert('✅ 读取自动存档成功！');
+                        modal.remove();
+                    }).catch(function() {
+                        alert('自动存档不存在');
+                    });
+                } else {
+                    if (confirm('确定要读取存档 ' + slot + ' 吗？')) {
+                        loadFromSlot(slot);
+                        document.getElementById("startScreen").style.display = "none";
+                        document.getElementById("gameScreen").style.display = "flex";
+                        renderChapterList();
+                        updateStaminaDisplay();
+                        modal.remove();
+                    }
+                }
+            } else if (action === 'overwrite') {
+                if (slot === 5) {
+                    alert('自动存档由系统自动保存');
+                    return;
+                }
+                if (confirm('确定要保存到存档 ' + slot + ' 吗？')) {
+                    saveToSlot(slot);
+                    modal.remove();
+                }
+            } else if (action === 'delete') {
+                if (slot === 5) {
+                    alert('自动存档不可手动删除');
+                    return;
+                }
+                if (confirm('确定要删除存档 ' + slot + ' 吗？')) {
+                    localStorage.removeItem('sisterSimulatorSave_' + slot);
+                    alert('✅ 已删除存档 ' + slot);
+                    modal.remove();
+                    renderSaveManagerModal();
+                }
+            }
+        });
+    });
 }
 
 function buildSaveManagerUI(modal, saves) {
@@ -7834,13 +7971,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 function renderMyPage() {
-    // 获取当前头像
-    var avatarData = localStorage.getItem("player_avatar");
-    var avatarHtml = "";
+    // ===== 获取当前头像 =====
+var avatarData = localStorage.getItem("player_avatar");
+var avatarHtml = "";
 if (avatarData && avatarData.startsWith("data:image")) {
-    avatarHtml = '<img src="' + avatarData + '" style="width:80px; height:80px; border-radius:50%; object-fit:cover; cursor:pointer;">';
+    avatarHtml = '<img src="' + avatarData + '" style="width:80px; height:80px; border-radius:50%; object-fit:cover; cursor:pointer;" onclick="event.stopPropagation();changeAvatar()">';
 } else {
-    avatarHtml = '<div style="width:80px; height:80px; background:#F0F0F0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:40px; cursor:pointer;">🐰</div>';
+    avatarHtml = '<div style="width:80px; height:80px; background:#F0F0F0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:40px; cursor:pointer;" onclick="event.stopPropagation();changeAvatar()">🐰</div>';
 }
 // 加载自定义背景
 var bgData = localStorage.getItem('profile_bg');
@@ -8670,22 +8807,8 @@ function addNewMoments() {
 
     var playerName = player.wechatName || player.name || '用户';
 
-    // ===== 删除旧的初始化朋友圈（zhang0, zhang1, zhang2）=====
-    var toRemove = ['zhang0', 'zhang1', 'zhang2'];
-    for (var i = momentsData.length - 1; i >= 0; i--) {
-        if (toRemove.indexOf(momentsData[i].id) !== -1) {
-            momentsData.splice(i, 1);
-            console.log('✅ 已删除旧朋友圈');
-        }
-    }
-
-    // ===== 删除旧的张桂源朋友圈（避免重复）=====
-    for (var j = momentsData.length - 1; j >= 0; j--) {
-        if (momentsData[j].id && momentsData[j].id.indexOf('moment_zgy') !== -1) {
-            momentsData.splice(j, 1);
-            console.log('✅ 已删除旧的张桂源朋友圈');
-        }
-    }
+   
+   
 
     var newMoments = [
         // ===== 左奇函朋友圈 =====
@@ -10357,6 +10480,7 @@ function switchPage(pageId) {
     let chapter2Step = 0;
 
     function loadChapter2() {
+         currentChapter = 2;
         document.getElementById("chapterSelectPage").style.display = "none";
         document.getElementById("storyDetailPage").style.display = "block";
         document.getElementById("chapterTitle").innerText = "第2章 · 他和他的朋友";
@@ -10443,6 +10567,9 @@ function switchPage(pageId) {
     }
     
     function showChapter2FirstOption() {
+        currentChapter = 2;
+    localStorage.setItem("currentChapter", "2");
+    localStorage.setItem("chapter2_return_target", "showChapter2ContinuedStory");
         let date = "2023年5月10日 周二";
         
         let modal1 = document.createElement("div");
@@ -10484,6 +10611,10 @@ function switchPage(pageId) {
     }
     
         function showChapter2SecondOption() {
+            currentChapter = 2;
+    localStorage.setItem("currentChapter", "2");
+    localStorage.setItem("chapter2_return_target", "showChapter2ContinuedStory");
+            currentChapter = 2;  // 确保章节正确
         let date = "2023年5月10日 周二";
         
         // 先清空可能存在的旧选项
@@ -10540,6 +10671,10 @@ function switchPage(pageId) {
 }
            
            function showChapter2ContinuedStory() {
+
+              currentChapter = 2;
+    localStorage.setItem("currentChapter", "2");
+    localStorage.setItem("chapter2_return_target", "showChapter2ContinuedStory");
     var storyContent = `
 你等着他回。等了五分钟，没回。你想想，这个点他应该在训练，手机可能不在手边。你把手机揣回兜里，继续走。
 
@@ -10815,99 +10950,54 @@ setTimeout(function() {
         };
     }
            function showChapter2BranchOptions() {
-        let date = "2023年5月10日 周二";
-        
-        let modal = document.createElement("div");
-        modal.className = "option-modal";
-        modal.innerHTML = `
-            <div style="margin-bottom:12px; font-weight:600;">请选择你的回应</div>
-            <button class="option-btn" data-choice="A">A. 没空，我睡了</button>
-            <button class="option-btn" data-choice="B">B. 有空，怎么了</button>
-        `;
-        document.body.appendChild(modal);
-        
-        modal.querySelectorAll(".option-btn").forEach(function(btn) {
-            btn.onclick = function() {
-                let choice = this.dataset.choice;
-                modal.remove();
-                
-                if (choice === "A") {
-                    // ========== 分支A：赌气 ==========
-                    chatData["张桂源"].messages.push({ 
-                        from: "me", 
-                        text: "没空，我睡了。", 
-                        time: "22:19", 
-                        avatar: "🐰", 
-                        date: date,
-                        read: true
-                    });
-                    renderChatMessages();
-                    renderChatList();
-                    openChat("张桂源");
-                    
-                   setTimeout(function() {
-    let container = document.getElementById("chatMessages");
-    let typingRow = document.createElement("div");
-    typingRow.className = "message-row";
-    typingRow.style.justifyContent = "flex-start";
-    typingRow.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
-    container.appendChild(typingRow);
-    container.scrollTop = container.scrollHeight;
+    let date = "2023年5月10日 周二";
     
-    setTimeout(function() {
-        typingRow.remove();
-        chatData["张桂源"].messages.push({ 
-            from: "other", 
-            text: "啊", 
-            time: "22:20", 
-            avatar: "🏀", 
-            date: date,
-            read: false 
-        });
-        renderChatMessages();
-        renderChatList();
-        openChat("张桂源");
-        
-        // ✅ 第一条 "那好吧"
-        setTimeout(function() {
-            let container2 = document.getElementById("chatMessages");
-            let typingRow2 = document.createElement("div");
-            typingRow2.className = "message-row";
-            typingRow2.style.justifyContent = "flex-start";
-            typingRow2.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
-            container2.appendChild(typingRow2);
-            container2.scrollTop = container2.scrollHeight;
+    let modal = document.createElement("div");
+    modal.className = "option-modal";
+    modal.innerHTML = `
+        <div style="margin-bottom:12px; font-weight:600;">请选择你的回应</div>
+        <button class="option-btn" data-choice="A">A. 没空，我睡了</button>
+        <button class="option-btn" data-choice="B">B. 有空，怎么了</button>
+    `;
+    document.body.appendChild(modal);
+    
+    modal.querySelectorAll(".option-btn").forEach(function(btn) {
+        btn.onclick = function() {
+            let choice = this.dataset.choice;
+            modal.remove();
             
-            setTimeout(function() {
-                typingRow2.remove();
+            if (choice === "A") {
+                // ========== 分支A：赌气 ==========
+                // ===== 设置返回目标 =====
+                localStorage.setItem("chapter2_return_target", "showBranchAEnding");
+                
                 chatData["张桂源"].messages.push({ 
-                    from: "other", 
-                    text: "那好吧", 
-                    time: "22:21", 
-                    avatar: "🏀", 
+                    from: "me", 
+                    text: "没空，我睡了。", 
+                    time: "22:19", 
+                    avatar: "🐰", 
                     date: date,
-                    read: false 
+                    read: true
                 });
                 renderChatMessages();
                 renderChatList();
                 openChat("张桂源");
                 
-                // ✅ 第二条 "不打扰你了"
                 setTimeout(function() {
-                    let container3 = document.getElementById("chatMessages");
-                    let typingRow3 = document.createElement("div");
-                    typingRow3.className = "message-row";
-                    typingRow3.style.justifyContent = "flex-start";
-                    typingRow3.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
-                    container3.appendChild(typingRow3);
-                    container3.scrollTop = container3.scrollHeight;
+                    let container = document.getElementById("chatMessages");
+                    let typingRow = document.createElement("div");
+                    typingRow.className = "message-row";
+                    typingRow.style.justifyContent = "flex-start";
+                    typingRow.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
+                    container.appendChild(typingRow);
+                    container.scrollTop = container.scrollHeight;
                     
                     setTimeout(function() {
-                        typingRow3.remove();
+                        typingRow.remove();
                         chatData["张桂源"].messages.push({ 
                             from: "other", 
-                            text: "不打扰你了", 
-                            time: "22:22", 
+                            text: "啊", 
+                            time: "22:20", 
                             avatar: "🏀", 
                             date: date,
                             read: false 
@@ -10916,179 +11006,229 @@ setTimeout(function() {
                         renderChatList();
                         openChat("张桂源");
                         
-                        chapter2ChatDone = true;
-                        chapter2BranchChoice = "A";
-                        
-                        let inputBox = document.getElementById("chatInputBox");
-                        if (inputBox) {
-                            inputBox.innerText = "↩️ 点击左上角返回继续剧情";
-                        }
-                    }, 700);
-                }, 600);
-            }, 700);
-        }, 600);
-    }, 700);
-}, 500);
-                    
-                } else {
-                    // ========== 分支B：有空 ==========
-                    chatData["张桂源"].messages.push({ 
-                        from: "me", 
-                        text: "有空，怎么了。", 
-                        time: "22:19", 
-                        avatar: "🐰", 
-                        date: date,
-                        read: true
-                    });
-                    renderChatMessages();
-                    renderChatList();
-                    openChat("张桂源");
-                    
-                    setTimeout(function() {
-                        let container = document.getElementById("chatMessages");
-                        let typingRow = document.createElement("div");
-                        typingRow.className = "message-row";
-                        typingRow.style.justifyContent = "flex-start";
-                        typingRow.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
-                        container.appendChild(typingRow);
-                        container.scrollTop = container.scrollHeight;
-                        
                         setTimeout(function() {
-                            typingRow.remove();
-                            chatData["张桂源"].messages.push({ 
-                                from: "other", 
-                                text: "那你别睡太早", 
-                                time: "22:20", 
-                                avatar: "🏀", 
-                                date: date,
-                                read: false 
-                            });
-                            renderChatMessages();
-                            renderChatList();
-                            openChat("张桂源");
+                            let container2 = document.getElementById("chatMessages");
+                            let typingRow2 = document.createElement("div");
+                            typingRow2.className = "message-row";
+                            typingRow2.style.justifyContent = "flex-start";
+                            typingRow2.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
+                            container2.appendChild(typingRow2);
+                            container2.scrollTop = container2.scrollHeight;
                             
                             setTimeout(function() {
-                                let container2 = document.getElementById("chatMessages");
-                                let typingRow2 = document.createElement("div");
-                                typingRow2.className = "message-row";
-                                typingRow2.style.justifyContent = "flex-start";
-                                typingRow2.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
-                                container2.appendChild(typingRow2);
-                                container2.scrollTop = container2.scrollHeight;
+                                typingRow2.remove();
+                                chatData["张桂源"].messages.push({ 
+                                    from: "other", 
+                                    text: "那好吧", 
+                                    time: "22:21", 
+                                    avatar: "🏀", 
+                                    date: date,
+                                    read: false 
+                                });
+                                renderChatMessages();
+                                renderChatList();
+                                openChat("张桂源");
                                 
                                 setTimeout(function() {
-                                    typingRow2.remove();
-                                    chatData["张桂源"].messages.push({ 
-                                        from: "other", 
-                                        text: "等我一下", 
-                                        time: "22:21", 
-                                        avatar: "🏀", 
-                                        date: date,
-                                        read: false 
-                                    });
-                                    renderChatMessages();
-                                    renderChatList();
-                                    openChat("张桂源");
+                                    let container3 = document.getElementById("chatMessages");
+                                    let typingRow3 = document.createElement("div");
+                                    typingRow3.className = "message-row";
+                                    typingRow3.style.justifyContent = "flex-start";
+                                    typingRow3.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
+                                    container3.appendChild(typingRow3);
+                                    container3.scrollTop = container3.scrollHeight;
                                     
                                     setTimeout(function() {
-                                        let modal2 = document.createElement("div");
-                                        modal2.className = "option-modal";
-                                        modal2.innerHTML = `
-                                            <div style="margin-bottom:12px; font-weight:600;">选择回复</div>
-                                            <button class="option-btn" data-choice="0">「等你干嘛」</button>
-                                        `;
-                                        document.body.appendChild(modal2);
+                                        typingRow3.remove();
+                                        chatData["张桂源"].messages.push({ 
+                                            from: "other", 
+                                            text: "不打扰你了", 
+                                            time: "22:22", 
+                                            avatar: "🏀", 
+                                            date: date,
+                                            read: false 
+                                        });
+                                        renderChatMessages();
+                                        renderChatList();
+                                        openChat("张桂源");
                                         
-                                        modal2.querySelector(".option-btn").onclick = function() {
-                                            modal2.remove();
-                                            
-                                            chatData["张桂源"].messages.push({ 
-                                                from: "me", 
-                                                text: "等你干嘛", 
-                                                time: "22:22", 
-                                                avatar: "🐰", 
-                                                date: date,
-                                                read: true
-                                            });
-                                            renderChatMessages();
-                                            renderChatList();
-                                            openChat("张桂源");
+                                        chapter2ChatDone = true;
+                                        chapter2BranchChoice = "A";
+                                        
+                                        let inputBox = document.getElementById("chatInputBox");
+                                        if (inputBox) {
+                                            inputBox.innerText = "↩️ 点击左上角返回继续剧情";
+                                        }
+                                        // ===== 返回目标已经在分支开头设置好了 =====
+                                    }, 700);
+                                }, 600);
+                            }, 700);
+                        }, 600);
+                    }, 700);
+                }, 500);
+                
+            } else {
+                // ========== 分支B：有空 ==========
+                // ===== 设置返回目标 =====
+                localStorage.setItem("chapter2_return_target", "showBranchBEnding");
+                
+                chatData["张桂源"].messages.push({ 
+                    from: "me", 
+                    text: "有空，怎么了。", 
+                    time: "22:19", 
+                    avatar: "🐰", 
+                    date: date,
+                    read: true
+                });
+                renderChatMessages();
+                renderChatList();
+                openChat("张桂源");
+                
+                setTimeout(function() {
+                    let container = document.getElementById("chatMessages");
+                    let typingRow = document.createElement("div");
+                    typingRow.className = "message-row";
+                    typingRow.style.justifyContent = "flex-start";
+                    typingRow.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
+                    container.appendChild(typingRow);
+                    container.scrollTop = container.scrollHeight;
+                    
+                    setTimeout(function() {
+                        typingRow.remove();
+                        chatData["张桂源"].messages.push({ 
+                            from: "other", 
+                            text: "那你别睡太早", 
+                            time: "22:20", 
+                            avatar: "🏀", 
+                            date: date,
+                            read: false 
+                        });
+                        renderChatMessages();
+                        renderChatList();
+                        openChat("张桂源");
+                        
+                        setTimeout(function() {
+                            let container2 = document.getElementById("chatMessages");
+                            let typingRow2 = document.createElement("div");
+                            typingRow2.className = "message-row";
+                            typingRow2.style.justifyContent = "flex-start";
+                            typingRow2.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
+                            container2.appendChild(typingRow2);
+                            container2.scrollTop = container2.scrollHeight;
+                            
+                            setTimeout(function() {
+                                typingRow2.remove();
+                                chatData["张桂源"].messages.push({ 
+                                    from: "other", 
+                                    text: "等我一下", 
+                                    time: "22:21", 
+                                    avatar: "🏀", 
+                                    date: date,
+                                    read: false 
+                                });
+                                renderChatMessages();
+                                renderChatList();
+                                openChat("张桂源");
+                                
+                                setTimeout(function() {
+                                    let modal2 = document.createElement("div");
+                                    modal2.className = "option-modal";
+                                    modal2.innerHTML = `
+                                        <div style="margin-bottom:12px; font-weight:600;">选择回复</div>
+                                        <button class="option-btn" data-choice="0">「等你干嘛」</button>
+                                    `;
+                                    document.body.appendChild(modal2);
+                                    
+                                    modal2.querySelector(".option-btn").onclick = function() {
+                                        modal2.remove();
+                                        
+                                        chatData["张桂源"].messages.push({ 
+                                            from: "me", 
+                                            text: "等你干嘛", 
+                                            time: "22:22", 
+                                            avatar: "🐰", 
+                                            date: date,
+                                            read: true
+                                        });
+                                        renderChatMessages();
+                                        renderChatList();
+                                        openChat("张桂源");
+                                        
+                                        setTimeout(function() {
+                                            let container3 = document.getElementById("chatMessages");
+                                            let typingRow3 = document.createElement("div");
+                                            typingRow3.className = "message-row";
+                                            typingRow3.style.justifyContent = "flex-start";
+                                            typingRow3.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
+                                            container3.appendChild(typingRow3);
+                                            container3.scrollTop = container3.scrollHeight;
                                             
                                             setTimeout(function() {
-                                                let container3 = document.getElementById("chatMessages");
-                                                let typingRow3 = document.createElement("div");
-                                                typingRow3.className = "message-row";
-                                                typingRow3.style.justifyContent = "flex-start";
-                                                typingRow3.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
-                                                container3.appendChild(typingRow3);
-                                                container3.scrollTop = container3.scrollHeight;
+                                                typingRow3.remove();
+                                                
+                                                chatData["张桂源"].messages.push({ 
+                                                    from: "other", 
+                                                    text: "你等就行了", 
+                                                    time: "22:23", 
+                                                    avatar: "🏀", 
+                                                    date: date,
+                                                    read: false 
+                                                });
+                                                renderChatMessages();
+                                                renderChatList();
+                                                openChat("张桂源");
                                                 
                                                 setTimeout(function() {
-    typingRow3.remove();
-    
-    // 发送文字消息
-    chatData["张桂源"].messages.push({ 
-        from: "other", 
-        text: "你等就行了", 
-        time: "22:23", 
-        avatar: "🏀", 
-        date: date,
-        read: false 
-    });
-    renderChatMessages();
-    renderChatList();
-    openChat("张桂源");
-    
-    // 发送图片
-    setTimeout(function() {
-        var container4 = document.getElementById("chatMessages");
-        var typingRow4 = document.createElement("div");
-        typingRow4.className = "message-row";
-        typingRow4.style.justifyContent = "flex-start";
-        typingRow4.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
-        container4.appendChild(typingRow4);
-        container4.scrollTop = container4.scrollHeight;
-        
-        setTimeout(function() {
-            typingRow4.remove();
-            chatData["张桂源"].messages.push({
-                from: "other",
-                text: `<img src="dd.jpg" style="width:150px; border-radius:12px; max-width:100%; display:block;">`,
-                time: "22:23",
-                avatar: "🏀",
-                date: date,
-                read: false,
-                isImage: true
-            });
-            renderChatMessages();
-            renderChatList();
-            openChat("张桂源");
-            
-            chapter2ChatDone = true;
-            chapter2BranchChoice = "B";
-            
-            let inputBox = document.getElementById("chatInputBox");
-            if (inputBox) {
-                inputBox.innerText = "↩️ 点击左上角返回继续剧情";
+                                                    var container4 = document.getElementById("chatMessages");
+                                                    var typingRow4 = document.createElement("div");
+                                                    typingRow4.className = "message-row";
+                                                    typingRow4.style.justifyContent = "flex-start";
+                                                    typingRow4.innerHTML = `<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>`;
+                                                    container4.appendChild(typingRow4);
+                                                    container4.scrollTop = container4.scrollHeight;
+                                                    
+                                                    setTimeout(function() {
+                                                        typingRow4.remove();
+                                                        chatData["张桂源"].messages.push({
+                                                            from: "other",
+                                                            text: `<img src="dd.jpg" style="width:150px; border-radius:12px; max-width:100%; display:block;">`,
+                                                            time: "22:23",
+                                                            avatar: "🏀",
+                                                            date: date,
+                                                            read: false,
+                                                            isImage: true
+                                                        });
+                                                        renderChatMessages();
+                                                        renderChatList();
+                                                        openChat("张桂源");
+                                                        
+                                                        chapter2ChatDone = true;
+                                                        chapter2BranchChoice = "B";
+                                                        
+                                                        let inputBox = document.getElementById("chatInputBox");
+                                                        if (inputBox) {
+                                                            inputBox.innerText = "↩️ 点击左上角返回继续剧情";
+                                                        }
+                                                        // ===== 返回目标已经在分支开头设置好了 =====
+                                                    }, 700);
+                                                }, 600);
+                                            }, 700);
+                                        }, 500);
+                                    };
+                                }, 500);
+                            }, 700);
+                        }, 500);
+                    }, 700);
+                }, 500);
             }
-        }, 700);
-    }, 600);
-    
-}, 700);
-                                            }, 500);
-                                        };
-                                    }, 500);
-                                }, 700);
-                            }, 500);
-                        }, 700);
-                    }, 500);
-                }
-            };
-        });
-    }
-      
+        };
+    });
+}
 
 function showBranchAEnding() {
+     currentChapter = 2;
+    localStorage.setItem("currentChapter", "2");
+    localStorage.setItem("chapter2_return_target", "showBranchAEnding");
     document.getElementById("storyContent").innerHTML = `
         <div style="background:#F8F8F8;border-radius:24px;padding:20px;line-height:1.7;font-size:14px;color:#333;white-space:pre-line;">
 你看着那个"不打扰你了"，心里更闷了。什么时候你们之间的关系已经到需要用打扰这个词？你把手机扣在枕头底下，翻了个身，闭上眼睛。
@@ -11237,6 +11377,9 @@ function showBranchAOption2() {
 }
 // ================= 分支B结局 =================
 function showBranchBEnding() {
+     currentChapter = 2;
+    localStorage.setItem("currentChapter", "2");
+    localStorage.setItem("chapter2_return_target", "showBranchBEnding");
     switchPage("story");
     document.getElementById("chapterSelectPage").style.display = "none";
     document.getElementById("storyDetailPage").style.display = "block";
@@ -13966,46 +14109,74 @@ function showFriendRequestsPopup() {
             }
         }, 3000);
 
-        // ===== 第三条弹窗（第二条消失后3秒） =====
+        // ===== 第三条弹窗 =====
+setTimeout(function() {
+    var modal3 = document.createElement("div");
+    modal3.className = "message-notification";
+    modal3.style.cssText = `
+        position: fixed;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 32px);
+        max-width: 400px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 12px 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        border: 1px solid rgba(232,93,117,0.3);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        z-index: 9999;
+        animation: slideDown 0.3s ease-out;
+    `;
+
+    modal3.innerHTML = `
+        <div style="width:48px; height:48px; border-radius:50%; overflow:hidden; flex-shrink:0; background:#F0F0F0; display:flex; align-items:center; justify-content:center;">
+            <img src="zgyweixin.png" style="width:48px; height:48px; object-fit:cover;" onerror="this.style.display='none';this.parentElement.innerHTML='🏀'">
+        </div>
+        <div style="flex:1;">
+            <div style="font-weight:600; font-size:15px; color:#1A1A1A; margin-bottom:2px;">张桂源</div>
+            <div style="font-size:13px; color:#333;">你怎么不给我点赞</div>
+            <div style="font-size:11px; color:#999; margin-top:2px;">刚刚</div>
+        </div>
+    `;
+
+    var thirdMessageAdded = false;
+
+    modal3.onclick = function() {
+        modal3.remove();
+        chatData["张桂源"].messages.push({
+            from: "other",
+            text: "你怎么不给我点赞",
+            time: "23:31",
+            avatar: "🏀",
+            date: date,
+            read: false
+        });
+        chatData["张桂源"].newMsg = true;
+        renderChatMessages();
+        renderChatList();
+        
+        // ===== 跳转到聊天并解锁输入框 =====
+        switchPage("chat");
         setTimeout(function() {
-            var modal3 = document.createElement("div");
-            modal3.className = "message-notification";
-            modal3.style.cssText = `
-                position: fixed;
-                top: 70px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: calc(100% - 32px);
-                max-width: 400px;
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border-radius: 16px;
-                padding: 12px 16px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-                border: 1px solid rgba(232,93,117,0.3);
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                cursor: pointer;
-                z-index: 9999;
-                animation: slideDown 0.3s ease-out;
-            `;
+            openChat("张桂源");
+            unlockChatInput();
+        }, 300);
+        
+        thirdMessageAdded = true;
+    };
+    document.body.appendChild(modal3);
 
-            modal3.innerHTML = `
-                <div style="width:48px; height:48px; border-radius:50%; overflow:hidden; flex-shrink:0; background:#F0F0F0; display:flex; align-items:center; justify-content:center;">
-                    <img src="zgyweixin.png" style="width:48px; height:48px; object-fit:cover;" onerror="this.style.display='none';this.parentElement.innerHTML='🏀'">
-                </div>
-                <div style="flex:1;">
-                    <div style="font-weight:600; font-size:15px; color:#1A1A1A; margin-bottom:2px;">张桂源</div>
-                    <div style="font-size:13px; color:#333;">你怎么不给我点赞</div>
-                    <div style="font-size:11px; color:#999; margin-top:2px;">刚刚</div>
-                </div>
-            `;
-
-            var thirdMessageAdded = false;
-
-            modal3.onclick = function() {
-                modal3.remove();
+    // 第三条弹窗3秒后自动消失
+    setTimeout(function() {
+        if (modal3.parentNode) {
+            modal3.remove();
+            if (!thirdMessageAdded) {
                 chatData["张桂源"].messages.push({
                     from: "other",
                     text: "你怎么不给我点赞",
@@ -14017,36 +14188,19 @@ function showFriendRequestsPopup() {
                 chatData["张桂源"].newMsg = true;
                 renderChatMessages();
                 renderChatList();
+                
+                // ===== 跳转到聊天并解锁输入框 =====
                 switchPage("chat");
                 setTimeout(function() {
                     openChat("张桂源");
+                    unlockChatInput();
                 }, 300);
+                
                 thirdMessageAdded = true;
-            };
-            document.body.appendChild(modal3);
-
-            // 第三条弹窗3秒后自动消失
-            setTimeout(function() {
-                if (modal3.parentNode) {
-                    modal3.remove();
-                    if (!thirdMessageAdded) {
-                        chatData["张桂源"].messages.push({
-                            from: "other",
-                            text: "你怎么不给我点赞",
-                            time: "23:31",
-                            avatar: "🏀",
-                            date: date,
-                            read: false
-                        });
-                        chatData["张桂源"].newMsg = true;
-                        renderChatMessages();
-                        renderChatList();
-                        thirdMessageAdded = true;
-                    }
-                }
-            }, 3000);
-        }, 3000);
-
+            }
+        }
+    }, 3000);
+}, 3000);
     }, 4000);
 }
 // ================= 显示物品（小卡 + 礼物分页） =================
@@ -15224,59 +15378,54 @@ document.getElementById('momentTextInput2').addEventListener('input', function()
     document.getElementById("saveGameBtn")?.addEventListener("click", () => {
         renderSaveManagerModal();
     });
-        // 聊天返回按钮
-    document.getElementById("chatBackBtn").onclick = function() {
-        document.getElementById("chatListScreen").style.display = "block";
-        document.getElementById("chatDetailScreen").style.display = "none";
+        // 聊天返回按钮（统一处理）
+document.getElementById("chatBackBtn").onclick = function() {
+     // ===== 强制打印日志，方便排查 =====
+    console.log('chatBackBtn 被点击，当前返回目标:', localStorage.getItem('chapter2_return_target'));
+    
+    document.getElementById("chatListScreen").style.display = "block";
+    document.getElementById("chatDetailScreen").style.display = "none";
+    document.getElementById("chatListScreen").style.display = "block";
+    document.getElementById("chatDetailScreen").style.display = "none";
+    
+    // 先尝试从 localStorage 读取保存的返回目标
+    var savedChapter = parseInt(localStorage.getItem("currentChapter")) || currentChapter || 1;
+    var target = localStorage.getItem("chapter2_return_target") || "default";
+    
+    if (savedChapter === 2 || currentChapter === 2) {
+        switchPage("story");
+        document.getElementById("chapterSelectPage").style.display = "none";
+        document.getElementById("storyDetailPage").style.display = "block";
+        document.getElementById("chapterTitle").innerText = "第2章 · 生日和新的名字";
         
-        // 如果是第二章且聊天已完成，显示分支后续剧情
-        if (chapter2ChatDone) {
-            switchPage("story");
-            document.getElementById("chapterSelectPage").style.display = "none";
-            document.getElementById("storyDetailPage").style.display = "block";
-            document.getElementById("chapterTitle").innerText = "第2章 · 生日和新的名字";
-            
-            if (chapter2BranchChoice === "A") {
-                showBranchAEnding();
-            } else if (chapter2BranchChoice === "B") {
-                showBranchBEnding();
-            } else {
-                showChapter2ContinuedStory();
-            }
-        }
-    };
-        // 聊天返回按钮
-    document.getElementById("chatBackBtn").onclick = function() {
-        document.getElementById("chatListScreen").style.display = "block";
-        document.getElementById("chatDetailScreen").style.display = "none";
-        
-        if (chapter2BranchChoice === "A" && chapter2ChatDone) {
-            switchPage("story");
-            document.getElementById("chapterSelectPage").style.display = "none";
-            document.getElementById("storyDetailPage").style.display = "block";
-            document.getElementById("chapterTitle").innerText = "第2章 · 生日和新的名字";
+        // 根据保存的目标跳转
+        if (target === "showBranchAEnding" && typeof showBranchAEnding === 'function') {
             showBranchAEnding();
-            return;
-        }
-        
-        if (chapter2BranchChoice === "B" && chapter2ChatDone) {
-            switchPage("story");
-            document.getElementById("chapterSelectPage").style.display = "none";
-            document.getElementById("storyDetailPage").style.display = "block";
-            document.getElementById("chapterTitle").innerText = "第2章 · 生日和新的名字";
+        } else if (target === "showBranchBEnding" && typeof showBranchBEnding === 'function') {
             showBranchBEnding();
-            return;
-        }
-        
-        if (chapter2ChatDone) {
-            switchPage("story");
-            document.getElementById("chapterSelectPage").style.display = "none";
-            document.getElementById("storyDetailPage").style.display = "block";
-            document.getElementById("chapterTitle").innerText = "第2章 · 生日和新的名字";
+        } else if (target === "showChapter2ContinuedStory" && typeof showChapter2ContinuedStory === 'function') {
             showChapter2ContinuedStory();
-            return;
+        } else {
+            // 默认
+            showChapter2ContinuedStory();
         }
-    };
+        return;
+    }
+    
+    if (savedChapter === 1 || currentChapter === 1) {
+        switchPage("story");
+        document.getElementById("chapterSelectPage").style.display = "none";
+        document.getElementById("storyDetailPage").style.display = "block";
+        document.getElementById("chapterTitle").innerText = "第1章 · 重庆的夏天永远不会结束";
+        loadChapter1();
+        return;
+    }
+    
+    // 默认返回章节列表
+    document.getElementById("chapterSelectPage").style.display = "block";
+    document.getElementById("storyDetailPage").style.display = "none";
+    renderChapterList();
+};
         // ===== 剧情/地图切换 =====
     let isMapView = false;
 
@@ -22568,6 +22717,22 @@ function openUpdateNotice() {
             </div>
             <div style="font-size:13px;line-height:1.8;color:#333;">
 
+<!-- 2025年7月12日 -->
+<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #F0F0F0;">
+    <div style="font-weight:700;color:#E85D75;font-size:14px;">📅 2025年7月12日</div>
+    <div style="margin-top:4px;padding-left:8px;border-left:3px solid #E85D75;padding-left:12px;">
+        <div style="font-weight:600;color:#4CAF50;">✨ 新增功能</div>
+        <div>• 新增 IndexedDB 存档系统（localStorage 满后自动切换至 IndexedDB 存储）</div>
+        <div>• 存档管理页面同时支持 localStorage 和 IndexedDB 读取</div>
+        <div style="font-weight:600;color:#E85D75;margin-top:4px;">🔧 修复优化</div>
+        <div>• 修复第二章自定义聊天无法输入的问题</div>
+        <div>• 修复个人主页无法更换头像的问题</div>
+        <div>• 修复第二章开头剧情切换错误问题</div>
+        <div>• 修复无法存档的问题（localStorage 满后自动使用 IndexedDB）</div>
+        <div>• 优化返回按钮跳转逻辑，避免跳转到错误章节</div>
+    </div>
+</div>
+
                 <!-- 2025年7月11日 -->
                 <div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #F0F0F0;">
                     <div style="font-weight:700;color:#E85D75;font-size:14px;">📅 2025年7月11日</div>
@@ -23368,10 +23533,7 @@ function openAboutSimulator() {
         if (e.target === modal) modal.remove();
     });
 }
-// ===== 自动存档到档位4（兼容手机端） =====
 function autoSaveToSlot4() {
-    console.log('🔄 自动存档到档位4...');
-    
     var saveData = {
         player: {
             name: player.name,
@@ -23395,11 +23557,20 @@ function autoSaveToSlot4() {
         unlockedChapters: unlockedChapters,
         completedChapters: completedChapters,
         chatData: chatData,
+        
+        // ===== 朋友圈 =====
         allMoments: allMoments || [],
         myMoments: myMoments || [],
         momentsData: momentsData || [],
+        
+        // ===== 微博 =====
         allArtistWeibo: allArtistWeibo || [],
         allMyWeibo: allMyWeibo || [],
+        
+        // ===== 自定义朋友圈 =====
+        customMoments: customMoments || [],
+        
+        // ===== 其他 =====
         gifts: gifts || [],
         diaryEntries: diaryEntries || [],
         letters: letters || [],
@@ -23415,53 +23586,12 @@ function autoSaveToSlot4() {
         savedAt: new Date().toLocaleString(),
         chapterTitle: currentChapter === 1 ? "重庆的夏天永远不会结束" : (currentChapter === 2 ? "生日和新的名字" : "心动"),
         isAutoSave: true,
-        autoSaveTrigger: '点赞左奇函朋友圈'
+        autoSaveTrigger: '点赞左奇函朋友圈',
+        savedAt: new Date().toLocaleString()  // 加这行
     };
     
-    // ===== 尝试 localStorage =====
-    try {
-        localStorage.setItem('sisterSimulatorSave_4', JSON.stringify(saveData));
-        console.log('✅ 自动存档到档位4成功 (localStorage)');
-        showAutoSaveNotification();
-        return;
-    } catch(e) {
-        console.log('⚠️ localStorage 存档失败，尝试 IndexedDB:', e.message);
-    }
-    
-    // ===== 备用：IndexedDB =====
-    try {
-        var request = indexedDB.open('SisterSimulatorDB', 1);
-        request.onupgradeneeded = function(ev) {
-            var db = ev.target.result;
-            if (!db.objectStoreNames.contains('saves')) {
-                db.createObjectStore('saves', { keyPath: 'id' });
-            }
-        };
-        request.onsuccess = function(ev) {
-            var db = ev.target.result;
-            var tx = db.transaction('saves', 'readwrite');
-            var store = tx.objectStore('saves');
-            store.put({ 
-                id: 'save_4', 
-                data: saveData, 
-                time: new Date().toISOString() 
-            });
-            tx.oncomplete = function() {
-                console.log('✅ 自动存档到档位4成功 (IndexedDB)');
-                showAutoSaveNotification();
-            };
-            tx.onerror = function() {
-                console.log('❌ IndexedDB 存档失败');
-            };
-        };
-        request.onerror = function() {
-            console.log('❌ IndexedDB 打开失败');
-        };
-    } catch(e) {
-        console.log('❌ IndexedDB 不可用:', e.message);
-    }
+    localStorage.setItem('sisterSimulatorSave_4', JSON.stringify(saveData));
 }
-
 // ===== 自动存档提示 =====
 function showAutoSaveNotification() {
     var existing = document.querySelector('.auto-save-toast');
@@ -23492,6 +23622,94 @@ function showAutoSaveNotification() {
     setTimeout(function() {
         if (toast.parentNode) toast.remove();
     }, 2000);
+}
+// ===== 解锁聊天输入框 =====
+function unlockChatInput() {
+    var inputBox = document.getElementById("chatInputBox");
+    if (inputBox) {
+        inputBox.innerText = "";
+        inputBox.style.cssText = 'flex:1;padding:6px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:18px;background:rgba(255,255,255,0.85);color:#333;font-size:14px;outline:none;min-height:32px;cursor:text;pointer-events:auto;';
+        inputBox.contentEditable = "true";
+        inputBox.onclick = null;
+        inputBox.onkeydown = function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendCustomMessage();
+            }
+        };
+        inputBox.focus();
+    }
+    
+    // 绑定加号按钮
+    var plusBtn = document.getElementById('chatPlusBtn');
+    if (plusBtn) {
+        var newPlusBtn = plusBtn.cloneNode(true);
+        plusBtn.parentNode.replaceChild(newPlusBtn, plusBtn);
+        newPlusBtn.onclick = function() {
+            sendCustomMessage();
+        };
+    }
+}
+function restoreGameData(data) {
+    console.log('📂 恢复游戏数据...');
+    
+    if (data.player) {
+        player.name = data.player.name || '';
+        player.nickname = data.player.nickname || '';
+        player.wechatName = data.player.wechatName || '';
+        player.weiboName = data.player.weiboName || '';
+        player.love = data.player.love || 30;
+        player.wise = data.player.wise || 0;
+        player.expose = data.player.expose || 0;
+        player.dark = data.player.dark || 0;
+        player.money = data.player.money || 0;
+        player.stress = data.player.stress || 10;
+        player.fans = data.player.fans || 500;
+        player.stamina = data.player.stamina || 25;
+        player.transactions = data.player.transactions || [];
+    }
+    
+    if (data.currentChapter !== undefined) currentChapter = data.currentChapter;
+    if (data.chapterCompleted !== undefined) chapterCompleted = data.chapterCompleted;
+    if (data.meetCount !== undefined) meetCount = data.meetCount;
+    if (data.usedMeetIndices) usedMeetIndices = data.usedMeetIndices;
+    if (data.unlockedChapters) unlockedChapters = data.unlockedChapters;
+    if (data.completedChapters) completedChapters = data.completedChapters;
+    if (data.chatData) chatData = data.chatData;
+    if (data.allMoments) allMoments = data.allMoments;
+    if (data.myMoments) myMoments = data.myMoments;
+    if (data.momentsData) momentsData = data.momentsData;
+    if (data.allArtistWeibo) allArtistWeibo = data.allArtistWeibo;
+    if (data.allMyWeibo) allMyWeibo = data.allMyWeibo;
+    if (data.gifts) gifts = data.gifts;
+    if (data.diaryEntries) diaryEntries = data.diaryEntries;
+    if (data.letters) letters = data.letters;
+    if (data.friendRequests) friendRequests = data.friendRequests;
+    if (data.hasNewFriendRequest !== undefined) hasNewFriendRequest = data.hasNewFriendRequest;
+    if (data.friends) friends = data.friends;
+    if (data.contactRemarks) contactRemarks = data.contactRemarks;
+    if (data.myCards) myCards = data.myCards;
+    if (data.cardSets) cardSets = data.cardSets;
+    
+    if (data.zhang_dialogue_done) localStorage.setItem('zhang_dialogue_done', 'true');
+    if (data.chapter1_all_tasks_triggered) localStorage.setItem('chapter1_all_tasks_triggered', 'true');
+    
+    renderChatList();
+    renderMoments();
+    renderWeibo();
+    renderMyPage();
+    renderChapterList();
+    updateLetterRedDot();
+    updateStaminaDisplay();
+    
+    document.getElementById("startScreen").style.display = "none";
+    document.getElementById("gameScreen").style.display = "flex";
+    
+    if (currentChatContact && chatData && chatData[currentChatContact]) {
+        renderChatMessages();
+    }
+    
+    console.log('✅ 游戏数据恢复完成');
 }
 </script>
 </body>
