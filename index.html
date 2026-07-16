@@ -1254,7 +1254,7 @@ onclick="showCompanySchedule()">
 </div>
 <div onclick="openAboutSimulator()" style="padding:14px 0;border-bottom:1px solid #EFEFEF;cursor:pointer;">
     <div style="font-size:15px;color:#333;">关于模拟器</div>
-    <div style="font-size:11px;color:#999;margin-top:2px;">章节预告、投喂码</div>
+    <div style="font-size:11px;color:#999;margin-top:2px;">章节预告、催更/投喂码</div>
 </div>
             
         </div>
@@ -1591,13 +1591,13 @@ onclick="showCompanySchedule()">
 <script>
     // ================= 商业街功能 =================
 function openStreetPage() {
-
-    
-    // 创建弹窗
     var modal = document.createElement("div");
     modal.className = "full-modal";
     modal.style.cssText = "position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;";
-    
+
+    // 判断是否已加入群聊
+    var hasJoinedGroup = localStorage.getItem('chapter3_group_joined') === 'true';
+
     modal.innerHTML = `
         <div style="background:white;border-radius:28px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
             <div style="text-align:center;margin-bottom:20px;">
@@ -1618,34 +1618,37 @@ function openStreetPage() {
                     <span style="font-size:22px;">💰</span>
                     <span>挣钱</span>
                 </button>
+                ${hasJoinedGroup ? `
+                <button class="street-option" data-action="boardgame" style="background:#FFF5F5;border:1px solid #FFE0D4;border-radius:16px;padding:14px 16px;font-size:15px;font-weight:500;color:#333;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;transition:all 0.1s;">
+                    <span style="font-size:22px;">🎲</span>
+                    <span>桌游店</span>
+                </button>
+                ` : ''}
             </div>
             <button onclick="this.closest('.full-modal').remove()" style="margin-top:16px;width:100%;padding:10px;background:transparent;border:none;color:#999;font-size:13px;cursor:pointer;">关闭</button>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
-    
-    // ===== 点击选项的反馈 =====
+
     modal.querySelectorAll(".street-option").forEach(function(btn) {
         btn.addEventListener("click", function() {
             var action = this.dataset.action;
             modal.remove();
-            
             if (action === 'earn') {
                 openEarnPage();
             } else if (action === 'shop') {
                 openShopPage();
             } else if (action === 'eat') {
                 alert('📍 商业街 - 🍜 就餐\n\n功能开发中，敬请期待~');
+            } else if (action === 'boardgame') {
+                openBoardGamePage();
             }
         });
     });
-    
-    // 点击背景关闭
+
     modal.addEventListener("click", function(e) {
-        if (e.target === modal) {
-            modal.remove();
-        }
+        if (e.target === modal) modal.remove();
     });
 }
 // ================= 商店 =================
@@ -4392,13 +4395,121 @@ function renderChatList() {
         html += '</div>';
     }
 
+    // ===== 群聊（插入在这里，for循环之后，container.innerHTML之前） =====
+    if (chatData["我玩狼人杀不骗人"] && chatData["我玩狼人杀不骗人"].messages.length > 0) {
+        var groupData = chatData["我玩狼人杀不骗人"] || { messages: [], newMsg: false };
+        var lastMsg = "";
+        if (groupData.messages && groupData.messages.length > 0) {
+            lastMsg = groupData.messages[groupData.messages.length - 1].text || "暂无消息";
+        }
+        var groupAvatarHtml = '<div style="width:52px;height:52px;border-radius:12px;overflow:hidden;flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:1px;background:#E5E5E5;">';
+        groupAvatarHtml += '<img src="cyhwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+        groupAvatarHtml += '<img src="wzcwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+        groupAvatarHtml += '<img src="ybwwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+        groupAvatarHtml += '<img src="cshwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+        groupAvatarHtml += '<img src="nwcwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+        groupAvatarHtml += '<img src="zqhwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+        groupAvatarHtml += '<img src="lydwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+        groupAvatarHtml += '<img src="zhrwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+        groupAvatarHtml += '<img src="wljwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+        groupAvatarHtml += '</div>';
+        html += '<div class="chat-contact" data-contact="我玩狼人杀不骗人" style="display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid #EFEFEF;cursor:pointer;position:relative;">';
+        html += '<div class="chat-avatar" style="width:52px;height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:12px;background:#F0F0F0;">' + groupAvatarHtml + '</div>';
+        html += '<div class="chat-info" style="flex:1;min-width:0;">';
+        html += '<div class="chat-name" style="font-weight:600;">我玩狼人杀不骗人</div>';
+        html += '<div class="chat-preview" style="font-size:12px;color:#999;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + lastMsg + '</div>';
+        html += '</div>';
+        html += '</div>';
+    }
+
     container.innerHTML = html;
 
     document.querySelectorAll(".chat-contact").forEach(function(el) {
         el.addEventListener("click", function() {
-            openChat(el.dataset.contact);
+            var contact = this.dataset.contact;
+            if (contact === "我玩狼人杀不骗人") {
+                openGroupChat();
+            } else {
+                openChat(contact);
+            }
         });
     });
+}
+function openGroupChat() {
+    currentChatContact = "我玩狼人杀不骗人";
+    document.getElementById("chatListScreen").style.display = "none";
+    document.getElementById("chatDetailScreen").style.display = "block";
+    document.getElementById("chatContactName").innerText = "我玩狼人杀不骗人";
+
+    if (!chatData["我玩狼人杀不骗人"]) {
+        chatData["我玩狼人杀不骗人"] = { messages: [], newMsg: false, roundCompleted: false };
+    }
+
+    var data = chatData["我玩狼人杀不骗人"];
+    if (data.messages) {
+        for (var i = 0; i < data.messages.length; i++) {
+            if (data.messages[i].from === "other") {
+                data.messages[i].read = true;
+            }
+        }
+        data.newMsg = false;
+    }
+
+    renderChatMessages();
+    renderChatList();
+// ===== 进入群聊后，显示选项（只显示一次） =====
+    setTimeout(function() {
+        showGroupEntryOptions();
+    }, 1000);
+    // ===== 修复布局：让输入框在底部 =====
+    var detailScreen = document.getElementById("chatDetailScreen");
+    if (detailScreen) {
+        detailScreen.style.display = "flex";
+        detailScreen.style.flexDirection = "column";
+        detailScreen.style.height = "calc(100vh - 70px)";
+    }
+
+    var messagesContainer = document.getElementById("chatMessages");
+    if (messagesContainer) {
+        messagesContainer.style.flex = "1";
+        messagesContainer.style.overflowY = "auto";
+        messagesContainer.style.minHeight = "0";
+    }
+
+    var inputArea = document.querySelector(".chat-input-area");
+    if (inputArea) {
+        inputArea.style.flexShrink = "0";
+        inputArea.style.display = "flex";
+        inputArea.style.alignItems = "center";
+        inputArea.style.gap = "8px";
+        inputArea.style.padding = "6px 12px";
+        inputArea.style.background = "#E8E8E8";
+        inputArea.style.borderTop = "1px solid #ddd";
+        inputArea.style.minHeight = "48px";
+    }
+
+    var inputBox = document.getElementById("chatInputBox");
+    if (inputBox) {
+        inputBox.style.flex = "1";
+        inputBox.style.padding = "6px 12px";
+        inputBox.style.border = "1px solid rgba(255,255,255,0.3)";
+        inputBox.style.borderRadius = "18px";
+        inputBox.style.background = "rgba(255,255,255,0.85)";
+        inputBox.style.color = "#333";
+        inputBox.style.fontSize = "14px";
+        inputBox.style.outline = "none";
+        inputBox.style.minHeight = "32px";
+        inputBox.style.cursor = "text";
+        inputBox.style.pointerEvents = "auto";
+        inputBox.innerText = "群聊功能开发中";
+        inputBox.style.color = "#999";
+        inputBox.style.cursor = "default";
+        inputBox.contentEditable = "false";
+        inputBox.onclick = function() {
+            alert("群聊功能开发中，敬请期待~");
+        };
+    }
+
 }
 // ================= 备注和拉黑功能 =================
 
@@ -4706,11 +4817,72 @@ function blockContact(contact) {
         return;
     }
 
+    // ===== 群聊昵称映射表 =====
+    var groupNicknames = {
+        "陈思罕": "憨憨",
+        "魏子辰": "金枪鱼罐头",
+        "李煜东": "东不落",
+        "聂玮辰": "来比个耶",
+        "杨博文": "木易北北",
+        "陈奕恒": "恒里",
+        "王橹杰": "Reflection",
+        "张桂源": "三点水的yuan",
+        "张函瑞": "zhang憨蜹",
+        "左奇函": "哈哈哈",
+        "张奕然": "oh my god",
+        "陈浚铭": "陈太帅"
+    };
+
     var html = "";
     var lastDate = "";
 
     for (var i = 0; i < data.messages.length; i++) {
         var msg = data.messages[i];
+
+        // ===== 群聊邀请卡片 =====
+        if (msg.isGroupInvite) {
+            html += '<div style="background:white;border-radius:12px;padding:16px;margin:12px 0;border:1px solid #E5E5E5;box-shadow:0 1px 4px rgba(0,0,0,0.06);">';
+            html += '<div style="display:flex;align-items:flex-start;gap:12px;">';
+            html += '<div style="width:60px;height:60px;border-radius:6px;overflow:hidden;flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:1px;background:#E5E5E5;">';
+            html += '<img src="cyhwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+            html += '<img src="wzcwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+            html += '<img src="ybwwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+            html += '<img src="cshwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+            html += '<img src="nwcwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+            html += '<img src="zqhwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+            html += '<img src="zgyweixin.png" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+            html += '<img src="zhrwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+            html += '<img src="wljwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+            html += '</div>';
+            html += '<div style="flex:1;min-width:0;">';
+            html += '<div style="font-size:15px;font-weight:600;color:#1A1A1A;">邀请你加入群聊</div>';
+            html += '<div style="font-size:13px;color:#333;margin-top:2px;line-height:1.5;">三点水的yuan邀请你加入群聊「我玩狼人杀从不骗人」，进入可查看详情</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #EFEFEF;display:flex;justify-content:flex-end;">';
+            html += '<button onclick="joinChapter3Group()" style="padding:4px 20px;background:transparent;color:#576B95;border:none;font-size:14px;font-weight:500;cursor:pointer;">加入</button>';
+            html += '</div>';
+            html += '</div>';
+            continue;
+        }
+
+        // ===== 群聊系统消息：您已加入群聊（灰色长条居中） =====
+        if (currentChatContact === "我玩狼人杀不骗人" && msg.isJoinMessage) {
+            html += '<div style="text-align:center;padding:8px 0;margin:6px 0;">';
+            html += '<span style="display:inline-block;background:#E5E5E5;color:#333;padding:4px 16px;border-radius:12px;font-size:13px;">您已加入群聊</span>';
+            html += '</div>';
+            continue;
+        }
+
+        // ===== 普通系统消息（如“你已加入群聊”）也可用灰色长条，但只针对群聊且非邀请 =====
+        if (currentChatContact === "我玩狼人杀不骗人" && msg.isSystem && !msg.isJoinMessage && !msg.isGroupInvite) {
+            html += '<div style="text-align:center;padding:8px 0;margin:6px 0;">';
+            html += '<span style="display:inline-block;background:#E5E5E5;color:#333;padding:4px 16px;border-radius:12px;font-size:13px;">' + msg.text + '</span>';
+            html += '</div>';
+            continue;
+        }
+
+        // 日期
         if (msg.date && msg.date !== lastDate) {
             html += '<div class="message-date">' + msg.date + '</div>';
             lastDate = msg.date;
@@ -4719,6 +4891,7 @@ function blockContact(contact) {
         var isMe = msg.from === "me";
         var avatar = "";
 
+        // ===== 头像获取 =====
         if (isMe) {
             var playerAvatar = localStorage.getItem("player_avatar");
             if (playerAvatar && playerAvatar.startsWith("data:image")) {
@@ -4726,39 +4899,71 @@ function blockContact(contact) {
             } else {
                 avatar = "🐰";
             }
-        // 在 renderChatMessages 函数中，非自己的消息头像部分
-} else {
-    if (currentChatContact === "张桂源") {
-        avatar = '<img src="zgyweixin.png" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'🏀\'">';
-    } else if (currentChatContact === "陈太帅") {
-        avatar = '<img src="cjmwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
-    } else if (currentChatContact === "哈哈哈") {
-        avatar = '<img src="zqhwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
-    } else if (currentChatContact === "zhang憨蜹") {
-        avatar = '<img src="zhrwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
-    } else if (currentChatContact === "WXYz") {
-        avatar = '<img src="WXYz.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
-    } else {
-        avatar = "🎤";
-    }
-}
+        } else {
+            // 群聊特殊头像映射
+            if (currentChatContact === "我玩狼人杀不骗人") {
+                var from = msg.from || "";
+                if (from === "张桂源") {
+                    avatar = '<img src="zgyweixin.png" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                } else if (from === "陈浚铭" || from === "陈太帅") {
+                    avatar = '<img src="cjmwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                } else if (from === "左奇函" || from === "哈哈哈") {
+                    avatar = '<img src="zqhwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                } else if (from === "张函瑞" || from === "zhang憨蜹") {
+                    avatar = '<img src="zhrwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                } else if (from === "陈奕恒") {
+                    avatar = '<img src="cyhwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                } else if (from === "聂玮辰") {
+                    avatar = '<img src="nwcwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                } else if (from === "杨博文") {
+                    avatar = '<img src="ybwwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                } else if (from === "陈思罕") {
+                    avatar = '<img src="cshwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                } else if (from === "王橹杰") {
+                    avatar = '<img src="wljwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                } else if (from === "张亦然") {
+                    avatar = '<img src="zyrwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                } else if (from === "魏子宸") {
+                    avatar = '<img src="wzcwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                } else if (from === "李煜东") {
+                    avatar = '<img src="lydwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                } else {
+                    avatar = '<span style="font-size:28px;">👤</span>';
+                }
+            } else {
+                // 普通聊天头像
+                if (currentChatContact === "张桂源") {
+                    avatar = '<img src="zgyweixin.png" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'🏀\'">';
+                } else if (currentChatContact === "陈太帅") {
+                    avatar = '<img src="cjmwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
+                } else if (currentChatContact === "哈哈哈") {
+                    avatar = '<img src="zqhwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
+                } else if (currentChatContact === "zhang憨蜹") {
+                    avatar = '<img src="zhrwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
+                } else if (currentChatContact === "WXYz") {
+                    avatar = '<img src="WXYz.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
+                } else {
+                    avatar = "🎤";
+                }
+            }
+        }
 
         var longPressAttr = "";
         if (!isMe && currentChatContact === "张桂源") {
             var textContent = msg.text.replace(/<[^>]*>/g, '').trim();
-if (textContent.includes("但是忘了你在上课了")) {
-    longPressAttr = 'data-quote="forgot" style="cursor:pointer;" oncontextmenu="event.preventDefault();showQuoteMenu(this, \'forgot\', ' + i + ')" ontouchstart="handleTouchStart(event, this, \'forgot\', ' + i + ')" ontouchend="handleTouchEnd(event)"';
-} else if (textContent.includes("我来接你，有话跟你说")) {
-    longPressAttr = 'data-quote="pickup" style="cursor:pointer;" oncontextmenu="event.preventDefault();showQuoteMenu(this, \'pickup\', ' + i + ')" ontouchstart="handleTouchStart(event, this, \'pickup\', ' + i + ')" ontouchend="handleTouchEnd(event)"';
-}
+            if (textContent.includes("但是忘了你在上课了")) {
+                longPressAttr = 'data-quote="forgot" style="cursor:pointer;" oncontextmenu="event.preventDefault();showQuoteMenu(this, \'forgot\', ' + i + ')" ontouchstart="handleTouchStart(event, this, \'forgot\', ' + i + ')" ontouchend="handleTouchEnd(event)"';
+            } else if (textContent.includes("我来接你，有话跟你说")) {
+                longPressAttr = 'data-quote="pickup" style="cursor:pointer;" oncontextmenu="event.preventDefault();showQuoteMenu(this, \'pickup\', ' + i + ')" ontouchstart="handleTouchStart(event, this, \'pickup\', ' + i + ')" ontouchend="handleTouchEnd(event)"';
+            }
         }
 
-        // ✅ 判断是否是图片消息
         var isImage = msg.text && msg.text.includes('<img');
 
+        // ===== 渲染消息 =====
         if (isImage) {
-            // 图片消息：只显示头像 + 图片，不加气泡
-            html += '<div class="message-row" style="justify-content: ' + (isMe ? 'flex-end' : 'flex-start') + ';">';
+            // 图片消息
+            html += '<div class="message-row" style="justify-content: ' + (isMe ? 'flex-end' : 'flex-start') + '; margin-top: 4px;">';
             if (!isMe) {
                 html += '<div class="message-avatar">' + avatar + '</div>';
             }
@@ -4768,16 +4973,34 @@ if (textContent.includes("但是忘了你在上课了")) {
             }
             html += '</div>';
         } else {
-            // 普通文字消息：显示气泡
-            html += '<div class="message-row" style="justify-content: ' + (isMe ? 'flex-end' : 'flex-start') + ';">';
+            // 文字消息
+            var rowStyle = 'justify-content: ' + (isMe ? 'flex-end' : 'flex-start') + '; margin-top: 4px;';
+            html += '<div class="message-row" style="' + rowStyle + '">';
             if (!isMe) {
                 html += '<div class="message-avatar">' + avatar + '</div>';
-            }
-            html += '<div class="message-bubble">';
-            html += '<div class="' + (isMe ? 'bubble-me' : 'bubble-other') + '" ' + longPressAttr + ' style="background:white;">' + msg.text + '</div>';
-            html += '<div class="message-time">' + msg.time + '</div>';
-            html += '</div>';
-            if (isMe) {
+                // 群聊时在气泡上方显示昵称
+                // 群聊时在气泡上方显示昵称
+if (currentChatContact === "我玩狼人杀不骗人") {
+    var displayName = msg.from || "";
+    var nickname = groupNicknames[displayName] || displayName;
+    html += '<div style="display:flex;flex-direction:column;align-items:flex-start;max-width:80%;flex-shrink:0;">';
+    html += '<span style="font-size:11px;color:#999;margin-bottom:2px;padding-left:4px;">' + nickname + '</span>';
+    html += '<div class="message-bubble" style="margin-top:0;max-width:100%;width:auto;display:inline-block;">';
+    html += '<div class="bubble-other" ' + longPressAttr + ' style="background:white;white-space:nowrap;word-break:normal;display:inline-block;width:auto;max-width:none;">' + msg.text + '</div>';
+    html += '<div class="message-time">' + msg.time + '</div>';
+    html += '</div></div>';
+}else {
+                    html += '<div class="message-bubble">';
+                    html += '<div class="bubble-other" ' + longPressAttr + ' style="background:white;">' + msg.text + '</div>';
+                    html += '<div class="message-time">' + msg.time + '</div>';
+                    html += '</div>';
+                }
+            } else {
+                // 自己的消息
+                html += '<div class="message-bubble">';
+                html += '<div class="bubble-me" ' + longPressAttr + ' style="background:white;">' + msg.text + '</div>';
+                html += '<div class="message-time">' + msg.time + '</div>';
+                html += '</div>';
                 html += '<div class="message-avatar">' + avatar + '</div>';
             }
             html += '</div>';
@@ -4796,24 +5019,26 @@ if (textContent.includes("但是忘了你在上课了")) {
             el.style.background = '#DCF8C6';
         }
     });
+
     // 强制设置输入框区域背景为浅灰色
-var inputArea = document.querySelector('.chat-input-area');
-if (inputArea) {
-    inputArea.style.background = '#E8E8E8';
-    inputArea.style.padding = '6px 12px';
-    inputArea.style.borderTop = '1px solid #ddd';
-}
-// 点击聊天区域收回灰色功能区
-var messages = document.getElementById('chatMessages');
-if (messages) {
-    messages.onclick = function() {
-        var extraArea = document.getElementById('chatExtraArea');
-        if (extraArea && extraArea.style.display !== 'none') {
-            extraArea.style.display = 'none';
-            extraArea.style.maxHeight = '0';
-        }
-    };
-}
+    var inputArea = document.querySelector('.chat-input-area');
+    if (inputArea) {
+        inputArea.style.background = '#E8E8E8';
+        inputArea.style.padding = '6px 12px';
+        inputArea.style.borderTop = '1px solid #ddd';
+    }
+
+    // 点击聊天区域收回灰色功能区
+    var messages = document.getElementById('chatMessages');
+    if (messages) {
+        messages.onclick = function() {
+            var extraArea = document.getElementById('chatExtraArea');
+            if (extraArea && extraArea.style.display !== 'none') {
+                extraArea.style.display = 'none';
+                extraArea.style.maxHeight = '0';
+            }
+        };
+    }
 }
 // ================= 长按引用功能 =================
 var longPressTimer = null;
@@ -4980,7 +5205,9 @@ function openChat(contact) {
     applyChatBackground();
 
     var displayName = getContactDisplayName(contact);
-    document.getElementById("chatContactName").innerText = displayName;
+document.getElementById("chatContactName").innerText = displayName;
+document.getElementById("chatContactName").style.marginLeft = "20px";
+document.getElementById("chatContactName").style.paddingLeft = "20px";
 
     let inputBox = document.getElementById("chatInputBox");
 
@@ -8795,6 +9022,25 @@ if (name === "陈太帅") {
     };
 }
 function addNewMoments() {
+      // ===== 检查三个人的朋友圈是否都已存在 =====
+    if (momentsData && momentsData.length > 0) {
+        var hasZqh = momentsData.some(function(m) {
+            return m.id && m.id.indexOf('moment_zqh') !== -1;
+        });
+        var hasCjm = momentsData.some(function(m) {
+            return m.id && m.id.indexOf('moment_cjm') !== -1;
+        });
+        var hasZgy = momentsData.some(function(m) {
+            return m.id && m.id.indexOf('moment_zgy') !== -1;
+        });
+        
+        if (hasZqh && hasCjm && hasZgy) {
+            console.log('⚠️ 三个好友的朋友圈都已存在，跳过添加');
+            return;
+        }
+    }
+    
+    console.log("addNewMoments 被调用了");
     console.log("addNewMoments 被调用了");
     if (typeof momentsData === 'undefined') {
         console.log("momentsData 未定义，尝试初始化");
@@ -8999,35 +9245,40 @@ function initMomentsData() {
     ];
 
     var html = "";
-    for (var i = 0; i < totalChapters; i++) {
-        var isLocked = !unlockedChapters[i];
-        var isCompleted = completedChapters[i];
-        var statusText = "";
-        var statusClass = "";
+for (var i = 0; i < totalChapters; i++) {
+    var isLocked = !unlockedChapters[i];
+    var isCompleted = completedChapters[i];
+    var statusText = "";
+    var statusClass = "";
 
-        if (isLocked) {
-            // 第一章默认解锁
-            if (i === 0) {
-                isLocked = false;
-            }
-            // 第二章通过任务解锁
-            if (i === 1 && allDone) {
-                isLocked = false;
-                unlockedChapters[1] = true;
-            }
+    if (isLocked) {
+        // 第一章默认解锁
+        if (i === 0) {
+            isLocked = false;
         }
-
-        if (isLocked) {
-            statusText = "🔒 未解锁";
-            statusClass = "locked";
-        } else if (isCompleted) {
-            statusText = "✅ 已完成";
-            statusClass = "completed";
-        } else {
-            statusText = "📖 进行中";
-            statusClass = "unlocked";
+        // 第二章通过任务解锁
+        if (i === 1 && allDone) {
+            isLocked = false;
+            unlockedChapters[1] = true;
         }
+        // 第三章默认解锁
+        if (i === 2) {
+            isLocked = false;
+            unlockedChapters[2] = true;
+        }
+    }
 
+    if (isLocked) {
+        statusText = "🔒 未解锁";
+        statusClass = "locked";
+    } else if (isCompleted) {
+        statusText = "✅ 已完成";
+        statusClass = "completed";
+    } else {
+        statusText = "📖 进行中";
+        statusClass = "unlocked";
+    }
+    // ... 后面的代码不变
         // 第二章显示任务解锁提示
         var extraHint = "";
         if (i === 1 && isLocked) {
@@ -9084,22 +9335,27 @@ if (index === 1) {
     return;
 }
 
-    // ========== 第三章、第四章 ==========
-    if (index >= 2) {
-        document.getElementById("storyContent").innerHTML = `
-            <div style="text-align:center;padding:60px 20px;color:#999;">
-                <div style="font-size:48px;margin-bottom:16px;">🚧</div>
-                <div style="font-size:18px;font-weight:600;color:#666;">第${index+1}章正在更新中</div>
-                <div style="font-size:14px;color:#999;margin-top:8px;">敬请期待~</div>
-            </div>
-        `;
-        document.getElementById("branchArea").innerHTML = "";
-        document.getElementById("endChapterBtn").style.display = "none";
-        document.getElementById("nextChapterBtn").style.display = "none";
-        document.getElementById("nextHint").innerHTML = "";
-        document.getElementById("chapterTitle").innerText = `第${index+1}章 · ${["重庆的夏天永远不会结束","生日和新的名字","第三章（预留）","第四章（预留）"][index]}`;
-        return;
-    }
+   // ========== 第三章 ==========
+if (index === 2) {
+    document.getElementById("chapterTitle").innerText = "第3章 · 狼人杀之夜";
+    
+    // 直接触发弹窗和消息
+    triggerChapter3Message();
+    
+    // 显示等待内容
+    document.getElementById("storyContent").innerHTML = `
+        <div style="text-align:center;padding:60px 20px;color:#999;">
+            <div style="font-size:48px;margin-bottom:16px;">🐺</div>
+            <div style="font-size:16px;color:#666;">张桂源给你发了一条消息，请查看微信</div>
+        </div>
+    `;
+    
+    document.getElementById("branchArea").innerHTML = "";
+    document.getElementById("endChapterBtn").style.display = "none";
+    document.getElementById("nextChapterBtn").style.display = "none";
+    document.getElementById("nextHint").innerHTML = "";
+    return;
+}
 
     // ========== 第一章 ==========
     if (index === 0) {
@@ -12814,7 +13070,7 @@ function showFinalCommonPage() {
     
 function startChapter2EndChat() {
     // 先把"到了没"消息添加到聊天记录
-    var date = new Date().toLocaleDateString();
+     var date = "2023年10月7日";
     var hasMsg = false;
     if (chatData['张桂源'] && chatData['张桂源'].messages) {
         for (var i = 0; i < chatData['张桂源'].messages.length; i++) {
@@ -14203,6 +14459,593 @@ setTimeout(function() {
 }, 3000);
     }, 4000);
 }
+// ===== 第三章：触发张桂源消息 =====
+function triggerChapter3Message() {
+    var date = "2023年10月13日";
+    var time = "20:30";
+    
+    if (!chatData["张桂源"]) {
+        chatData["张桂源"] = { messages: [], roundCompleted: false };
+    }
+    
+    var exists = chatData["张桂源"].messages.some(function(m) {
+        return m.text === "周六晚上八点狼人杀缺个人，你来吗";
+    });
+    if (!exists) {
+        chatData["张桂源"].messages.push({
+            from: "other",
+            text: "周六晚上八点狼人杀缺个人，你来吗",
+            time: time,
+            avatar: "🏀",
+            date: date,
+            read: false
+        });
+        chatData["张桂源"].newMsg = true;
+    }
+    
+    renderChatList();
+    renderChatMessages();
+    
+    showMessageNotification(
+        "张桂源",
+        '<img src="zgyweixin.png" style="width:48px; height:48px; border-radius:50%; object-fit:cover;">',
+        "张桂源",
+        "周六晚上八点狼人杀缺个人，你来吗",
+        function() {
+            switchPage("chat");
+            setTimeout(function() {
+                openChat("张桂源");
+                startChapter3Chat();
+            }, 300);
+        }
+    );
+    
+    localStorage.setItem("chapter3_return_target", "triggerChapter3Message");
+}
+function joinChapter3Group() {
+    // 1. 显示加入成功提示
+    alert('✅ 你已加入群聊！');
+
+    // 2. 移除群聊邀请卡片（从DOM中移除）
+    var cards = document.querySelectorAll('#chatMessages div[style*="background:white;border-radius:12px;padding:16px;margin:12px 0;border:1px solid #E5E5E5;"]');
+    cards.forEach(function(card) {
+        card.remove();
+    });
+
+    // 3. 在 chatData 中创建群聊
+    if (!chatData["我玩狼人杀不骗人"]) {
+        chatData["我玩狼人杀不骗人"] = {
+            messages: [],
+            newMsg: false,
+            roundCompleted: false
+        };
+    }
+
+    // 4. 添加历史消息到群聊
+    var historyMessages = [
+        { from: "陈浚铭", text: "周六晚上狼人杀 谁来", time: "20:00", avatar: "cjmwx.jpg" },
+        { from: "陈浚铭", text: "@所有人", time: "20:00", avatar: "cjmwx.jpg" },
+        { from: "张桂源", text: "你又想被虐了是吧", time: "20:01", avatar: "zgyweixin.png" },
+        { from: "陈浚铭", text: "上次是意外，这次我认真的", time: "20:01", avatar: "cjmwx.jpg" },
+        { from: "陈思罕", text: "1", time: "20:02", avatar: "cshwx.jpg" },
+        { from: "左奇函", text: "1", time: "20:02", avatar: "zqhwx.jpg" },
+        { from: "张函瑞", text: "11", time: "20:02", avatar: "zhrwx.jpg" },
+        { from: "王橹杰", text: "1吧", time: "20:03", avatar: "wljwx.jpg" },
+        { from: "陈奕恒", text: "111111111", time: "20:03", avatar: "cyhwx.jpg" },
+        { from: "聂玮辰", text: "来啊", time: "20:03", avatar: "nwcwx.jpg" },
+        { from: "陈浚铭", text: "其他人呢？就这么几个人啊", time: "20:04", avatar: "cjmwx.jpg" },
+        { from: "张桂源", text: "锁手机了吧@杨博文", time: "20:04", avatar: "zgyweixin.png" },
+        { from: "左奇函", text: "有可能", time: "20:04", avatar: "zqhwx.jpg" },
+        { from: "张亦然", text: "补课，勿念", time: "20:05", avatar: "zyrwx.jpg" },
+        { from: "张桂源", text: "还在卷", time: "20:05", avatar: "zgyweixin.png" },
+        { from: "魏子宸", text: "和小官涵博之前约好了", time: "20:06", avatar: "wzcwx.jpg" },
+        { from: "李煜东", text: "我爸不让我晚上出门", time: "20:06", avatar: "lydwx.jpg" },
+        { 
+    from: "陈浚铭", 
+    text: '？？？<div style="margin-top:4px;padding-top:4px;border-top:1px solid #E8E8E8;font-size:12px;color:#999;">东不落：我爸不让我晚上出门</div>', 
+    time: "20:06", 
+    avatar: "cjmwx.jpg" 
+},
+        { from: "杨博文", text: "啊，刚刚在看书", time: "20:07", avatar: "ybwwx.jpg" },
+        { 
+    from: "杨博文", 
+    text: '写完作业应该能过来<div style="margin-top:4px;padding-top:4px;border-top:1px solid #E8E8E8;font-size:12px;color:#999;">陈太帅：周六晚上狼人杀 谁来</div>', 
+    time: "20:07", 
+    avatar: "ybwwx.jpg" 
+},
+        { from: "左奇函", text: "你直接带来写得了", time: "20:08", avatar: "zqhwx.jpg" },
+        { from: "张桂源", text: "顺便辅导一下陈浚铭", time: "20:08", avatar: "zgyweixin.png" },
+        { from: "陈浚铭", text: "不是哥们谁还带作业去", time: "20:08", avatar: "cjmwx.jpg" },
+        { from: "王橹杰", text: "那就玩9人局吧", time: "20:09", avatar: "wljwx.jpg" },
+        { from: "左奇函", text: "想玩丘比特局@陈浚铭", time: "20:09", avatar: "zqhwx.jpg" },
+        { from: "陈思罕", text: "那你拉个人", time: "20:10", avatar: "cshwx.jpg" },
+        { from: "陈奕恒", text: "丘比特又是什么玩意？", time: "20:10", avatar: "cyhwx.jpg" },
+        { from: "陈浚铭", text: "张桂圆你认识人多", time: "20:10", avatar: "cjmwx.jpg" },
+        { from: "张桂源", text: "我不认识", time: "20:11", avatar: "zgyweixin.png" },
+        { from: "左奇函", text: "那你手机里那个置顶是谁啊", time: "20:11", avatar: "zqhwx.jpg" },
+        { from: "聂玮辰", text: "？我去谁啊", time: "20:11", avatar: "nwcwx.jpg" },
+        { from: "左奇函", text: "你问他呗", time: "20:12", avatar: "zqhwx.jpg" },
+        { from: "聂玮辰", text: "@张桂源，谁啊", time: "20:12", avatar: "nwcwx.jpg" },
+        { from: "王橹杰", text: "演都不演了这是", time: "20:12", avatar: "wljwx.jpg" },
+        { from: "聂玮辰", text: "@左奇函，谁啊", time: "20:13", avatar: "nwcwx.jpg" },
+        { from: "张桂源", text: "……", time: "20:13", avatar: "zgyweixin.png" },
+        { from: "张桂源", text: "我问问", time: "20:13", avatar: "zgyweixin.png" },
+        { from: "左奇函", text: "问问？几个字打了两分钟了吧", time: "20:14", avatar: "zqhwx.jpg" },
+        { from: "张桂源", text: "你话怎么这么多", time: "20:14", avatar: "zgyweixin.png" },
+        { from: "陈奕恒", text: "不是，谁啊", time: "20:15", avatar: "cyhwx.jpg" },
+        { 
+    from: "左奇函", 
+    text: '私<div style="margin-top:4px;padding-top:4px;border-top:1px solid #E8E8E8;font-size:12px;color:#999;">恒里：不是，谁啊</div>', 
+    time: "20:15", 
+    avatar: "zqhwx.jpg" 
+},
+        { from: "陈浚铭", text: "她来不来啊，你问这么久", time: "20:16", avatar: "cjmwx.jpg" },
+        { from: "张桂源", text: "来", time: "20:16", avatar: "zgyweixin.png" },
+        { from: "左奇函", text: "恭喜恭喜啊", time: "20:17", avatar: "zqhwx.jpg" },
+        { from: "张桂源", text: "恭喜什么", time: "20:17", avatar: "zgyweixin.png" },
+        { from: "左奇函", text: "恭喜组局成功 不然你说呢", time: "20:17", avatar: "zqhwx.jpg" },
+        { from: "system", text: "您已加入群聊", time: "20:18", avatar: "📢", isSystem: true, isJoinMessage: true }
+    ];
+
+    // 添加历史消息
+    historyMessages.forEach(function(msg) {
+        chatData["我玩狼人杀不骗人"].messages.push({
+            from: msg.from,
+            text: msg.text,
+            time: msg.time,
+            avatar: msg.avatar || "👤",
+            date: "2023年10月13日",
+            read: true,
+            isSystem: msg.isSystem || false
+        });
+    });
+
+    // 5. 保存群聊已加入标记
+    localStorage.setItem('chapter3_group_joined', 'true');
+
+    // 6. 跳转到聊天列表
+document.getElementById("chatDetailScreen").style.display = "none";
+document.getElementById("chatListScreen").style.display = "block";
+renderChatList();
+// 不在这里显示选项，等用户点进群聊再显示
+}
+// ===== 第三章对话流程 =====
+function startChapter3Chat() {
+    setTimeout(function() {
+        showChapter3Options([
+            { text: "有哪些人啊", next: "chapter3_ask_who" }
+        ]);
+    }, 500);
+}
+
+// ===== 第三章选项系统 =====
+function showChapter3Options(options) {
+    var existing = document.querySelector('.option-modal');
+    if (existing) existing.remove();
+    
+    var modal = document.createElement("div");
+    modal.className = "option-modal";
+    var html = '<div style="margin-bottom:12px; font-weight:600;">选择回复</div>';
+    options.forEach(function(opt, idx) {
+        html += '<button class="option-btn" data-choice="' + idx + '" style="background:#F0F0F0;border:none;padding:12px;border-radius:16px;margin:8px 0;width:100%;text-align:left;font-size:14px;cursor:pointer;">' + opt.text + '</button>';
+    });
+    modal.innerHTML = html;
+    document.body.appendChild(modal);
+    
+    modal.querySelectorAll(".option-btn").forEach(function(btn) {
+        btn.onclick = function() {
+            var idx = parseInt(this.dataset.choice);
+            var selected = options[idx];
+            modal.remove();
+            
+            var playerName = player.wechatName || player.name || '用户';
+            chatData["张桂源"].messages.push({
+                from: "me",
+                text: selected.text,
+                time: getCurrentTime(),
+                avatar: "🐰",
+                date: "2023年10月13日",
+                read: true
+            });
+            renderChatMessages();
+            renderChatList();
+            
+            if (selected.next && typeof window[selected.next] === 'function') {
+                setTimeout(function() {
+                    window[selected.next]();
+                }, 500);
+            }
+        };
+    });
+}
+
+// ===== 分支1：有哪些人啊 =====
+function chapter3_ask_who() {
+    var replies = [
+        { from: "other", text: "都是我一起训练的好朋友", time: "20:31", avatar: "🏀" },
+        { from: "other", text: "还有陈浚铭，你上次见过的", time: "20:31", avatar: "🏀" }
+    ];
+    
+    sendChapter3Replies(replies, function() {
+        showChapter3Options([
+            { text: "可是我都不认识啊，好尴尬啊", next: "chapter3_option1" },
+            { text: "算了吧，我不认识他们", next: "chapter3_option2" }
+        ]);
+    });
+}
+
+// ===== 选项1 =====
+function chapter3_option1() {
+    var replies = [
+        { from: "other", text: "哎呀你来嘛", time: "20:32", avatar: "🏀" },
+        { from: "other", text: "陈浚铭说你不来他也不来了", time: "20:32", avatar: "🏀" }
+    ];
+    
+    sendChapter3Replies(replies, function() {
+        showChapter3Options([
+            { text: "？真的假的", next: "chapter3_really" }
+        ]);
+    });
+}
+
+// ===== 选项2 =====
+function chapter3_option2() {
+    var replies = [
+        { from: "other", text: "哎呀你来嘛", time: "20:32", avatar: "🏀" },
+        { from: "other", text: "陈浚铭说你不来他也不来了", time: "20:32", avatar: "🏀" }
+    ];
+    
+    sendChapter3Replies(replies, function() {
+        showChapter3Options([
+            { text: "？真的假的", next: "chapter3_really" }
+        ]);
+    });
+}
+
+// ===== 真的假的 =====
+function chapter3_really() {
+    var replies = [
+        { from: "other", text: "真的啊", time: "20:33", avatar: "🏀" },
+        { from: "other", text: '"姐姐不来我也不来了"', time: "20:33", avatar: "🏀" },
+        { from: "other", text: "他原话", time: "20:33", avatar: "🏀" }
+    ];
+    
+    sendChapter3Replies(replies, function() {
+        showChapter3Options([
+            { text: "那他为什么不自己来和我说", next: "chapter3_why_not_him" }
+        ]);
+    });
+}
+
+// ===== 那他为什么不自己来和我说 =====
+function chapter3_why_not_him() {
+    var replies = [
+        { from: "other", text: "你知道的他小孩脸皮薄", time: "20:34", avatar: "🏀" },
+        { from: "other", text: "来嘛来嘛来嘛来嘛", time: "20:34", avatar: "🏀" }
+    ];
+    
+    sendChapter3Replies(replies, function() {
+        showChapter3Options([
+            { text: "行", next: "chapter3_agree" }
+        ]);
+    });
+}
+
+// ===== 行（同意） =====
+function chapter3_agree() {
+    if (window._chapter3_agree_done) return;
+    window._chapter3_agree_done = true;
+    
+    // 玩家发送 "行"
+    chatData["张桂源"].messages.push({
+        from: "me",
+        text: "行",
+        time: getCurrentTime(),
+        avatar: "🐰",
+        date: "2023年10月13日",
+        read: true
+    });
+    renderChatMessages();
+    renderChatList();
+    
+    setTimeout(function() {
+        var replies = [
+            { from: "other", text: "太好了，我拉你进群", time: "20:35", avatar: "🏀" }
+        ];
+        
+        sendChapter3Replies(replies, function() {
+            // ===== 把群聊邀请存进 chatData =====
+            chatData["张桂源"].messages.push({
+                from: "system",
+                text: "群聊邀请",
+                time: "20:35",
+                avatar: "📢",
+                date: "2023年10月13日",
+                read: true,
+                isSystem: true,
+                isGroupInvite: true
+            });
+            
+            renderChatMessages();
+            renderChatList();
+            
+            var inputBox = document.getElementById("chatInputBox");
+            if (inputBox) {
+                inputBox.innerText = "请点击上方「加入」按钮进群";
+                inputBox.style.color = "#999";
+                inputBox.style.cursor = "default";
+                inputBox.contentEditable = "false";
+                inputBox.onclick = function() {
+                    alert("请点击上方的「加入」按钮进群");
+                };
+            }
+        });
+    }, 500);
+}
+
+// ===== 把群聊邀请文本替换成卡片 =====
+function replaceGroupInviteWithCard() {
+    var container = document.getElementById("chatMessages");
+    // 找到群聊邀请消息（包含"群聊邀请"文本的条目）
+    var items = container.querySelectorAll('.message-row, .message-bubble, .bubble-other, .bubble-me');
+    var targetItem = null;
+    
+    // 遍历查找包含"群聊邀请"的消息
+    items.forEach(function(item) {
+        if (item.textContent && item.textContent.indexOf('群聊邀请') !== -1) {
+            targetItem = item;
+        }
+    });
+    
+    if (targetItem) {
+        // 替换成卡片
+        var cardDiv = document.createElement("div");
+        cardDiv.style.cssText = "background:white;border-radius:12px;padding:16px;margin:8px 0;border:1px solid #E5E5E5;box-shadow:0 1px 4px rgba(0,0,0,0.06);";
+        cardDiv.innerHTML = `
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+                <div style="width:60px;height:60px;border-radius:6px;overflow:hidden;flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:1px;background:#E5E5E5;">
+                    <img src="cyhwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display='none'">
+                    <img src="wzcwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display='none'">
+                    <img src="ybwwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display='none'">
+                    <img src="cshwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display='none'">
+                    <img src="nwcwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display='none'">
+                    <img src="zqhwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display='none'">
+                    <img src="lydwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display='none'">
+                    <img src="zhrwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display='none'">
+                    <img src="wljwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display='none'">
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:15px;font-weight:600;color:#1A1A1A;">邀请你加入群聊</div>
+                    <div style="font-size:13px;color:#333;margin-top:2px;line-height:1.5;">
+                        三点水的yuan邀请你加入群聊「我玩狼人杀从不骗人」，进入可查看详情
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid #EFEFEF;display:flex;justify-content:flex-end;">
+                <button onclick="joinChapter3Group()"  style="padding:4px 20px;background:transparent;color:#576B95;border:none;font-size:14px;font-weight:500;cursor:pointer;">加入</button>
+            </div>
+        `;
+        targetItem.replaceWith(cardDiv);
+    }
+}
+function showGroupEntryOptions() {
+    // 先检查是否已经选择过
+    if (localStorage.getItem('chapter3_group_choice_done') === 'true') {
+        return;
+    }
+    
+    var existing = document.querySelector('.option-modal');
+    if (existing) existing.remove();
+    
+    var modal = document.createElement("div");
+    modal.className = "option-modal";
+    modal.style.cssText = "position:fixed;bottom:70px;left:0;right:0;max-width:500px;margin:0 auto;background:white;border-radius:20px 20px 20px 20px;box-shadow:0 -2px 20px rgba(0,0,0,0.1);padding:16px;z-index:200;max-height:50vh;overflow-y:auto;";
+    
+    modal.innerHTML = `
+        <div style="margin-bottom:12px; font-weight:600; font-size:15px;">你已加入群聊，要打招呼吗？</div>
+        <button class="option-btn" data-choice="hello" style="background:#F0F0F0;border:none;padding:12px;border-radius:16px;margin:8px 0;width:100%;text-align:left;font-size:14px;cursor:pointer;">👋 打个招呼</button>
+        <button class="option-btn" data-choice="lurk" style="background:#F0F0F0;border:none;padding:12px;border-radius:16px;margin:8px 0;width:100%;text-align:left;font-size:14px;cursor:pointer;">👀 窥屏</button>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    modal.querySelectorAll(".option-btn").forEach(function(btn) {
+        btn.onclick = function() {
+            var choice = this.dataset.choice;
+            modal.remove();
+            localStorage.setItem('chapter3_group_choice_done', 'true');
+            
+            if (choice === "hello") {
+                groupChatHello();
+            } else {
+                groupChatLurk();
+            }
+        };
+    });
+}
+// 补上 groupChatHello 函数
+groupChatHello = function() {
+    var playerName = player.wechatName || player.name || '用户';
+    var date = "2023年10月13日";
+    
+    chatData["我玩狼人杀不骗人"].messages.push({
+        from: "me",
+        text: "hi~",
+        time: getCurrentTime(),
+        avatar: "🐰",
+        date: date,
+        read: true
+    });
+    renderChatMessages();
+    renderChatList();
+    
+    var replies = [
+        { from: "张桂源", text: "我朋友 " , time: getCurrentTime(), avatar: "zgyweixin.png" },
+        { from: "左奇函", text: "终于进来了", time: getCurrentTime(), avatar: "zqhwx.jpg" },
+        { from: "陈思罕", text: "欢迎欢迎", time: getCurrentTime(), avatar: "cshwx.jpg" },
+        { from: "陈浚铭", text: "耶！齐了！", time: getCurrentTime(), avatar: "cjmwx.jpg" },
+        { from: "陈浚铭", text: "周六晚上八点，谁迟到谁请奶茶", time: getCurrentTime(), avatar: "cjmwx.jpg" },
+        { from: "聂玮辰", text: "左奇函迟到的话请两杯", time: getCurrentTime(), avatar: "nwcwx.jpg" },
+        { from: "左奇函", text: "我从来不迟到，你先把你自己管好", time: getCurrentTime(), avatar: "zqhwx.jpg" },
+        { from: "王橹杰", text: "天呐，终于凑齐了", time: getCurrentTime(), avatar: "wljwx.jpg" },
+        { from: "聂玮辰", text: "不是，是女生啊？", time: getCurrentTime(), avatar: "nwcwx.jpg" },
+        { from: "左奇函", text: "嘘", time: getCurrentTime(), avatar: "zqhwx.jpg" },
+        { from: "左奇函", text: "懂的都懂", time: getCurrentTime(), avatar: "zqhwx.jpg" },
+        { from: "陈浚铭", text: "懂的都懂", time: getCurrentTime(), avatar: "cjmwx.jpg" },
+        { from: "张函瑞", text: "懂的都懂，冒个泡", time: getCurrentTime(), avatar: "zhrwx.jpg" },
+        { from: "陈奕恒", text: "我不懂", time: getCurrentTime(), avatar: "cyhwx.jpg" },
+        { from: "陈奕恒", text: "张桂源你朋友为啥用女生头像", time: getCurrentTime(), avatar: "cyhwx.jpg" },
+        { from: "左奇函", text: "哎呀别问了等下张桂源害羞了", time: getCurrentTime(), avatar: "zqhwx.jpg" },
+        { from: "张桂源", text: "？", time: getCurrentTime(), avatar: "zgyweixin.png" },
+        { from: "张桂源", text: '<img src="bqb1.jpg" style="width:120px; border-radius:8px; max-width:100%; display:block;">', time: getCurrentTime(), avatar: "zgyweixin.png", isImage: true },
+        { from: "左奇函", text: "哎我去这表情包谁啊感觉有点小帅", time: getCurrentTime(), avatar: "zqhwx.jpg" },
+        { from: "左奇函", text: "你挺有眼光的", time: getCurrentTime(), avatar: "zqhwx.jpg" },
+        { from: "张桂源", text: "？？", time: getCurrentTime(), avatar: "zgyweixin.png" }
+    ];
+    
+    sendGroupReplies(replies);
+};
+
+console.log('✅ groupChatHello 已补上');
+function groupChatLurk() {
+    var date = "2023年10月13日";
+    
+    // 窥屏分支：玩家不发言，直接显示群聊后续消息
+    var replies = [
+        { from: "陈浚铭", text: "耶！齐了！", time: getCurrentTime(), avatar: "cjmwx.jpg" },
+        { from: "陈浚铭", text: "周六晚上八点，谁迟到谁请奶茶", time: getCurrentTime(), avatar: "cjmwx.jpg" },
+        { from: "聂玮辰", text: "左奇函迟到的话请两杯", time: getCurrentTime(), avatar: "nwcwx.jpg" },
+        { from: "左奇函", text: "我从来不迟到，你先把你自己管好", time: getCurrentTime(), avatar: "zqhwx.jpg" },
+        { from: "王橹杰", text: "天呐，终于凑齐了", time: getCurrentTime(), avatar: "wljwx.jpg" },
+        { from: "聂玮辰", text: "不是，是女生啊？", time: getCurrentTime(), avatar: "nwcwx.jpg" },
+        { from: "左奇函", text: "嘘", time: getCurrentTime(), avatar: "zqhwx.jpg" },
+        { from: "左奇函", text: "懂的都懂", time: getCurrentTime(), avatar: "zqhwx.jpg" },
+        { from: "陈浚铭", text: "懂的都懂", time: getCurrentTime(), avatar: "cjmwx.jpg" },
+        { from: "张函瑞", text: "懂的都懂，冒个泡", time: getCurrentTime(), avatar: "zhrwx.jpg" },
+        { from: "陈奕恒", text: "我不懂", time: getCurrentTime(), avatar: "cyhwx.jpg" },
+        { from: "陈奕恒", text: "张桂源你朋友为啥用女生头像", time: getCurrentTime(), avatar: "cyhwx.jpg" },
+        { from: "左奇函", text: "哎呀别问了等下张桂源害羞了", time: getCurrentTime(), avatar: "zqhwx.jpg" },
+        { from: "张桂源", text: "？", time: getCurrentTime(), avatar: "zgyweixin.png" },
+        { from: "张桂源", text: '<img src="bqb1.jpg" style="width:120px; border-radius:8px; max-width:100%; display:block;">', time: getCurrentTime(), avatar: "zgyweixin.png", isImage: true },
+        { from: "左奇函", text: "哎我去这表情包谁啊感觉有点小帅", time: getCurrentTime(), avatar: "zqhwx.jpg" },
+        { from: "左奇函", text: "你挺有眼光的", time: getCurrentTime(), avatar: "zqhwx.jpg" },
+        { from: "张桂源", text: "？？", time: getCurrentTime(), avatar: "zgyweixin.png" }
+    ];
+    
+    sendGroupReplies(replies);
+}
+function sendGroupReplies(replies) {
+    var idx = 0;
+    var avatarMap = {
+        "张桂源": "zgyweixin.png",
+        "陈浚铭": "cjmwx.jpg",
+        "左奇函": "zqhwx.jpg",
+        "张函瑞": "zhrwx.jpg",
+        "陈奕恒": "cyhwx.jpg",
+        "聂玮辰": "nwcwx.jpg",
+        "杨博文": "ybwwx.jpg",
+        "陈思罕": "cshwx.jpg",
+        "王橹杰": "wljwx.jpg",
+        "张亦然": "zyrwx.jpg",
+        "魏子宸": "wzcwx.jpg",
+        "李煜东": "lydwx.jpg"
+    };
+    
+   function sendNext() {
+        if (idx >= replies.length) {
+            // ===== 所有消息发送完毕，显示系统提示 =====
+            setTimeout(function() {
+                chatData["我玩狼人杀不骗人"].messages.push({
+    from: "system",
+    text: "请前往地图-商业街-桌游店进行狼人杀",
+    time: getCurrentTime(),
+    avatar: "📢",
+    date: "2023年10月13日",
+    read: true,
+    isSystem: true,
+    isJoinMessage: false
+});
+                renderChatMessages();
+                renderChatList();
+            }, 1500);
+            return;
+        }
+        
+        var r = replies[idx];
+        var container = document.getElementById("chatMessages");
+        var typingRow = document.createElement("div");
+        typingRow.className = "message-row";
+        typingRow.style.justifyContent = "flex-start";
+        
+        var avatarSrc = avatarMap[r.from] || "default_avatar.png";
+        var avatarHtml = '<img src="' + avatarSrc + '" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+        typingRow.innerHTML = '<div class="message-avatar">' + avatarHtml + '</div><div class="typing-indicator">' + r.from + ' 正在输入...</div>';
+        container.appendChild(typingRow);
+        container.scrollTop = container.scrollHeight;
+        
+        // ===== 随机间隔 1.5~3 秒 =====
+        var typingDelay = Math.floor(Math.random() * 1500) + 1500;
+        setTimeout(function() {
+            typingRow.remove();
+            
+            var date = "2023年10月13日";
+            chatData["我玩狼人杀不骗人"].messages.push({
+                from: r.from,
+                text: r.text,
+                time: r.time || getCurrentTime(),
+                avatar: r.avatar || "👤",
+                date: date,
+                read: true,
+                isImage: r.isImage || false
+            });
+            renderChatMessages();
+            renderChatList();
+            idx++;
+            // ===== 下一条随机间隔 1.5~3 秒 =====
+            var nextDelay = Math.floor(Math.random() * 1500) + 1000;
+            setTimeout(sendNext, nextDelay);
+        }, typingDelay);
+    }
+    sendNext();
+}
+// ===== 发送第三章多条回复 =====
+function sendChapter3Replies(replies, callback) {
+    var date = "2023年10月13日";
+    var idx = 0;
+    
+    function sendNext() {
+        if (idx >= replies.length) {
+            if (callback) setTimeout(callback, 300);
+            return;
+        }
+        var r = replies[idx];
+        var container = document.getElementById("chatMessages");
+        var typingRow = document.createElement("div");
+        typingRow.className = "message-row";
+        typingRow.style.justifyContent = "flex-start";
+        typingRow.innerHTML = '<div class="message-avatar"><img src="zgyweixin.png" style="width:40px; height:40px; border-radius:12px; object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>';
+        container.appendChild(typingRow);
+        container.scrollTop = container.scrollHeight;
+        
+        setTimeout(function() {
+            typingRow.remove();
+            chatData["张桂源"].messages.push({
+                from: r.from,
+                text: r.text,
+                time: r.time,
+                avatar: r.avatar || "🏀",
+                date: date,
+                read: false
+            });
+            renderChatMessages();
+            renderChatList();
+            idx++;
+            setTimeout(sendNext, 600);
+        }, 700);
+    }
+    sendNext();
+}
+
 // ================= 显示物品（小卡 + 礼物分页） =================
 let currentGiftTab = 'cards';
 let batchMode = false; // 是否处于批量模式
@@ -15253,6 +16096,17 @@ function showResultModal(title, content, infoLines) {
     // ================= 事件绑定 =================
     document.getElementById("favorabilityBtn")?.addEventListener("click", showFavorability);
     document.getElementById("startBtn").onclick = () => {
+         // ===== 重置群聊状态 =====
+    // 读档后，如果 chatData 里有群聊，恢复标记
+if (chatData["我玩狼人杀不骗人"] && chatData["我玩狼人杀不骗人"].messages.length > 0) {
+    localStorage.setItem('chapter3_group_joined', 'true');
+} else {
+    localStorage.removeItem('chapter3_group_joined');
+}
+renderChatList();
+    if (chatData["我玩狼人杀不骗人"]) {
+        delete chatData["我玩狼人杀不骗人"];
+    }
         // ===== 检查自动存档 =====
     var autoSaveData = localStorage.getItem('sisterSimulatorAutoSave');
     if (autoSaveData) {
@@ -15380,9 +16234,42 @@ document.getElementById('momentTextInput2').addEventListener('input', function()
     });
         // 聊天返回按钮（统一处理）
 document.getElementById("chatBackBtn").onclick = function() {
+     // ===== 如果已经加入了群聊，不管在哪个聊天页面，点返回都回聊天列表 =====
+    if (localStorage.getItem('chapter3_group_joined') === 'true') {
+        document.getElementById("chatDetailScreen").style.display = "none";
+        document.getElementById("chatListScreen").style.display = "block";
+        renderChatList();
+        return;
+    }
+    // ===== 群聊返回 =====
+    if (currentChatContact === "我玩狼人杀不骗人") {
+        document.getElementById("chatDetailScreen").style.display = "none";
+        document.getElementById("chatListScreen").style.display = "block";
+        renderChatList();
+        return;
+    }
+
      // ===== 强制打印日志，方便排查 =====
     console.log('chatBackBtn 被点击，当前返回目标:', localStorage.getItem('chapter2_return_target'));
-    
+    // ===== 强制保护：如果是第二章，绝不跳第一章 =====
+    var savedChapter = parseInt(localStorage.getItem("currentChapter")) || currentChapter || 0;
+    if (savedChapter === 2 || currentChapter === 2) {
+        document.getElementById("chatListScreen").style.display = "block";
+        document.getElementById("chatDetailScreen").style.display = "none";
+        switchPage("story");
+        document.getElementById("chapterSelectPage").style.display = "none";
+        document.getElementById("storyDetailPage").style.display = "block";
+        document.getElementById("chapterTitle").innerText = "第2章 · 生日和新的名字";
+        var target = localStorage.getItem("chapter2_return_target") || "showChapter2ContinuedStory";
+        if (target === "showBranchAEnding" && typeof showBranchAEnding === 'function') {
+            showBranchAEnding();
+        } else if (target === "showBranchBEnding" && typeof showBranchBEnding === 'function') {
+            showBranchBEnding();
+        } else {
+            showChapter2ContinuedStory();
+        }
+        return;
+    }
     document.getElementById("chatListScreen").style.display = "block";
     document.getElementById("chatDetailScreen").style.display = "none";
     document.getElementById("chatListScreen").style.display = "block";
@@ -22717,6 +23604,17 @@ function openUpdateNotice() {
             </div>
             <div style="font-size:13px;line-height:1.8;color:#333;">
 
+                <!-- 2025年7月13日 -->
+<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #F0F0F0;">
+    <div style="font-weight:700;color:#E85D75;font-size:14px;">📅 2025年7月13日</div>
+    <div style="margin-top:4px;padding-left:8px;border-left:3px solid #E85D75;padding-left:12px;">
+        <div style="font-weight:600;color:#E85D75;">🔧 修复优化</div>
+        <div>• 修复聊天页面顶部备注名不居中的问题</div>
+        <div>• 修复朋友圈重复显示的问题（添加防重复机制）</div>
+        <div>• 修复部分时间显示为实时而非固定日期的问题</div>
+    </div>
+</div>
+
 <!-- 2025年7月12日 -->
 <div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #F0F0F0;">
     <div style="font-weight:700;color:#E85D75;font-size:14px;">📅 2025年7月12日</div>
@@ -23504,7 +24402,7 @@ function openAboutSimulator() {
                 <div style="font-size:13px;color:#444;margin-top:4px;line-height:1.8;">
                     团建出去玩狼人杀，涉及人员有一班全体+聂玮辰，自己抽取身份牌。<br><br>
                     有三条线，因为后续分支特别多，涉及每轮投票的票数不一样，被投出去的人不一样，所以剧情量很大。<br><br>
-                    <span style="color:#E85D75;font-weight:600;">请勿催更</span>，我有进度会发的，被催我会很赶，很想做好这一章所以谢谢大家体谅 TT
+                    <span style="color:#E85D75;font-weight:600;">请勿不礼貌催更</span>，我有进度会发的，被催我会很赶，很想做好这一章所以谢谢大家体谅 TT
                 </div>
             </div>
             
@@ -23513,9 +24411,9 @@ function openAboutSimulator() {
                 <div style="font-weight:600;color:#1A1A1A;font-size:15px;">关于投喂码</div>
                 <div style="font-size:13px;color:#444;margin-top:4px;line-height:1.8;">
                     制作不易，剧情、代码修改、聊天互动以及解答大家问题会耗费大量的时间和精力。<br><br>
-                    所以如果有喜欢这个模拟器的宝宝希望可以支持一下～<br>
+                    所以如果有喜欢这个模拟器的宝宝希望可以支持一下～因为现生挺忙的不知道后面还会不会有那么多时间来做<br>
                     就算是一分钱也能让我觉得有喜欢这个模拟器的人，也会更有动力更新吧 ๑ᐢ..ᐢ๑<br><br>
-                    <span style="color:#999;font-size:12px;">不是强制，整个模拟器都是免费的，域名这些都是我付费购买的，宝宝们随意就好</span>
+                    <span style="color:#999;font-size:12px;">不是强制，整个模拟器都是免费的，宝宝们随意就好</span>
                 </div>
             </div>
             
@@ -23710,6 +24608,673 @@ function restoreGameData(data) {
     }
     
     console.log('✅ 游戏数据恢复完成');
+}
+function openBoardGamePage() {
+    var modal = document.createElement("div");
+    modal.className = "full-modal";
+    modal.style.cssText = "position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;";
+
+    modal.innerHTML = `
+        <div style="background:white;border-radius:28px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+            <div style="text-align:center;margin-bottom:16px;">
+                <div style="font-size:48px;margin-bottom:8px;">🎲</div>
+                <div style="font-size:18px;font-weight:700;color:#1A1A1A;">桌游店</div>
+            </div>
+            <div style="background:#FFF5F5;border-radius:12px;padding:14px 16px;margin-bottom:16px;border-left:3px solid #E85D75;">
+                <div style="font-size:13px;color:#666;line-height:1.7;">
+                    ⚠️ 狼人杀局内<b>不可以存档</b><br>
+                    每个身份玩完之后可重新进入桌游店选择另外的身份
+                </div>
+            </div>
+            <button onclick="enterWerewolf()" style="width:100%;padding:14px;background:#E85D75;color:white;border:none;border-radius:30px;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.2s;" onmouseenter="this.style.background='#d14a60'" onmouseleave="this.style.background='#E85D75'">
+                🐺 进入狼人杀
+            </button>
+            <button onclick="this.closest('.full-modal').remove()" style="margin-top:10px;width:100%;padding:10px;background:transparent;border:none;color:#999;font-size:13px;cursor:pointer;">关闭</button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    modal.addEventListener("click", function(e) {
+        if (e.target === modal) modal.remove();
+    });
+}
+// ===== 狼人杀剧情段落（全局共享函数，修改剧情只需改这一处）=====
+function getWerewolfParagraphs() {
+    return [
+        '天已经完全黑了。巷子里的路灯隔很远才有一盏，光线断断续续的，走到中段的时候确实暗下来。桌游吧门口的暖黄色灯牌在黑暗里特别显眼，像一小块暖色被嵌进夜里。墙上爬着的藤蔓被灯照出细碎的影子，风一吹就晃。',
+        
+        '左奇函已经在最里面的单人沙发里了，跷着腿刷手机，闻言抬头看了张桂圆一眼，嘴角弯了一下，又低头滑屏幕。那个笑很短，但意思很明白。',
+        
+        '张函瑞坐在地毯上叠纸巾，叠了一排小花，整整齐齐摆在桌角。看见你进来冲你笑了笑："晚上好呀。"',
+        
+        '王橹杰在老位置——最里面的角落，半边身子陷在沙发里，戴着有线耳机，屏幕光映在他脸上。看见你进来把耳机摘了一只，面无表情地抬了一下手，然后又把耳机戴回去了。',
+        
+        '老板他把本子合上放在桌角，双手撑在桌沿，语气不紧不慢，像说了很多遍的台词：\n"十人局。狼人三个，普通村民三个，神职三个——预言家、女巫、守卫。再加一个丘比特。总共十张牌。"\n"神职和村民属于好人阵营，狼人属于狼人阵营。"',
+        
+        '"本局是屠神局或者屠民局——什么意思呢，就是狼人只要把三个神职全部杀光，或者把三个村民全部杀光，狼人就赢了。不用把所有人都杀完。所以好人的压力在于，每个人都不能随便死，死一个神或者一个民，狼人就离胜利近一步。"',
+        
+        '"守卫每晚可以守一个人，被守的那个人当晚不会被狼人杀死。但不能连续两晚守同一个人。"',
+        
+        '"女巫有一瓶解药和一瓶毒药。解药可以救一个人，毒药可以杀一个人。整局游戏各只能用一次。女巫第一晚可以用解药救自己——这是规则允许的——但如果你选择了救别人，那后面就不能再救自己了。"',
+        
+        '左奇函笑了一声："所以女巫第一晚得好好想想救不救。"\n老板点头："对。然后是预言家。预言家每晚可以查验一个人的身份——是好人还是狼人。但看不到具体是什么神职，只知道阵营。"',
+        
+        '老板继续说："丘比特——这张牌比较特殊。他第一晚选两个人连成情侣。如果连的是两个好人，那两个好人还是好人阵营，但其中一个人死了另一个会跟着殉情。如果连的是一狼一人，那这两个人就自动脱离原来的阵营，组成第三方阵营。"',
+        
+        '"第三方要赢，必须把不属于自己阵营的所有人都驱逐出去。也就是说，除了情侣和丘比特三个人之外，其他七个人全部出局，他们俩才能赢。"\n陈浚铭倒吸一口凉气："七个人全出局？那得打多久。"\n"所以一般很少打到第三阵营赢，但存在这个可能性。丘比特自己输了也没关系——他是独立阵营，情侣赢了他也跟着赢，情侣输了他也输。"',
+        
+        '陈浚铭："那丘比特可以把自己连进去吗？"\n"可以，丘比特可以连自己。"\n"哇——"\n老板敲了敲桌子："别哇了，听完。胜负判定标准：狼人杀光所有神职或者所有平民，狼人赢。好人阵营把狼人全部投出去，好人赢。第三方情侣活到最后，第三方赢。就这么简单。"',
+        
+        '老板："预言家验出来好人是金水，验出来狼人是查杀。女巫救的人是银水。"\n\n请选择你的身份牌'
+    ];
+}
+function enterWerewolf() {
+    // ===== 不管有没有存档，每次进入都清空所有缓存，从头开始 =====
+    // 清除可能残留的卡牌显示
+    var existingCards = document.getElementById('identityCardsContainer');
+    if (existingCards) existingCards.remove();
+    var existingIdentity = document.getElementById('identityDisplay');
+    if (existingIdentity) existingIdentity.remove();
+    
+    // 清除狼人杀页面残留
+    var existingPage = document.getElementById('werewolfPage');
+    if (existingPage) existingPage.remove();
+    
+    var modal = document.querySelector('.full-modal');
+    if (modal) modal.remove();
+    
+    var prevPage = document.querySelector('.page.active');
+    if (prevPage) {
+        prevPage.style.display = 'none';
+        prevPage.classList.remove('active');
+    }
+    
+    var werewolfPage = document.createElement('div');
+    werewolfPage.id = 'werewolfPage';
+    werewolfPage.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:450px;height:100vh;aspect-ratio:9/16;z-index:999;background:url(zyd.jpg) center/cover no-repeat;display:flex;flex-direction:column;justify-content:flex-end;padding:0;';
+    
+    // 右上角保存按钮
+    var saveBtn = document.createElement('button');
+    saveBtn.textContent = '💾 保存';
+    saveBtn.style.cssText = 'position:absolute;top:20px;right:16px;z-index:1001;padding:6px 14px;background:rgba(0,0,0,0.6);color:white;border:1px solid rgba(255,255,255,0.2);border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;backdrop-filter:blur(8px);transition:all 0.2s;';
+    saveBtn.onmouseenter = function() { this.style.background = 'rgba(0,0,0,0.8)'; };
+    saveBtn.onmouseleave = function() { this.style.background = 'rgba(0,0,0,0.6)'; };
+    saveBtn.onclick = function() {
+        openWerewolfSaveManager();
+    };
+    werewolfPage.appendChild(saveBtn);
+    
+    // 左上角返回地图按钮
+    var backBtn = document.createElement('button');
+    backBtn.textContent = '← 返回';
+    backBtn.style.cssText = 'position:absolute;top:20px;left:16px;z-index:1001;padding:6px 14px;background:rgba(0,0,0,0.6);color:white;border:1px solid rgba(255,255,255,0.2);border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;backdrop-filter:blur(8px);transition:all 0.2s;';
+    backBtn.onmouseenter = function() { this.style.background = 'rgba(0,0,0,0.8)'; };
+    backBtn.onmouseleave = function() { this.style.background = 'rgba(0,0,0,0.6)'; };
+    backBtn.onclick = function() { exitWerewolf(); };
+    werewolfPage.appendChild(backBtn);
+    
+    var textBox = document.createElement('div');
+    textBox.id = 'werewolfTextBox';
+    textBox.style.cssText = 'background:rgba(0,0,0,0.7);height:33.33vh;padding:20px 24px;overflow-y:hidden;color:#E8E8E8;font-size:14px;line-height:1.8;font-family:inherit;cursor:pointer;';
+    textBox.innerHTML = '<div id="werewolfTextContent" style="white-space:pre-line;"></div>';
+    
+    werewolfPage.appendChild(textBox);
+    document.body.appendChild(werewolfPage);
+    
+    var paragraphs = getWerewolfParagraphs();
+    
+    var currentIndex = 0;
+    var isAnimating = false;
+    var contentDiv = document.getElementById('werewolfTextContent');
+    
+    function typeText(text, callback) {
+        isAnimating = true;
+        contentDiv.innerHTML = '';
+        var chars = text.split('');
+        var index = 0;
+        var typingSpeed = 30;
+        
+        function typeChar() {
+            if (index < chars.length) {
+                var char = chars[index];
+                if (char === '\n') {
+                    contentDiv.innerHTML += '<br>';
+                } else {
+                    contentDiv.innerHTML += char;
+                }
+                index++;
+                setTimeout(typeChar, typingSpeed);
+            } else {
+                isAnimating = false;
+                if (callback) callback();
+            }
+        }
+        typeChar();
+    }
+    
+   function showParagraph(index) {
+    window._werewolfCurrentIndex = index;
+    if (index >= paragraphs.length) {
+        textBox.onclick = showIdentityCards;
+        return;
+    }
+    
+    typeText(paragraphs[index], function() {
+        textBox.onclick = function() {
+            if (!isAnimating) {
+                currentIndex++;
+                showParagraph(currentIndex);
+                if (currentIndex < paragraphs.length) {
+                    textBox.onclick = null;
+                }
+            }
+        };
+    });
+}
+    showParagraph(0);
+}
+function showChosenIdentity(identity, subText) {
+    var contentDiv = document.getElementById('werewolfTextContent');
+    if (!contentDiv) return;
+    
+    contentDiv.innerHTML = '';
+    
+    var identityDisplay = document.createElement('div');
+    identityDisplay.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;margin-top:20px;width:100%;cursor:pointer;';
+    
+    var title = document.createElement('div');
+    title.style.cssText = 'color:#E8E8E8;font-size:24px;font-weight:700;text-shadow:0 2px 20px rgba(0,0,0,0.9);margin-bottom:16px;';
+    title.textContent = '本局身份为' + identity;
+    
+    var cardImg = document.createElement('div');
+    cardImg.style.cssText = 'width:160px;height:240px;border-radius:16px;background:#333;border:3px solid #D4A574;box-shadow:0 8px 40px rgba(0,0,0,0.5);background-size:cover;background-position:center;background-repeat:no-repeat;';
+    var imageMap = {
+        '女巫': 'nw.jpg',
+        '平民': 'pm.jpg',
+        '猎人': 'lr.jpg'
+    };
+    var imgSrc = imageMap[identity] || 'kb.jpg';
+    cardImg.style.backgroundImage = 'url(' + imgSrc + ')';
+    
+    var sub = document.createElement('div');
+    sub.style.cssText = 'color:#CCCCCC;font-size:13px;margin-top:30px;text-shadow:0 2px 20px rgba(0,0,0,0.9);';
+    sub.textContent = subText || '';
+    
+    identityDisplay.appendChild(title);
+    identityDisplay.appendChild(cardImg);
+    identityDisplay.appendChild(sub);
+    contentDiv.appendChild(identityDisplay);
+    
+    // 点击屏幕返回剧情
+    identityDisplay.onclick = function() {
+        exitWerewolf();
+    };
+}
+function showIdentityCards() {
+    // 清除之前的文本内容
+    var contentDiv = document.getElementById('werewolfTextContent');
+    if (contentDiv) {
+        contentDiv.innerHTML = '';
+    }
+    
+    // 隐藏文本框的点击翻页功能
+    var textBox = document.getElementById('werewolfTextBox');
+    if (textBox) {
+        textBox.onclick = null;
+    }
+    
+    // 创建三张身份牌容器（屏幕正中间）
+    var cardContainer = document.createElement('div');
+    cardContainer.id = 'identityCardsContainer';
+    cardContainer.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;display:flex;justify-content:center;align-items:center;gap:24px;';
+    
+    // 三张卡牌数据
+    var cards = [
+        { id: 'card1', backImage: 'kb.jpg', frontImage: 'nw.jpg', identity: '女巫', subText: '请利用好你的毒药和解药，并在关键时刻发挥作用' },
+        { id: 'card2', backImage: 'kb.jpg', frontImage: 'pm.jpg', identity: '平民', subText: '请跟随预言家获得胜利' },
+        { id: 'card3', backImage: 'kb.jpg', frontImage: 'lr.jpg', identity: '猎人', subText: '关键时刻发挥作用' }
+    ];
+    
+    var wrappers = [];
+    
+    cards.forEach(function(card, index) {
+        var cardWrapper = document.createElement('div');
+        cardWrapper.id = card.id;
+        cardWrapper.style.cssText = 'width:100px;height:150px;perspective:600px;cursor:pointer;transition:all 0.6s ease;flex-shrink:0;';
+        cardWrapper.dataset.index = index;
+        
+        var cardInner = document.createElement('div');
+        cardInner.style.cssText = 'position:relative;width:100%;height:100%;transition:transform 0.8s ease;transform-style:preserve-3d;';
+        
+        // 卡牌背面
+        var cardBack = document.createElement('div');
+        cardBack.style.cssText = 'position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:12px;background:url(' + card.backImage + ') center/cover no-repeat;border:2px solid #D4A574;box-shadow:0 4px 20px rgba(0,0,0,0.4);';
+        
+        // 卡牌正面
+        var cardFront = document.createElement('div');
+        cardFront.style.cssText = 'position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:12px;background:url(' + card.frontImage + ') center/cover no-repeat;border:2px solid #D4A574;box-shadow:0 4px 20px rgba(0,0,0,0.4);transform:rotateY(180deg);';
+        
+        cardInner.appendChild(cardBack);
+        cardInner.appendChild(cardFront);
+        cardWrapper.appendChild(cardInner);
+        cardContainer.appendChild(cardWrapper);
+        wrappers.push(cardWrapper);
+    });
+    
+    document.body.appendChild(cardContainer);
+    
+    // ===== 洗牌动画：三张牌相互互换位置 =====
+    var positions = [0, 1, 2];
+    var shuffleCount = 0;
+    var maxShuffles = 8;
+    
+    function shuffleCards() {
+        if (shuffleCount >= maxShuffles) {
+            // 洗牌结束，恢复原始位置
+            wrappers.forEach(function(w, i) {
+                w.style.transition = 'all 0.5s ease';
+                w.style.transform = 'translateX(0px)';
+                w.style.order = i;
+            });
+            // 绑定点击事件
+            wrappers.forEach(function(w) {
+                w.onclick = function() {
+                    flipCard(w, cards[parseInt(w.dataset.index)]);
+                };
+            });
+            return;
+        }
+        
+        // 随机交换两张牌的位置
+        var idx1 = Math.floor(Math.random() * 3);
+        var idx2 = Math.floor(Math.random() * 3);
+        while (idx1 === idx2) {
+            idx2 = Math.floor(Math.random() * 3);
+        }
+        
+        // 交换位置
+        var tempPos = positions[idx1];
+        positions[idx1] = positions[idx2];
+        positions[idx2] = tempPos;
+        
+        // 应用位置
+        var spacing = 140; // 间距
+        var offsetX = (positions.length - 1) * spacing / 2;
+        wrappers.forEach(function(w, i) {
+            var pos = positions.indexOf(i);
+            var x = pos * spacing - offsetX;
+            w.style.transition = 'all 0.4s ease';
+            w.style.transform = 'translateX(' + x + 'px)';
+            w.style.order = pos;
+        });
+        
+        shuffleCount++;
+        setTimeout(shuffleCards, 400);
+    }
+    
+    // 开始洗牌
+    setTimeout(shuffleCards, 300);
+    
+    // ===== 卡牌翻转 =====
+    function flipCard(wrapper, cardData) {
+        // 防止重复点击
+        if (wrapper.dataset.flipped === 'true') return;
+        wrapper.dataset.flipped = 'true';
+        
+        // 禁用所有卡牌点击
+        wrappers.forEach(function(w) {
+            w.onclick = null;
+        });
+        
+        // 翻转当前卡牌
+        var inner = wrapper.querySelector('div');
+        inner.style.transform = 'rotateY(180deg)';
+        
+        // 0.8秒后放大卡牌，隐藏其他卡牌
+        setTimeout(function() {
+            // 隐藏其他卡牌
+            wrappers.forEach(function(w) {
+                if (w !== wrapper) {
+                    w.style.opacity = '0';
+                    w.style.transition = 'opacity 0.3s ease';
+                    setTimeout(function() {
+                        w.style.display = 'none';
+                    }, 300);
+                }
+            });
+            
+            // 放大选中的卡牌到中间
+            wrapper.style.transition = 'all 0.6s ease';
+            wrapper.style.transform = 'translateX(0px) scale(1.8)';
+            wrapper.style.zIndex = '10';
+            wrapper.style.position = 'relative';
+            
+            // 显示身份信息
+           // 显示身份信息
+var identityDiv = document.createElement('div');
+identityDiv.id = 'identityDisplay';
+identityDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1001;text-align:center;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+identityDiv.innerHTML = `
+    <div style="color:#E8E8E8;font-size:22px;font-weight:700;text-shadow:0 2px 20px rgba(0,0,0,0.9);margin-bottom:16px;">本局身份为${cardData.identity}</div>
+    <div style="width:180px;height:260px;border-radius:16px;background:url(${cardData.frontImage}) center/cover no-repeat;border:3px solid #D4A574;box-shadow:0 8px 40px rgba(0,0,0,0.5);"></div>
+    <div style="color:#CCCCCC;font-size:13px;margin-top:14px;text-shadow:0 2px 20px rgba(0,0,0,0.9);">${cardData.subText}</div>
+    <button onclick="exitWerewolf()" style="margin-top:20px;padding:10px 32px;background:rgba(232,93,117,0.9);color:white;border:none;border-radius:30px;font-size:14px;font-weight:600;cursor:pointer;pointer-events:auto;transition:background 0.2s;" onmouseenter="this.style.background='rgba(232,93,117,1)'" onmouseleave="this.style.background='rgba(232,93,117,0.9)'">返回桌游店</button>
+`;
+            document.body.appendChild(identityDiv);
+        }, 800);
+    }
+}
+// ===== 狼人杀存档系统 =====
+function openWerewolfSaveManager() {
+    var modal = document.createElement('div');
+    modal.className = 'full-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    
+    var content = document.createElement('div');
+    content.style.cssText = 'background:white;border-radius:24px;padding:24px 20px;width:100%;max-width:380px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
+    content.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid #EFEFEF;padding-bottom:12px;">
+            <div style="font-size:18px;font-weight:700;color:#1A1A1A;">🐺 狼人杀存档</div>
+            <button onclick="this.closest('.full-modal').remove()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#999;">×</button>
+        </div>
+        <div style="font-size:13px;color:#999;margin-bottom:12px;">存档独立于主游戏，仅保存狼人杀进度</div>
+        <div id="werewolfSaveSlots"></div>
+    `;
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+    
+    renderWerewolfSaveSlots();
+    
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.remove();
+    };
+}
+
+function renderWerewolfSaveSlots() {
+    var container = document.getElementById('werewolfSaveSlots');
+    if (!container) return;
+    
+    var html = '';
+    for (var slot = 0; slot < 2; slot++) {
+        var key = 'werewolf_save_slot_' + slot;
+        var saveDataStr = localStorage.getItem(key);
+        var hasSave = saveDataStr !== null;
+        var saveInfo = '';
+        if (hasSave) {
+            try {
+                var d = JSON.parse(saveDataStr);
+                saveInfo = d.savedAt || '未知';
+            } catch(e) { saveInfo = '数据异常'; }
+        }
+        
+        html += '<div style="background:#F8F8F8;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #EFEFEF;">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
+        html += '<div>';
+        html += '<div style="font-weight:600;font-size:15px;color:#1A1A1A;">💾 存档位 ' + (slot + 1) + '</div>';
+        html += hasSave ? '<div style="font-size:12px;color:#666;margin-top:2px;">保存时间：' + saveInfo + '</div>' : '<div style="font-size:12px;color:#999;margin-top:2px;">空</div>';
+        html += '</div>';
+        html += '<button onclick="saveWerewolfGame(' + slot + ')" style="padding:6px 16px;background:#E85D75;color:white;border:none;border-radius:20px;font-size:12px;cursor:pointer;">保存</button>';
+        html += '</div>';
+        if (hasSave) {
+            html += '<div style="display:flex;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #EFEFEF;">';
+            html += '<button onclick="loadWerewolfGame(' + slot + ')" style="flex:1;padding:8px;background:#1A1A1A;color:white;border:none;border-radius:20px;font-size:12px;cursor:pointer;">读取存档</button>';
+            html += '<button onclick="deleteWerewolfSave(' + slot + ')" style="flex:1;padding:8px;background:#E85D75;color:white;border:none;border-radius:20px;font-size:12px;cursor:pointer;">删除存档</button>';
+            html += '</div>';
+        }
+        html += '</div>';
+    }
+    
+    container.innerHTML = html;
+}
+
+function saveWerewolfGame(slotIndex) {
+    var contentDiv = document.getElementById('werewolfTextContent');
+    
+    var stage = 'story'; // story: 剧情中, identity_selected: 已选身份, card_select: 选牌阶段
+    var chosenIdentity = null;
+    var chosenSubText = null;
+    var textContent = contentDiv ? contentDiv.innerHTML : '';
+    
+    // 检查是否已选身份（页面中有身份显示）
+    var identityDisplay = document.getElementById('identityDisplay');
+    if (identityDisplay) {
+        var text = identityDisplay.textContent || '';
+        if (text.indexOf('本局身份为') !== -1) {
+            stage = 'identity_selected';
+            var match = text.match(/本局身份为(.+?)(?:\n|$)/);
+            if (match) chosenIdentity = match[1].trim();
+            var subEl = identityDisplay.querySelector('div:last-child');
+            if (subEl) chosenSubText = subEl.textContent || '';
+        }
+    }
+    
+    var cardContainer = document.getElementById('identityCardsContainer');
+    if (cardContainer && !identityDisplay) {
+        stage = 'card_select';
+    }
+    
+    var currentParagraph = window._werewolfCurrentIndex !== undefined ? window._werewolfCurrentIndex + 1 : 0;
+    if (currentParagraph > getWerewolfParagraphs().length) currentParagraph = getWerewolfParagraphs().length;
+    
+    var saveData = {
+        stage: stage,
+        currentParagraph: currentParagraph,
+        textContent: contentDiv ? contentDiv.innerHTML : '',
+        chosenIdentity: chosenIdentity,
+        chosenSubText: chosenSubText,
+        savedAt: new Date().toLocaleString()
+    };
+    
+    var key = 'werewolf_save_slot_' + slotIndex;
+    localStorage.setItem(key, JSON.stringify(saveData));
+    alert('✅ 狼人杀进度已保存到存档位 ' + (slotIndex + 1) + '！');
+    renderWerewolfSaveSlots();
+}
+function loadWerewolfGame(slotIndex) {
+    var key = 'werewolf_save_slot_' + slotIndex;
+    var saveStr = localStorage.getItem(key);
+    if (!saveStr) {
+        alert('存档位 ' + (slotIndex + 1) + ' 没有存档');
+        return;
+    }
+    
+    try {
+        var data = JSON.parse(saveStr);
+        
+        // 关闭当前狼人杀页面
+        var currentPage = document.getElementById('werewolfPage');
+        if (currentPage) currentPage.remove();
+        
+        // 重新进入狼人杀，用存档数据填充
+        enterWerewolfWithSave(data);
+        
+        alert('✅ 读取存档成功！');
+    } catch(e) {
+        alert('读取存档失败');
+        console.error(e);
+    }
+}
+
+function enterWerewolfWithSave(savedData) {
+    // 清除残留
+    var existingCards = document.getElementById('identityCardsContainer');
+    if (existingCards) existingCards.remove();
+    var existingIdentity = document.getElementById('identityDisplay');
+    if (existingIdentity) existingIdentity.remove();
+    var existingPage = document.getElementById('werewolfPage');
+    if (existingPage) existingPage.remove();
+    
+    var modal = document.querySelector('.full-modal');
+    if (modal) modal.remove();
+    
+    var prevPage = document.querySelector('.page.active');
+    if (prevPage) {
+        prevPage.style.display = 'none';
+        prevPage.classList.remove('active');
+    }
+    
+    var werewolfPage = document.createElement('div');
+    werewolfPage.id = 'werewolfPage';
+    werewolfPage.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:450px;height:100vh;aspect-ratio:9/16;z-index:999;background:url(zyd.jpg) center/cover no-repeat;display:flex;flex-direction:column;justify-content:flex-end;padding:0;';
+    
+    var saveBtn = document.createElement('button');
+    saveBtn.textContent = '💾 保存';
+    saveBtn.style.cssText = 'position:absolute;top:20px;right:16px;z-index:1001;padding:6px 14px;background:rgba(0,0,0,0.6);color:white;border:1px solid rgba(255,255,255,0.2);border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;backdrop-filter:blur(8px);transition:all 0.2s;';
+    saveBtn.onmouseenter = function() { this.style.background = 'rgba(0,0,0,0.8)'; };
+    saveBtn.onmouseleave = function() { this.style.background = 'rgba(0,0,0,0.6)'; };
+    saveBtn.onclick = function() {
+        openWerewolfSaveManager();
+    };
+    werewolfPage.appendChild(saveBtn);
+    
+    // 左上角返回地图按钮
+    var backBtn = document.createElement('button');
+    backBtn.textContent = '← 返回';
+    backBtn.style.cssText = 'position:absolute;top:20px;left:16px;z-index:1001;padding:6px 14px;background:rgba(0,0,0,0.6);color:white;border:1px solid rgba(255,255,255,0.2);border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;backdrop-filter:blur(8px);transition:all 0.2s;';
+    backBtn.onmouseenter = function() { this.style.background = 'rgba(0,0,0,0.8)'; };
+    backBtn.onmouseleave = function() { this.style.background = 'rgba(0,0,0,0.6)'; };
+    backBtn.onclick = function() { exitWerewolf(); };
+    werewolfPage.appendChild(backBtn);
+    
+    var textBox = document.createElement('div');
+    textBox.id = 'werewolfTextBox';
+    textBox.style.cssText = 'background:rgba(0,0,0,0.7);height:33.33vh;padding:20px 24px;overflow-y:hidden;color:#E8E8E8;font-size:14px;line-height:1.8;font-family:inherit;cursor:pointer;';
+    textBox.innerHTML = '<div id="werewolfTextContent" style="white-space:pre-line;"></div>';
+    
+    werewolfPage.appendChild(textBox);
+    document.body.appendChild(werewolfPage);
+    
+    var contentDiv = document.getElementById('werewolfTextContent');
+    
+    // ===== 直接恢复存档时的文字内容 =====
+    if (contentDiv && savedData.textContent) {
+        contentDiv.innerHTML = savedData.textContent;
+    }
+    
+    // ===== 存档中的 currentParagraph 记录的是当前显示到第几段 =====
+    var currentParagraph = savedData.currentParagraph || 0;
+    var paragraphs = getWerewolfParagraphs();
+    
+    // ===== 根据存档阶段恢复 =====
+    if (savedData.stage === 'identity_selected' && savedData.chosenIdentity) {
+        showChosenIdentity(savedData.chosenIdentity, savedData.chosenSubText || '');
+        textBox.onclick = null;
+        return;
+    }
+    
+    if (savedData.stage === 'card_select') {
+        setTimeout(function() {
+            showIdentityCards();
+        }, 200);
+        return;
+    }
+    
+    if (currentParagraph >= paragraphs.length) {
+        textBox.onclick = function() {
+            if (contentDiv && contentDiv.innerHTML.indexOf('本局身份') !== -1) {
+                return;
+            }
+            showIdentityCards();
+        };
+        return;
+    }
+    
+    // ===== 否则继续剧情 =====
+    var storyClick = function() {
+        if (currentParagraph < paragraphs.length) {
+            window._werewolfCurrentIndex = currentParagraph;
+            contentDiv.innerHTML = '';
+            var text = paragraphs[currentParagraph];
+            var chars = text.split('');
+            var idx = 0;
+            var speed = 30;
+            
+            function typeChar() {
+                if (idx < chars.length) {
+                    var char = chars[idx];
+                    if (char === '\n') {
+                        contentDiv.innerHTML += '<br>';
+                    } else {
+                        contentDiv.innerHTML += char;
+                    }
+                    idx++;
+                    setTimeout(typeChar, speed);
+                } else {
+                    currentParagraph++;
+                    textBox.onclick = storyClick;
+                }
+            }
+            typeChar();
+            textBox.onclick = null;
+        } else {
+            window._werewolfCurrentIndex = paragraphs.length;
+            textBox.onclick = function() {
+                textBox.onclick = null;
+                showIdentityCards();
+            };
+        }
+    };
+    textBox.onclick = storyClick;
+}
+// ===== 读档时的逐字显示函数 =====
+function typeTextInSave(text, contentDiv, callback) {
+    contentDiv.innerHTML = '';
+    var chars = text.split('');
+    var index = 0;
+    var typingSpeed = 30;
+    
+    function typeChar() {
+        if (index < chars.length) {
+            var char = chars[index];
+            if (char === '\n') {
+                contentDiv.innerHTML += '<br>';
+            } else {
+                contentDiv.innerHTML += char;
+            }
+            index++;
+            setTimeout(typeChar, typingSpeed);
+        } else {
+            if (callback) callback();
+        }
+    }
+    typeChar();
+}
+function deleteWerewolfSave(slotIndex) {
+    if (confirm('确定要删除存档位 ' + (slotIndex + 1) + ' 的存档吗？')) {
+        var key = 'werewolf_save_slot_' + slotIndex;
+        localStorage.removeItem(key);
+        alert('✅ 已删除存档');
+        renderWerewolfSaveSlots();
+    }
+}
+// ===== 退出狼人杀 =====
+function exitWerewolf() {
+    // 移除身份显示
+    var identityDisplay = document.getElementById('identityDisplay');
+    if (identityDisplay) identityDisplay.remove();
+    
+    // 移除卡牌容器
+    var cardContainer = document.getElementById('identityCardsContainer');
+    if (cardContainer) cardContainer.remove();
+    
+    // 关闭狼人杀页面
+    var werewolfPage = document.getElementById('werewolfPage');
+    if (werewolfPage) {
+        werewolfPage.remove();
+    }
+    
+    // 恢复之前的页面
+    var pages = document.querySelectorAll('.page');
+    pages.forEach(function(p) {
+        if (p.style.display === 'none' || p.style.display === '') {
+            p.style.display = 'block';
+            p.classList.add('active');
+        }
+    });
+    
+    // 回到地图页
+    switchPage('story');
 }
 </script>
 </body>
