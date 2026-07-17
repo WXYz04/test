@@ -4458,6 +4458,9 @@ function openGroupChat() {
     renderChatMessages();
     renderChatList();
 // ===== 进入群聊后，显示选项（只显示一次） =====
+    // 清除旧标记，确保选项显示
+    localStorage.removeItem('chapter3_group_choice_done');
+    window._groupEntryOptionsShown = false;
     setTimeout(function() {
         showGroupEntryOptions();
     }, 1000);
@@ -14830,7 +14833,7 @@ function replaceGroupInviteWithCard() {
 }
 function showGroupEntryOptions() {
     // 先检查是否已经选择过
-    if (localStorage.getItem('chapter3_group_choice_done') === 'true') {
+    if (window._groupEntryOptionsShown) {
         return;
     }
     
@@ -14853,7 +14856,7 @@ function showGroupEntryOptions() {
         btn.onclick = function() {
             var choice = this.dataset.choice;
             modal.remove();
-            localStorage.setItem('chapter3_group_choice_done', 'true');
+            window._groupEntryOptionsShown = true;
             
             if (choice === "hello") {
                 groupChatHello();
@@ -24696,7 +24699,7 @@ function enterWerewolf() {
     
     // 右上角保存按钮
     var saveBtn = document.createElement('button');
-    saveBtn.textContent = '💾 保存';
+    saveBtn.textContent = '保存';
     saveBtn.style.cssText = 'position:absolute;top:20px;right:16px;z-index:1001;padding:6px 14px;background:rgba(0,0,0,0.6);color:white;border:1px solid rgba(255,255,255,0.2);border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;backdrop-filter:blur(8px);transition:all 0.2s;';
     saveBtn.onmouseenter = function() { this.style.background = 'rgba(0,0,0,0.8)'; };
     saveBtn.onmouseleave = function() { this.style.background = 'rgba(0,0,0,0.6)'; };
@@ -24798,18 +24801,23 @@ function showChosenIdentity(identity, subText) {
     cardImg.style.backgroundImage = 'url(' + imgSrc + ')';
     
     var sub = document.createElement('div');
-    sub.style.cssText = 'color:#CCCCCC;font-size:13px;margin-top:30px;text-shadow:0 2px 20px rgba(0,0,0,0.9);';
+    sub.style.cssText = 'color:#CCCCCC;font-size:13px;margin-top:40px;text-shadow:0 2px 20px rgba(0,0,0,0.9);';
     sub.textContent = subText || '';
     
     identityDisplay.appendChild(title);
     identityDisplay.appendChild(cardImg);
     identityDisplay.appendChild(sub);
+    
+    // 添加分线入口按钮
+    var branchBtn = document.createElement('button');
+    branchBtn.textContent = '开启' + identity + '线';
+    branchBtn.style.cssText = 'margin-top:30px;padding:12px 40px;background:#1A1A1A;color:white;border:none;border-radius:0;font-size:15px;font-weight:600;cursor:pointer;pointer-events:auto;transition:background 0.2s;';
+    branchBtn.onmouseenter = function() { branchBtn.style.background = '#333'; };
+    branchBtn.onmouseleave = function() { branchBtn.style.background = '#1A1A1A'; };
+    branchBtn.onclick = function() { enterWerewolfBranch(identity); };
+    identityDisplay.appendChild(branchBtn);
     contentDiv.appendChild(identityDisplay);
     
-    // 点击屏幕返回剧情
-    identityDisplay.onclick = function() {
-        exitWerewolf();
-    };
 }
 function showIdentityCards() {
     // 清除之前的文本内容
@@ -24958,13 +24966,343 @@ identityDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate
 identityDiv.innerHTML = `
     <div style="color:#E8E8E8;font-size:22px;font-weight:700;text-shadow:0 2px 20px rgba(0,0,0,0.9);margin-bottom:16px;">本局身份为${cardData.identity}</div>
     <div style="width:180px;height:260px;border-radius:16px;background:url(${cardData.frontImage}) center/cover no-repeat;border:3px solid #D4A574;box-shadow:0 8px 40px rgba(0,0,0,0.5);"></div>
-    <div style="color:#CCCCCC;font-size:13px;margin-top:14px;text-shadow:0 2px 20px rgba(0,0,0,0.9);">${cardData.subText}</div>
-    <button onclick="exitWerewolf()" style="margin-top:20px;padding:10px 32px;background:rgba(232,93,117,0.9);color:white;border:none;border-radius:30px;font-size:14px;font-weight:600;cursor:pointer;pointer-events:auto;transition:background 0.2s;" onmouseenter="this.style.background='rgba(232,93,117,1)'" onmouseleave="this.style.background='rgba(232,93,117,0.9)'">返回桌游店</button>
+    <div style="color:#CCCCCC;font-size:13px;margin-top:40px;text-shadow:0 2px 20px rgba(0,0,0,0.9);">${cardData.subText}</div>
+    <button onclick="enterWerewolfBranch('${cardData.identity}')" style="margin-top:30px;padding:12px 40px;background:#1A1A1A;color:white;border:none;border-radius:0;font-size:15px;font-weight:600;cursor:pointer;pointer-events:auto;transition:background 0.2s;" onmouseenter="this.style.background='#333'" onmouseleave="this.style.background='#1A1A1A'">开启${cardData.identity}线</button>
 `;
             document.body.appendChild(identityDiv);
         }, 800);
     }
 }
+// ===== 狼人杀身份分线（占位，后续添加各线剧情）=====
+function enterWerewolfBranch(identity) {
+    if (identity === '女巫') {
+        enterWitchLine();
+    } else if (identity === '平民') {
+        enterCivilianLine();
+    } else if (identity === '猎人') {
+        enterHunterLine();
+    }
+}
+
+function enterWitchLine() {
+    setupWerewolfBranchCommon();
+    // 开始夜间流程
+    var witchMessages = [
+        '天黑请闭眼',
+        '"<b>丘比特请睁眼</b>"',
+        '"<b>丘比特请连情侣</b>"',
+        '上帝轻轻拍了拍两位被连的，不过声音很小并不能判断出方位',
+        '这局你没有被连为情侣',
+        '"<b>丘比特请闭眼</b>"',
+        '天黑请闭眼',
+        '"<b>狼人请睁眼</b>"',
+        '"<b>狼人请确认同伴</b>"',
+        '"<b>狼人请刀人</b>"',
+        '"<b>狼人请闭眼</b>"',
+        '"<b>女巫请睁眼</b>"'
+    ];
+    showWitchMessages(witchMessages, 0);
+}
+
+function showWitchMessages(messages, index) {
+    var contentDiv = document.getElementById('werewolfTextContent');
+    if (!contentDiv) return;
+    
+    if (index >= messages.length) {
+        showWitchSaveDecision();
+        return;
+    }
+    
+    contentDiv.innerHTML = messages[index];
+    
+    var textBox = document.getElementById('werewolfTextBox');
+    if (textBox) {
+        textBox.onclick = function() {
+            textBox.onclick = null;
+            showWitchMessages(messages, index + 1);
+        };
+    }
+}
+
+function showWitchSaveDecision() {
+    var contentDiv = document.getElementById('werewolfTextContent');
+    if (contentDiv) contentDiv.innerHTML = '';
+    
+    var textBox = document.getElementById('werewolfTextBox');
+    if (textBox) textBox.onclick = null;
+    
+    var existing = document.getElementById('witchDecisionPopup');
+    if (existing) existing.remove();
+    
+    var popup = document.createElement('div');
+    popup.id = 'witchDecisionPopup';
+    popup.style.cssText = 'position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);z-index:200;background:rgba(0,0,0,0.85);border:2px solid rgba(255,255,255,0.15);border-radius:16px;padding:28px 24px;text-align:center;color:white;max-width:260px;width:100%;';
+    
+    popup.innerHTML = 
+        '<div style="font-size:16px;font-weight:700;margin-bottom:16px;">今晚被刀的玩家是</div>' +
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:20px;">' +
+            '<div style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,0.6);">' +
+                '<img src="cjmwx.jpg" style="width:100%;height:100%;object-fit:cover;">' +
+            '</div>' +
+            '<div style="font-size:14px;">陈浚铭</div>' +
+        '</div>' +
+        '<div style="font-size:13px;color:#ccc;margin-bottom:20px;">你要使用你的解药吗</div>' +
+        '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:nowrap;">' +
+            '<button onclick="witchUseSave()" style="padding:8px 20px;background:#E85D75;color:white;border:none;border-radius:0;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.2s;" onmouseenter="this.style.background=\'#d14a60\'" onmouseleave="this.style.background=\'#E85D75\'">使用</button>' +
+            '<button onclick="witchNoSave()" style="padding:8px 20px;background:#333;color:white;border:none;border-radius:0;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.2s;" onmouseenter="this.style.background=\'#555\'" onmouseleave="this.style.background=\'#333\'">不使用</button>' +
+        '</div>';
+    
+    var page = document.getElementById('werewolfPage');
+    if (page) {
+        page.appendChild(popup);
+    }
+}
+
+// ===== 女巫解药分支 =====
+function witchUseSave() {
+    var popup = document.getElementById('witchDecisionPopup');
+    if (popup) popup.remove();
+    showWitchPoisonPrompt();
+}
+
+function witchNoSave() {
+    var popup = document.getElementById('witchDecisionPopup');
+    if (popup) popup.remove();
+    showWitchPoisonPrompt();
+}
+
+// ===== 女巫毒药系统 =====
+function showWitchPoisonPrompt() {
+    var existing = document.getElementById('witchDecisionPopup');
+    if (existing) existing.remove();
+    
+    var popup = document.createElement('div');
+    popup.id = 'witchDecisionPopup';
+    popup.style.cssText = 'position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);z-index:200;background:rgba(0,0,0,0.85);border:2px solid rgba(255,255,255,0.15);border-radius:16px;padding:28px 24px;text-align:center;color:white;max-width:260px;width:100%;';
+    
+    popup.innerHTML = 
+        '<div style="font-size:16px;font-weight:700;margin-bottom:10px;">你还有一瓶毒药，你要使用吗？</div>' +
+        '<div style="font-size:36px;margin-bottom:16px;">\uD83E\uDDEA</div>' +
+        '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:nowrap;">' +
+            '<button onclick="enablePoisonTargetSelection()" style="padding:8px 20px;background:#E85D75;color:white;border:none;border-radius:0;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.2s;" onmouseenter="this.style.background=\'#d14a60\'" onmouseleave="this.style.background=\'#E85D75\'">使用</button>' +
+            '<button onclick="skipPoison()" style="padding:8px 20px;background:#333;color:white;border:none;border-radius:0;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.2s;" onmouseenter="this.style.background=\'#555\'" onmouseleave="this.style.background=\'#333\'">不使用</button>' +
+        '</div>';
+    
+    var page = document.getElementById('werewolfPage');
+    if (page) page.appendChild(popup);
+}
+
+function enablePoisonTargetSelection() {
+    var popup = document.getElementById('witchDecisionPopup');
+    if (popup) popup.remove();
+    
+    // 显示提示文字
+    var contentDiv = document.getElementById('werewolfTextContent');
+    if (contentDiv) {
+        contentDiv.innerHTML = '<div style="color:#1A1A1A;font-size:18px;font-weight:700;text-align:center;margin-top:20px;">请选择你的使用对象</div>';
+    }
+    
+    // 启用头像点击
+    document.querySelectorAll('#werewolfAvatarContainer [data-name]').forEach(function(el) {
+        el.style.cursor = 'pointer';
+        el.onclick = function() {
+            triggerPoison(this.dataset.name, this);
+        };
+    });
+}
+
+function skipPoison() {
+    var popup = document.getElementById('witchDecisionPopup');
+    if (popup) popup.remove();
+    // 不使用毒药——后续剧情
+}
+
+function triggerPoison(name, wrapper) {
+    // 禁用进一步点击
+    document.querySelectorAll('#werewolfAvatarContainer [data-name]').forEach(function(el) {
+        el.onclick = null;
+        el.style.cursor = 'default';
+    });
+    
+    // 清除提示文字
+    var contentDiv = document.getElementById('werewolfTextContent');
+    if (contentDiv) {
+        contentDiv.innerHTML = '<div style="color:#E8E8E8;font-size:14px;text-align:center;padding:10px;">你对' + name + '使用了毒药</div>';
+    }
+    
+    // 找到头像图片容器
+    var avatarImg = wrapper.querySelector('div');
+    if (!avatarImg) return;
+    
+    // 在 wrapper 上放置动画（避免被头像的 border-radius 裁剪）
+    wrapper.style.position = 'relative';
+    wrapper.style.overflow = 'visible';
+    
+    // 创建毒药瓶
+    var bottle = document.createElement('div');
+    bottle.style.cssText = 'position:absolute;top:-28px;left:50%;transform:translateX(-50%) rotate(0deg);font-size:34px;z-index:30;transition:all 1s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;';
+    bottle.textContent = '\uD83E\uDDEA';
+    wrapper.appendChild(bottle);
+    
+    // 创建毒液流柱（初始隐藏）
+    var stream = document.createElement('div');
+    stream.style.cssText = 'position:absolute;top:-2px;left:50%;transform:translateX(-50%);width:6px;height:0;background:linear-gradient(to bottom, #00dd00, #008800);border-radius:3px;z-index:25;opacity:0;transition:height 0.5s ease 0.6s, opacity 0.3s ease 0.6s;';
+    wrapper.appendChild(stream);
+    
+    // 第一步：倾斜瓶身 + 毒液流下
+    var tipTimer = setTimeout(function() {
+        bottle.style.transform = 'translateX(-50%) rotate(-65deg)';
+        bottle.style.top = '0px';
+        
+        stream.style.height = '24px';
+        stream.style.opacity = '1';
+    }, 600);
+    
+    // 第二步：毒液溅到头像上 + 骷髅头
+    var splashTimer = setTimeout(function() {
+        // 毒药瓶和流柱消失
+        bottle.style.opacity = '0';
+        stream.style.opacity = '0';
+        
+        avatarImg.style.position = 'relative';
+        
+        var liquid = document.createElement('div');
+        liquid.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;border-radius:50%;background:radial-gradient(circle, rgba(0,220,0,0.5), rgba(0,120,0,0.3));z-index:2;animation:liquidFlow 0.5s ease forwards;';
+        avatarImg.appendChild(liquid);
+        
+        avatarImg.style.borderColor = '#00ee00';
+        avatarImg.style.boxShadow = '0 0 20px rgba(0,200,0,0.6), inset 0 0 10px rgba(0,200,0,0.3)';
+        
+        var skull = document.createElement('div');
+        skull.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:34px;z-index:6;opacity:0;transition:opacity 0.6s ease;';
+        skull.textContent = '\u2620\uFE0F';
+        avatarImg.appendChild(skull);
+        setTimeout(function() { skull.style.opacity = '1'; }, 200);
+    }, 1300);
+    
+    // 标记名字为中毒
+    var allDivs = wrapper.querySelectorAll('div');
+    var nameEl = allDivs[allDivs.length - 1];
+    if (nameEl && nameEl.tagName !== 'IMG') {
+        nameEl.style.color = '#00cc00';
+        nameEl.textContent = name + ' \u2620\uFE0F';
+    }
+}
+
+function enterCivilianLine() {
+    setupWerewolfBranchCommon();
+    // 👤 后续在这里写平民线剧情
+}
+
+function enterHunterLine() {
+    setupWerewolfBranchCommon();
+    // 🏹 后续在这里写猎人线剧情
+}
+
+// ===== 狼人杀分线共用场景 =====
+function setupWerewolfBranchCommon() {
+    // 注入毒药动画CSS
+    if (!document.getElementById('witchBranchAnim')) {
+        var style = document.createElement('style');
+        style.id = 'witchBranchAnim';
+        style.textContent = '@keyframes liquidFlow { 0% { opacity:0; transform:scale(0.3); } 100% { opacity:1; transform:scale(1); } }';
+        document.head.appendChild(style);
+    }
+    
+    // 移除身份显示和卡牌
+    var oldIdentity = document.getElementById('identityDisplay');
+    if (oldIdentity) oldIdentity.remove();
+    var oldCards = document.getElementById('identityCardsContainer');
+    if (oldCards) oldCards.remove();
+    
+    // 清除文本框内容
+    var textContent = document.getElementById('werewolfTextContent');
+    if (textContent) {
+        textContent.innerHTML = '';
+    }
+    
+    // 更换背景
+    var page = document.getElementById('werewolfPage');
+    if (page) {
+        page.style.background = "url(lrsbj.jpg) center/cover no-repeat";
+    }
+    
+    // 如果已存在旧的头像容器则移除
+    var oldContainer = document.getElementById('werewolfAvatarContainer');
+    if (oldContainer) oldContainer.remove();
+    
+    // 创建头像容器
+    var avatarContainer = document.createElement('div');
+    avatarContainer.id = 'werewolfAvatarContainer';
+    avatarContainer.style.cssText = 'position:absolute;top:60px;left:0;right:0;bottom:33.33vh;overflow-y:auto;z-index:100;';
+    
+    // 左边竖列：5个头像
+    var leftCol = document.createElement('div');
+    leftCol.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:12px;position:absolute;left:16px;top:50%;transform:translateY(-50%);';
+    var leftAvatars = [
+        { name: '王橹杰', img: 'wljwx.jpg' },
+        { name: '陈浚铭', img: 'cjmwx.jpg' },
+        { name: '陈思罕', img: 'cshwx.jpg' },
+        { name: '左奇函', img: 'zqhwx.jpg' },
+        { name: '聂玮辰', img: 'nwcwx.jpg' }
+    ];
+    leftAvatars.forEach(function(item) {
+        var wrapper = makeAvatarWrapper(item);
+        leftCol.appendChild(wrapper);
+    });
+    avatarContainer.appendChild(leftCol);
+    
+    // 右边竖列：5个头像
+    var rightCol = document.createElement('div');
+    rightCol.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:12px;position:absolute;right:16px;top:50%;transform:translateY(-50%);';
+    var rightAvatars = [
+        { name: '陈奕恒', img: 'cyhwx.jpg' },
+        { name: '张桂源', img: 'zgyweixin.png' },
+        { name: '玩家', img: 'player' },
+        { name: '杨博文', img: 'ybwwx.jpg' },
+        { name: '张函瑞', img: 'zhrwx.jpg' }
+    ];
+    rightAvatars.forEach(function(item) {
+        var wrapper = makeAvatarWrapper(item);
+        rightCol.appendChild(wrapper);
+    });
+    avatarContainer.appendChild(rightCol);
+    
+    // 将头像容器插入到 werewolfPage
+    if (page) {
+        page.appendChild(avatarContainer);
+    }
+}
+
+// ===== 生成单个头像元素 =====
+function makeAvatarWrapper(item) {
+    var wrapper = document.createElement('div');
+    wrapper.dataset.name = item.name;
+    wrapper.style.cssText = 'display:flex;flex-direction:column;align-items:center;';
+    
+    var avatarEl = document.createElement('div');
+    avatarEl.style.cssText = 'width:46px;height:46px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,0.6);flex-shrink:0;';
+    
+    if (item.name === '玩家') {
+        var playerAvatar = localStorage.getItem('player_avatar');
+        if (playerAvatar && playerAvatar.startsWith('data:image')) {
+            avatarEl.innerHTML = '<img src="' + playerAvatar + '" style="width:100%;height:100%;object-fit:cover;">';
+        } else {
+            avatarEl.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#E85D75;color:white;font-size:18px;">🐰</div>';
+        }
+    } else {
+        avatarEl.innerHTML = '<img src="' + item.img + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\'">';
+    }
+    
+    var nameEl = document.createElement('div');
+    nameEl.style.cssText = 'color:white;font-size:12px;margin-top:4px;text-shadow:0 1px 6px rgba(0,0,0,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56px;text-align:center;';
+    nameEl.textContent = item.name;
+    
+    wrapper.appendChild(avatarEl);
+    wrapper.appendChild(nameEl);
+    return wrapper;
+}
+
 // ===== 狼人杀存档系统 =====
 function openWerewolfSaveManager() {
     var modal = document.createElement('div');
@@ -25119,7 +25457,7 @@ function enterWerewolfWithSave(savedData) {
     werewolfPage.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:450px;height:100vh;aspect-ratio:9/16;z-index:999;background:url(zyd.jpg) center/cover no-repeat;display:flex;flex-direction:column;justify-content:flex-end;padding:0;';
     
     var saveBtn = document.createElement('button');
-    saveBtn.textContent = '💾 保存';
+    saveBtn.textContent = '保存';
     saveBtn.style.cssText = 'position:absolute;top:20px;right:16px;z-index:1001;padding:6px 14px;background:rgba(0,0,0,0.6);color:white;border:1px solid rgba(255,255,255,0.2);border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;backdrop-filter:blur(8px);transition:all 0.2s;';
     saveBtn.onmouseenter = function() { this.style.background = 'rgba(0,0,0,0.8)'; };
     saveBtn.onmouseleave = function() { this.style.background = 'rgba(0,0,0,0.6)'; };
