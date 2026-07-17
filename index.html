@@ -25191,7 +25191,281 @@ function triggerPoison(name, wrapper) {
 
 function enterCivilianLine() {
     setupWerewolfBranchCommon();
-    // 👤 后续在这里写平民线剧情
+    if (!document.getElementById('civFontLink')) {
+        var fl = document.createElement('link');
+        fl.id = 'civFontLink';
+        fl.rel = 'stylesheet';
+        fl.href = 'https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap';
+        document.head.appendChild(fl);
+    }
+    var msgs = [
+        '天黑请闭眼',
+        '"<b>丘比特请睁眼</b>"',
+        '"<b>丘比特请连情侣</b>"',
+        '上帝轻轻拍了拍两位被连的，不过声音很小并不能判断出方位',
+        '这局你没有被连为情侣',
+        '"<b>丘比特请闭眼</b>"',
+        '天黑请闭眼',
+        '"<b>狼人请睁眼</b>"',
+        '"<b>狼人请确认同伴</b>"',
+        '"<b>狼人请刀人</b>"',
+        '"<b>狼人请闭眼</b>"',
+        '"<b>女巫请睁眼</b>"',
+        '"<b>女巫请闭眼</b>"',
+        '天亮了',
+        '上帝：由一号玩家王橹杰开始顺序发言',
+        '王橹杰撩了下头发，随即淡淡开口："这里一张民牌，昨天晚上平安夜应该是女巫用了解药或者守卫守了人？前置位发言没什么信息，先这样吧听听后面的发言吧，过"',
+        '陈浚铭把椅子往后拖了拖，清了清嗓子，然后站起来说："那我跳了，没错，我今天就是预言家，昨天晚上验的王橹杰，是我的金水"',
+        '王橹杰脸上表情并没有什么变化，还是淡淡的，反倒是张桂源一脸笑的看着陈浚铭',
+        '"为什么验王橹杰呢，因为他在我前面，如果他是狼我可以根据他的发言决定怎么打，而且呢"',
+        '陈浚铭顿了一下，露出牙齿傻笑仿佛忘了要说什么呢',
+        '"他刚刚抽完牌后看牌的时候顿了一下，你们知道他平时都是那种那什么身份都无所谓啊的态度，但是今天看牌的时候竟然顿了一下"',
+        '"所以我就验他了，不过是好人"',
+        '陈思罕靠在椅背上晃椅子，语气不紧不慢。"3号民。2号你这个验人理由……我不急着站边，第一天信息太少了，看看后面还有没有跳预言家的吧，但2号你今天确实太活跃了，活跃到我觉得你有事。"',
+        '陈浚铭："我哪天不活跃？"',
+        '陈思罕："今天特别活跃。你自己品。"',
+        '左奇函把水杯放下，然后似笑非笑的把身子坐直了，"陈浚铭你别闹了吧，这里才是全场，唯、一、真预言家"',
+        '"没看懂你跳的原因啊，这局也没有白痴啊？"',
+        '"昨天晚上我验的8号，8号是女生，在这个局里通常不会被狼队首夜针对，验她如果出金水，能保住一个大概率不会被刀的好人，同时如果她是狼，那她藏得深，更要验。综合这两点，我验了她。结果是我的金水。"',
+        '"2号已经跳了，我必须现在跳。如果我不跳，2号就会把全场节奏带过去。我是真预，我不能让狼人焊跳成功。后面如果有跟我对跳的我当狼处理哈，藏好你的狼尾巴哦"',
+        '左奇函全程语气平稳，不疾不徐，张桂圆听完左奇函的发言，手指在桌上划了两下，然后抬头看了左奇函一眼。杨博文一直没动，拖着下巴在思考',
+        '"不是，我是个民啊，闭眼玩家"聂玮辰发言"陈浚铭这一看就是来戻局的啊，还是说狼放心他这么跳？我感觉不太像啊，看看后面还有没有跳预言家的吧，左奇函你今天玩的有点认真啊"',
+        '左奇函白了他一眼，用口语说到"我哪天玩的不认真了！？"',
+        '陈奕恒清了清喉子，然后站起来笑嘻嘻的说，"我要跳了哈，我要跳了"',
+        '左奇函被逗的不行："我求你了吧你要跳啥快点跳"',
+        '陈奕恒笑着指了指左奇函，"对，我就是要跳预言家，因为我才是预言家，昨天晚上我验了杨博文，是那个啥水，反正他是好人，然后，我验他是因为他太聪明了我怕他当狼耍我，但是呢我现在发现了真正的狼"',
+        '"左奇函，这个，他绝对是狼，但是他说的这个8号我不敢确认，今天把左奇函投了就完事儿了，我是预言家，要是你们不相信我"',
+        '"我也没有办法，反正我是真的预言家"',
+        '左奇函听完挑了挑眉，不知道在想什么',
+        '张桂圆挠了两下后脑勺，声音带着点纠结。"我是民。呓……先说一下2号陈浚铭，你跳预言家真的不像真的啊兄弟，你平时啥样我们都清楚。但是——"他看向左奇函，又看向陈奕恒，"4号发言确实很完美，完美到我反而有点……说不上来。"',
+        '他看了左奇函一眼："左奇函你今天的发言比你平时发言的时候要\'满\'。你平时会说一半留一半，今天你第一轮就把所有东西都倒出来了。我认识你这么久，你越是准备充分我越觉得你有问题。"',
+        '左奇函挑起一边眉毛："我准备充分也有问题？"',
+        '张桂圆："没问题，只是玩过这么多局我觉得要提防你一点"',
+        '左奇函没接话，一副命好苦的表情',
+        '张桂圆又转向陈奕恒："6号你今天发言也比平时顺，但你是那种越紧张越卡的人，今天没卡——说明你今天不紧张。那问题就是，你不紧张是因为你拿了好牌，还是因为你在演？"',
+        '陈奕恒没接话，一副你不信我就算了吧',
+        '陈浚铭在旁边笑出声，被张桂圆看见了"哦还忘了这个陈浚铭！今天选不出来预言家，干脆把陈浚铭投出去"',
+        '陈浚铭抓了一把旁边的零食，小声嘜嚵到："张桂源你投我你会后悔的"',
+        '轮到我发言，',
+        '杨博文放下手中的笔，从最开始他就拿笔在本子上记录着发言，杨博文表情淡淡的，但语气还是和平常一样认真。"我接6号陈奕恒的金水。首先感谢6号的验人啊，我会对得起这个金水。"',
+        '他顿了一下，目光扫过左奇函："左奇函，你的发言很漂亮，逻辑很清晰，但正因如此我反而觉得存疑。以我对你的了解，如果你是预言家，你不会在第一轮跳得这么……完美。你向来喜欢藏着，等更多信息再出手。"',
+        '"6号陈奕恒的选择和我自己的判断一致——他验我，说明他至少思路是对的。但我也不能完全排除他是狼人利用这种\'真诚感\'来做局。今天这轮信息还不够，我建议平票，下一轮再说。"',
+        '张函瑞发言："4号和6号……4号发言很好，我真的觉得他讲得很清楚。陈奕恒今天说这么流利也是很不错啊，也很加分，以及2号在我这没那么差。"',
+        '"我偏4多一点吧，因为他整体逻辑更完整。但我今天不投。再听一轮。然后张函瑞这边抽到的是一个民的身份"',
+        '上帝："好了现在开始投票"'
+    ];
+    showCivilianMessages(msgs, 0);
+}
+
+function showCivilianMessages(msgs, idx) {
+    var cd = document.getElementById('werewolfTextContent');
+    if (!cd) return;
+    if (idx >= msgs.length) return;
+    if (msgs[idx] === '轮到我发言，') {
+        showPlayerSpeechInput(msgs, idx);
+        return;
+    }
+    if (msgs[idx] === '天亮了') {
+        cd.innerHTML = '天亮了';
+        var tb = document.getElementById('werewolfTextBox');
+        if (tb) tb.onclick = function() { tb.onclick = null; showPeacefulNight(msgs, idx + 1); };
+        return;
+    }
+    cd.innerHTML = msgs[idx];
+    var tb = document.getElementById('werewolfTextBox');
+    if (tb) tb.onclick = function() {
+        tb.onclick = null;
+        if (idx + 1 >= msgs.length) {
+            startCivilianVoting();
+        } else {
+            showCivilianMessages(msgs, idx + 1);
+        }
+    };
+}
+
+function showPeacefulNight(msgs, nextIdx) {
+    var oldOv = document.getElementById('peacefulNightOverlay');
+    if (oldOv) oldOv.remove();
+    var ov = document.createElement('div');
+    ov.id = 'peacefulNightOverlay';
+    ov.style.cssText = 'position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);z-index:200;text-align:center;pointer-events:none;animation:fadeInBrush 1.5s ease forwards;';
+    ov.innerHTML = '<div style="font-family:\'Ma Shan Zheng\',cursive;font-size:42px;color:#6B0000;text-shadow:0 0 30px rgba(107,0,0,0.4),3px 3px 6px rgba(0,0,0,0.5),-2px -2px 4px rgba(0,0,0,0.2),0 0 60px rgba(107,0,0,0.15);letter-spacing:8px;">昨晚是平安夜……</div>';
+    var pg = document.getElementById('werewolfPage');
+    if (pg) pg.appendChild(ov);
+    if (!document.getElementById('civAnimStyle')) {
+        var st = document.createElement('style');
+        st.id = 'civAnimStyle';
+        st.textContent = '@keyframes fadeInBrush { 0% { opacity:0; transform:translate(-50%,-50%) scale(0.8); } 100% { opacity:1; transform:translate(-50%,-50%) scale(1); } }';
+        document.head.appendChild(st);
+    }
+    var tb = document.getElementById('werewolfTextBox');
+    if (tb) tb.onclick = function() { tb.onclick = null; var oo = document.getElementById('peacefulNightOverlay'); if (oo) oo.remove(); showCivilianMessages(msgs, nextIdx); };
+}
+// ===== 玩家发言麦克风系统 =====
+function showPlayerSpeechInput(msgs, idx) {
+    var cd = document.getElementById('werewolfTextContent');
+    if (!cd) return;
+    cd.innerHTML = '<div style="text-align:center;color:#E8E8E8;font-size:16px;padding:10px;">轮到我发言</div>';
+    var oldEl = document.getElementById('playerMicArea');
+    if (oldEl) oldEl.remove();
+    var ma = document.createElement('div');
+    ma.id = 'playerMicArea';
+    ma.style.cssText = 'position:absolute;bottom:10px;left:0;right:0;text-align:center;z-index:150;padding:0 16px;';
+    var mb = document.createElement('div');
+    mb.style.cssText = 'width:44px;height:44px;border-radius:50%;background:#E85D75;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;transition:all 0.2s;margin:0 auto;';
+    mb.textContent = '\uD83C\uDFA4';
+    mb.onmouseenter = function(){mb.style.background='#d14a60';};
+    mb.onmouseleave = function(){mb.style.background='#E85D75';};
+    var ia = document.createElement('div');
+    ia.style.cssText = 'display:none;margin-top:10px;';
+    var ib = document.createElement('input');
+    ib.id = 'playerSpeechInput';
+    ib.type = 'text';
+    ib.placeholder = '\u8F93\u5165\u4F60\u7684\u53D1\u8A00...';
+    ib.style.cssText = 'width:100%;padding:8px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;background:rgba(0,0,0,0.6);color:white;font-size:14px;outline:none;box-sizing:border-box;';
+    var sb = document.createElement('button');
+    sb.textContent = '\u53D1\u9001';
+    sb.style.cssText = 'margin-top:6px;padding:6px 24px;background:#E85D75;color:white;border:none;border-radius:0;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s;';
+    sb.onmouseenter = function(){sb.style.background='#d14a60';};
+    sb.onmouseleave = function(){sb.style.background='#E85D75';};
+    sb.onclick = function(){submitPlayerSpeech(msgs, idx);};
+    ia.appendChild(ib);
+    ia.appendChild(sb);
+    ma.appendChild(mb);
+    ma.appendChild(ia);
+    mb.onclick = function(){ia.style.display='block';mb.style.display='none';setTimeout(function(){document.getElementById('playerSpeechInput').focus();},100);};
+    var tb = document.getElementById('werewolfTextBox');
+    if (tb) { tb.style.position = 'relative'; tb.appendChild(ma); tb.onclick = null; }
+}
+function submitPlayerSpeech(msgs, idx) {
+    var inp = document.getElementById('playerSpeechInput');
+    var speech = inp ? inp.value.trim() : '';
+    if (!speech) { alert('\u8BF7\u8F93\u5165\u4F60\u7684\u53D1\u8A00'); return; }
+    var ma = document.getElementById('playerMicArea');
+    if (ma) ma.remove();
+    var cd = document.getElementById('werewolfTextContent');
+    if (cd) cd.innerHTML = '<div style="color:#E8E8E8;font-size:14px;padding:8px;">' + speech + '</div>';
+    var tb = document.getElementById('werewolfTextBox');
+    if (tb) tb.onclick = function(){tb.onclick=null; showCivilianMessages(msgs, idx + 1);};
+}
+// ===== 平民线投票系统 =====
+function startCivilianVoting() {
+    var cd = document.getElementById('werewolfTextContent');
+    if (cd) cd.innerHTML = '<div style="text-align:center;color:#E8E8E8;font-size:16px;padding:10px;">提示，请点击头像进行投票</div>';
+    var oldVA = document.getElementById('civilianVoteArea');
+    if (oldVA) oldVA.remove();
+    var va = document.createElement('div');
+    va.id = 'civilianVoteArea';
+    va.style.cssText = 'position:absolute;bottom:10px;left:0;right:0;text-align:center;z-index:150;padding:0 16px;';
+    var tm = document.createElement('div');
+    tm.id = 'voteTimer';
+    tm.style.cssText = 'color:#E85D75;font-size:22px;font-weight:700;margin-bottom:6px;text-shadow:0 1px 6px rgba(0,0,0,0.8);';
+    tm.textContent = '15s';
+    va.appendChild(tm);
+    var tb = document.getElementById('werewolfTextBox');
+    if (tb) { tb.style.position = 'relative'; tb.appendChild(va); tb.onclick = null; }
+    var selectedName = null;
+    var voteBtn = null;
+    var countdown = 15;
+    document.querySelectorAll('#werewolfAvatarContainer [data-name]').forEach(function(el) {
+        el.style.cursor = 'pointer';
+        el.onclick = function() {
+            var name = this.dataset.name;
+            document.querySelectorAll('#werewolfAvatarContainer [data-name]').forEach(function(o) {
+                o.style.border = 'none';
+                o.style.outline = 'none';
+                o.style.boxShadow = 'none';
+                var vb = o.querySelector('.vote-inline-btn');
+                if (vb) vb.remove();
+            });
+            selectedName = name;
+            this.style.outline = '2px solid #E85D75';
+            this.style.outlineOffset = '2px';
+            if (voteBtn) voteBtn.remove();
+            voteBtn = document.createElement('div');
+            voteBtn.className = 'vote-inline-btn';
+            voteBtn.textContent = '\u6295\u7968';
+            voteBtn.style.cssText = 'margin-top:4px;padding:4px 16px;background:#E85D75;color:white;border:none;border-radius:0;font-size:12px;font-weight:600;cursor:pointer;';
+            voteBtn.onmouseenter = function(){voteBtn.style.background='#d14a60';};
+            voteBtn.onmouseleave = function(){voteBtn.style.background='#E85D75';};
+            voteBtn.onclick = function(e){e.stopPropagation();submitVote(name);};
+            this.appendChild(voteBtn);
+        };
+    });
+    var ti = setInterval(function() {
+        countdown--;
+        tm.textContent = countdown + 's';
+        if (countdown <= 0) {
+            clearInterval(ti);
+            if (selectedName) submitVote(selectedName);
+            else { var va2 = document.getElementById('civilianVoteArea'); if (va2) va2.remove(); }
+        }
+    }, 1000);
+}
+function submitVote(votedName) {
+    var va = document.getElementById('civilianVoteArea');
+    if (va) va.remove();
+    document.querySelectorAll('#werewolfAvatarContainer [data-name]').forEach(function(el) {
+        el.onclick = null; el.style.cursor = 'default'; el.style.outline = 'none';
+    });
+    showVotingResults(votedName);
+}
+function getVoteAvatarHTML(name, sz) {
+    sz = sz || 32;
+    var imgMap = {'王橹杰':'wljwx.jpg','陈浚铭':'cjmwx.jpg','陈思罕':'cshwx.jpg','左奇函':'zqhwx.jpg','聂玮辰':'nwcwx.jpg','陈奕恒':'cyhwx.jpg','张桂源':'zgyweixin.png','杨博文':'ybwwx.jpg','张函瑞':'zhrwx.jpg'};
+    if (name === '\u73A9\u5BB6') {
+        var pa = localStorage.getItem('player_avatar');
+        if (pa && pa.indexOf('data:image') === 0) return '<img src="' + pa + '" style="width:' + sz + 'px;height:' + sz + 'px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.4);">';
+        return '<div style="width:' + sz + 'px;height:' + sz + 'px;border-radius:50%;background:#E85D75;display:flex;align-items:center;justify-content:center;color:white;font-size:' + (sz-10) + 'px;border:1px solid rgba(255,255,255,0.4);">\uD83D\uDC30</div>';
+    }
+    var src = imgMap[name] || 'kb.jpg';
+    return '<img src="' + src + '" style="width:' + sz + 'px;height:' + sz + 'px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.4);" onerror="this.style.display=\'none\'">';
+}
+function showVotingResults(playerVote) {
+    var oldP = document.getElementById('voteResultPopup');
+    if (oldP) oldP.remove();
+    var results = [
+        { player: '\u5DE6\u5947\u51FD', voters: ['\u738B\u6A79\u6770','\u9648\u6D5A\u94ED','\u9648\u5955\u6052','\u6768\u535A\u6587'] },
+        { player: '\u9648\u5955\u6052', voters: ['\u8042\u73AE\u8FB0','\u9648\u601D\u7F55','\u5F20\u51FD\u745E','\u5DE6\u5947\u51FD'] },
+        { player: '\u9648\u6D5A\u94ED', voters: ['\u5F20\u6842\u6E90'] }
+    ];
+    var found = false;
+    for (var i = 0; i < results.length; i++) {
+        if (results[i].player === playerVote) {
+            results[i].voters.push('\u73A9\u5BB6');
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        results.push({ player: playerVote, voters: ['\u73A9\u5BB6'] });
+    }
+    var popup = document.createElement('div');
+    popup.id = 'voteResultPopup';
+    popup.style.cssText = 'position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);z-index:200;background:rgba(0,0,0,0.85);border:2px solid rgba(255,255,255,0.15);border-radius:16px;padding:20px 24px;text-align:center;color:white;max-width:320px;width:100%;';
+    var html = '<div style="font-size:16px;font-weight:700;margin-bottom:12px;">\u6295\u7968\u7ED3\u679C</div>';
+    for (var i = 0; i < results.length; i++) {
+        var r = results[i];
+        html += '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center;padding:6px 0;">';
+        html += getVoteAvatarHTML(r.player, 32);
+        html += '<span style="color:#ccc;font-size:12px;margin:0 2px;">' + r.voters.length + '\u7968</span>';
+        r.voters.forEach(function(v) {
+            html += getVoteAvatarHTML(v, 26);
+        });
+        html += '</div>';
+        if (i < results.length - 1) {
+            html += '<div style="border-top:1px solid rgba(255,255,255,0.15);margin:2px 0;"></div>';
+        }
+    }
+    html += '</div>';
+    html += '<div style="margin-top:12px;"><button onclick="closeVoteResult()" style="padding:8px 24px;background:#333;color:white;border:none;border-radius:0;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s;" onmouseenter="this.style.background=\'#555\'" onmouseleave="this.style.background=\'#333\'">\u5173\u95ED</button></div>';
+    popup.innerHTML = html;
+    var pg = document.getElementById('werewolfPage');
+    if (pg) pg.appendChild(popup);
+}
+function closeVoteResult() {
+    var p = document.getElementById('voteResultPopup');
+    if (p) p.remove();
 }
 
 function enterHunterLine() {
