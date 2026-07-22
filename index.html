@@ -4441,6 +4441,13 @@ function openGroupChat() {
     document.getElementById("chatDetailScreen").style.display = "block";
     document.getElementById("chatContactName").innerText = "我玩狼人杀不骗人";
 
+    // 群聊返回键只返回聊天列表，不触发章节或剧情返回逻辑
+    document.getElementById("chatBackBtn").onclick = function() {
+        document.getElementById("chatDetailScreen").style.display = "none";
+        document.getElementById("chatListScreen").style.display = "block";
+        renderChatList();
+    };
+
     if (!chatData["我玩狼人杀不骗人"]) {
         chatData["我玩狼人杀不骗人"] = { messages: [], newMsg: false, roundCompleted: false };
     }
@@ -4457,13 +4464,14 @@ function openGroupChat() {
 
     renderChatMessages();
     renderChatList();
-// ===== 进入群聊后，显示选项（只显示一次） =====
-    // 清除旧标记，确保选项显示
-    localStorage.removeItem('chapter3_group_choice_done');
-    window._groupEntryOptionsShown = false;
-    setTimeout(function() {
-        showGroupEntryOptions();
-    }, 1000);
+// ===== 进入群聊后，首次选项只显示一次 =====
+    var groupChoiceDone = localStorage.getItem('chapter3_group_choice_done') === 'true' || data.groupEntryChoiceDone === true;
+    window._groupEntryOptionsShown = groupChoiceDone;
+    if (!groupChoiceDone) {
+        setTimeout(function() {
+            showGroupEntryOptions();
+        }, 1000);
+    }
     // ===== 修复布局：让输入框在底部 =====
     var detailScreen = document.getElementById("chatDetailScreen");
     if (detailScreen) {
@@ -4924,7 +4932,7 @@ function blockContact(contact) {
                     avatar = '<img src="cshwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
                 } else if (from === "王橹杰") {
                     avatar = '<img src="wljwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
-                } else if (from === "张亦然") {
+                } else if (from === "张奕然") {
                     avatar = '<img src="zyrwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
                 } else if (from === "魏子宸") {
                     avatar = '<img src="wzcwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
@@ -14506,6 +14514,9 @@ function triggerChapter3Message() {
     localStorage.setItem("chapter3_return_target", "triggerChapter3Message");
 }
 function joinChapter3Group() {
+    // 玩家实际点击“加入”时，开启本次群聊的首次入群选项
+    localStorage.removeItem('chapter3_group_choice_done');
+    window._groupEntryOptionsShown = false;
     // 1. 显示加入成功提示
     alert('✅ 你已加入群聊！');
 
@@ -14523,6 +14534,8 @@ function joinChapter3Group() {
             roundCompleted: false
         };
     }
+    delete chatData["我玩狼人杀不骗人"].groupEntryChoiceDone;
+    delete chatData["我玩狼人杀不骗人"].groupEntryChoice;
 
     // 4. 添加历史消息到群聊
     var historyMessages = [
@@ -14833,7 +14846,9 @@ function replaceGroupInviteWithCard() {
 }
 function showGroupEntryOptions() {
     // 先检查是否已经选择过
-    if (window._groupEntryOptionsShown) {
+    var groupData = chatData["我玩狼人杀不骗人"];
+    if (window._groupEntryOptionsShown || localStorage.getItem('chapter3_group_choice_done') === 'true' || (groupData && groupData.groupEntryChoiceDone === true)) {
+        window._groupEntryOptionsShown = true;
         return;
     }
     
@@ -14846,8 +14861,8 @@ function showGroupEntryOptions() {
     
     modal.innerHTML = `
         <div style="margin-bottom:12px; font-weight:600; font-size:15px;">你已加入群聊，要打招呼吗？</div>
-        <button class="option-btn" data-choice="hello" style="background:#F0F0F0;border:none;padding:12px;border-radius:16px;margin:8px 0;width:100%;text-align:left;font-size:14px;cursor:pointer;">👋 打个招呼</button>
-        <button class="option-btn" data-choice="lurk" style="background:#F0F0F0;border:none;padding:12px;border-radius:16px;margin:8px 0;width:100%;text-align:left;font-size:14px;cursor:pointer;">👀 窥屏</button>
+        <button class="option-btn" data-choice="hello" style="background:#F0F0F0;border:none;padding:12px;border-radius:16px;margin:8px 0;width:100%;text-align:left;font-size:14px;cursor:pointer;">打个招呼</button>
+        <button class="option-btn" data-choice="lurk" style="background:#F0F0F0;border:none;padding:12px;border-radius:16px;margin:8px 0;width:100%;text-align:left;font-size:14px;cursor:pointer;">窥屏</button>
     `;
     
     document.body.appendChild(modal);
@@ -14857,6 +14872,11 @@ function showGroupEntryOptions() {
             var choice = this.dataset.choice;
             modal.remove();
             window._groupEntryOptionsShown = true;
+            localStorage.setItem('chapter3_group_choice_done', 'true');
+            if (chatData["我玩狼人杀不骗人"]) {
+                chatData["我玩狼人杀不骗人"].groupEntryChoiceDone = true;
+                chatData["我玩狼人杀不骗人"].groupEntryChoice = choice;
+            }
             
             if (choice === "hello") {
                 groupChatHello();
@@ -14949,7 +14969,7 @@ function sendGroupReplies(replies) {
         "杨博文": "ybwwx.jpg",
         "陈思罕": "cshwx.jpg",
         "王橹杰": "wljwx.jpg",
-        "张亦然": "zyrwx.jpg",
+        "张奕然": "zyrwx.jpg",
         "魏子宸": "wzcwx.jpg",
         "李煜东": "lydwx.jpg"
     };
@@ -24651,7 +24671,7 @@ function getWerewolfParagraphs() {
     "规则一条一条讲下来。\n陈浚铭起初还听得挺认真，没过多久，下巴就撑到了桌面上。\n张函瑞倒是一直点头，时不时还小声重复一句，像是在帮自己记规则。",
     "王橹杰眼神放空，不知道在想什么。\n左奇函撑着下巴，一边听一边转着桌上的杯子\n只有杨博文从头到尾都听得很认真，偶尔还会微微点一下头。",
     "“守卫每晚可以守一个人，被守的那个人当晚不会被狼人杀死。但不能连续两晚守同一个人。”\n“女巫有一瓶解药和一瓶毒药。解药可以救一个人，毒药可以杀一个人。整局游戏各只能用一次。女巫第一晚可以用解药救自己——这是规则允许的——但如果你选择了救别人，那后面就不能再救自己了。”\n左奇函笑了一声：“所以女巫第一晚得好好想想救不救。”",
-    "老板点头：“对。然后是预言家。预言家每晚可以查验一个人的身份——是好人还是狼人。但看不到具体是什么神职，只知道阵营。”\n老板：“预言家验出来好人是金水，验出来狼人是查杀。女巫救的人是银水。”\n老板继续说：“丘比特——这张牌比较特殊。他第一晚选两个人连成情侣。如果连的是两个好人，那两个好人还是好人阵营，但其中一个人死了另一个会跟着殉情。如果连的是一狼一人，那这两个人就自动脱离原来的阵营，组成第三方阵营。第三方的获胜条件是什么？”",
+    "老板点头：“对。然后是预言家。预言家每晚可以查验一个人的身份，但看不到具体是什么神职，只知道阵营。”\n老板：“预言家验出来好人是金水，验出来狼人是查杀。女巫救的人是银水。”\n老板继续说：“丘比特这张牌比较特殊。他第一晚选两个人连成恋人。其中一个人死了另一个会跟着殉情。如果连的是一狼一人，那这两个人脱离原来的阵营，组成第三方阵营。”",
     "他顿了顿，扫了一圈：“第三方要赢，必须把不属于自己阵营的所有人都驱逐出去。也就是说，除了情侣丘比特三个人之外，其他七个人全部出局，他们俩才能赢。”\n陈浚铭倒吸一口凉气：“七个人全出局？那得打多久。”\n“所以一般很少打到第三阵营赢，但存在这个可能性。丘比特自己输了也没关系——他是独立阵营，情侣赢了他也跟着赢，情侣输了他也输。”",
     "陈浚铭：“那丘比特可以把自己连进去吗？”\n“可以，丘比特可以连自己。”\n“哇——”",
     "老板敲了敲桌子：“胜负判定标准：狼人杀光所有神职或者所有平民，狼人赢。好人阵营把狼人全部投出去，好人赢。第三方情侣活到最后，第三方赢。就这么简单。”\n等规则全部讲完，老板把身份牌重新洗了一遍。\n纸牌在他手里翻飞了几下，最后整整齐齐扣在桌子中央。",
@@ -25339,16 +25359,16 @@ var messages = [
     "“我现在也不知道。”\n“我是真不知道。”\n“昨天投出去的陈思罕到底是不是狼，我也不知道。”",
     "“现在场上到底还有一狼还是两狼，我还是不知道。”\n“我发现我玩了两天，今天一睁眼，比昨天还迷。”\n“张桂源，我会一直盯着你的今天”",
     "张桂源无奈的摊了摊手\n法官看向二号。\n“请二号玩家发言。”",
-    "陈浚铭坐直了些，没有急着开口，而是低头摆弄了一会儿手里的号码牌，像是在整理思路。过了几秒，他才抬起头，目光慢慢扫过桌上的每一个人，脸上依旧挂着那副和平时没什么区别的笑。\n“其实刚才大家说的，我都认真听了。”\n“聂玮辰在盘昨天的票型，张函瑞在盘今天应该怎么找狼，说得都挺有道理的。陈奕恒倒了以后，大家现在确实没有新的信息，只能一直翻前两天的发言找漏洞，所以我觉得今天再重复那些东西意义也不是特别大，因为每个人都能盘出一套自己的逻辑，最后还是谁也说服不了谁。”",
+    "陈浚铭坐直了些，没有急着开口，而是低头摆弄了一会儿手里的号码牌，像是在整理思路。过了几秒，他才抬起头，目光慢慢扫过桌上的每一个人，脸上依旧挂着那副和平时没什么区别的笑。\n“其实刚才大家说的，我都认真听了。”\n“聂玮辰在说昨天的票型，张函瑞在说今天应该怎么找狼，陈奕恒倒了以后，现在确实没有新的信息，所以我觉得今天再重复那些东西也没啥意义啊，因为每个人都有自己的站边，最后还是谁也说服不了谁。”",
     "他说着摊了摊手，语气轻松得像是在聊天。\n“我刚刚一直在想，如果我是你们，现在最怀疑谁。”\n“想了半天，我觉得……”",
-    "他停顿了一下，忽然笑了。\n“应该是我。”\n桌上的几个人同时抬起了头。",
-    "陈浚铭却像完全没注意到大家的反应一样，继续往下说。\n“昨天很多人觉得我的票奇怪，我承认，确实挺奇怪的。我有些话没说，有些想法也没聊出来，所以你们怀疑我，我觉得很正常。”\n“而且说实话，我今天也没有什么特别有价值的信息能告诉大家。继续让我坐在这里发言，感觉也就是跟着大家一起猜来猜去。”",
+    "他停顿了一下，忽然笑了。\n“应该是我吧。”\n桌上的几个人同时抬起了头。",
+    "陈浚铭却像完全没注意到大家的反应一样，继续往下说。\n“昨天很多人觉得我跳预言家，我承认，确实挺奇怪的。我有些话没说，有些想法也没聊出来，所以你们怀疑我，我觉得很正常。”\n“而且说实话，我今天也没有什么特别有价值的信息能告诉大家。继续让我坐在这里发言，感觉也就是跟着大家一起猜来猜去。”",
     "他说到这里，竟然自己笑了一声。\n“既然这样，那我有一个提议。”\n“今天你们别费劲了。”",
     "“投我吧。”\n整个客厅瞬间安静了。\n空气仿佛凝固了一样。",
     "我甚至怀疑自己是不是听错了，下意识抬头看向陈浚铭，却发现他依旧笑眯眯地坐在那里，神情轻松得像是在说今天晚上吃什么。\n他迎着所有人的目光，继续说道：\n“真的，我觉得挺好的。”",
-    "“反正现在大家谁也拿不准谁，与其一直在这里互相怀疑、互相拉扯，不如直接把我投出去。我昨天票型奇怪，今天发言也奇怪，你们把我点出去，也算给自己一个交代。”\n“万一我真是狼呢？”\n“那你们血赚。”",
+    "“反正现在大家谁也拿不准谁，与其一直在这里互相怀疑、互相拉扯，不如直接把我投出去。我昨天票型奇怪，今天发言也奇怪，你们把我点出去，也可以快点开始下一局。”\n“万一我真是狼呢？”\n“那你们血赚好吧。”",
     "“万一我不是狼……”\n他说到这里故意停顿了一下，眼睛弯了弯。\n“那也没关系。”",
-    "“至少你们排掉一个错误答案，后面还能继续盘。”\n他说得一本正经，语气甚至透着几分诚恳，可越是这样，越让人觉得不对劲。\n聂玮辰皱着眉，整张脸都写满了疑惑，像是想打断他，却又不知道该从哪一句开始问。",
+    "“至少你们投出去一个搞乱的”\n他说得一本正经，语气甚至透着几分诚恳，可越是这样，越让人觉得不对劲。\n聂玮辰皱着眉，整张脸都写满了疑惑，像是想打断他，却又不知道该从哪一句开始问。",
     "张函瑞原本还在纸上写着东西，听到这里，笔尖硬生生停住了。他缓缓抬起头，眉头越皱越紧，盯着陈浚铭看了半天，眼神里全是不可思议。\n王橹杰脸上的笑也一点点消失了。\n他下意识瞥了一眼张桂源，又立刻把目光收回来，重新看向陈浚铭，眼底第一次露出了明显的错愕。",
     "“我该说的就这么多。”\n“反正今天如果实在不知道投谁，就投我吧。我觉得这样这局结束得还能快一点，大家也不用一直坐在这里头疼了，说不定还能早点开下一把。”\n他说到最后，眉眼弯弯地笑了起来。",
     "“嘿嘿。”\n我脑子一片空白，完全不知道他到底想干什么。\n聂玮辰张了张嘴，好半天才憋出一句：“……不是，陈浚铭，你今天吃错药了？”",
@@ -25389,16 +25409,16 @@ var messages = [
     "王橹杰还是和刚才一样，安安静静地坐在那里，没有急着解释，也没有因为张桂源的话露出任何慌乱，甚至连表情都没有什么变化。",
     "__THIRD_VOTE__",
     "法官适时开口。\n“请陈浚铭发表遗言。”\n陈浚铭听见结果，像是终于等到了下课铃声，整个人都松了一口气，他笑嘻嘻地站起身，把自己的号码牌往桌上一丢。",
-    "“终于下线了我好累啊”\n聂玮辰没忍住翻了个白眼。\n“你怎么一副解脱了的样子？”",
-    "“废话。”陈浚铭一边整理衣服一边理直气壮地说道，“你们几个在这儿绞尽脑汁盘逻辑，我昨天晚上就开始头疼了，再坐下去我脑细胞都没了。”\n法官轻咳一声，提醒道：“请发表遗言。”\n“遗言？”",
+    "“耶终于下线了我好累啊”\n聂玮辰没忍住翻了个白眼。\n“你怎么一副解脱了的样子？”",
+    "“这不是废话吗。”陈浚铭一边整理衣服一边理直气壮地说道，“我昨天晚上就开始头疼了，再坐下去我脑细胞都没了。我好饿”\n法官轻咳一声，提醒道：“请发表遗言。”\n“遗言？”",
     "陈浚铭愣了一下，随后摆了摆手。\n“没什么遗言。”\n“你们加油。”",
-    "他说完像是又觉得太敷衍，歪着脑袋想了想，笑着补了一句。\n“希望好人赢吧。”\n“当然，狼人也加油。”",
+    "他说完像是又觉得太敷衍，歪着脑袋想了想，笑着补了一句。\n“希望好人赢吧。”\n“当然，狼人也加油哟。”",
     "“反正别太快结束，我还想边吃东西边看。”\n一句话把所有人都干沉默了。\n聂玮辰一脸无语：“你到底哪边的？”",
     "“我哪边都不是啊。”陈浚铭笑得一脸无辜，“我现在已经是观众了。”\n说完，他挥了挥手。\n“走了走了，我快饿死了。”",
     "他转身朝观察席走去。\n刚走过去，左奇函就顺手把旁边拆开的薯片递了过去。\n“游戏继续，请场上玩家保持安静。”",
     "和之前一样的流程，不过这次，你心跳的格外快\n张桂源在闭眼前一直对着你笑，这局完了真的能结束吗？好人能赢吗\n王橹杰会不会是那最后的一匹狼？",
     "又或者说，还有格外的狼？\n这次等待格外的漫长\n终于，上帝的声音响起",
-    "（新增处）",
+   
     "天亮了",
     "__PLAYER1_10_OUT__",
     "“昨天出局的玩家是1号，10号”\n“恋人阵营胜利，游戏结束”\n客厅安静了一瞬。",
@@ -26043,6 +26063,15 @@ var messages = [
     "\"知道啦。\"\n你朝他挥了挥手。\n出租车缓缓驶离路边。",
     "后视镜里，张桂源一直站在原地，直到车子拐过路口，再也看不见了，才转身往回走。"
 ];
+var firstReverseSpeechIndex = messages.findIndex(function(message) {
+    return message.indexOf('“请九号开始逆序发言。”') === 0;
+});
+if (firstReverseSpeechIndex !== -1) {
+    var firstReverseSpeechText = messages[firstReverseSpeechIndex];
+    var firstReverseSpeechLead = '“请九号开始逆序发言。”';
+    var firstReverseSpeechAfter = firstReverseSpeechText.slice(firstReverseSpeechLead.length).replace(/^\n/, '');
+    messages.splice(firstReverseSpeechIndex, 1, firstReverseSpeechLead, '轮到我发言，', firstReverseSpeechAfter);
+}
 var werewolfPlayerName = (typeof player !== 'undefined' && player && (player.name || player.nickname || player.wechatName)) || '玩家';
 messages = messages.map(function(message) { return message.replace(/玩家的昵称/g, werewolfPlayerName); });
 messages._isCivilian1C = true;
@@ -26104,8 +26133,8 @@ function enterCivilianLine() {
             "\"要是让我猜，我猜你是一张好人牌，想第一局活跃一下气氛。\"\n他说完便收回目光，没有继续在二号身上停留。\n\"那我也不藏了。\"",
             "左奇函轻轻靠向椅背，嘴角扬起一点弧度。\n\"因为我才是全场——唯、一、真预言家。\"\n他故意停顿了一下。",
             "整个客厅都安静了下来。\n\"昨天晚上我验的是八号。\"\n说到这里，他看向了你的方向。",
-            "\"金水。\"\n说完以后，他没有马上继续，而是给了大家一点消化信息的时间。\n\"为什么验八号，其实理由不复杂。第一局一起玩，我不了解八号拿不同身份的时候会是什么状态，也不知道她发言习惯怎么样。对我来说，与其把这个未知一直留到后面，不如第一晚直接验掉。现在她是金水，那我后面至少可以放心去听她发言，而不用一直怀疑她是不是因为身份不一样才表现得和平时不同。\"",
-            "他的手指轻轻点了点桌面。\n\"另外，一号刚刚有一句话我挺认同的。\"\n\"第一天最重要的，不是谁聊得多，而是谁一直站在同一个视角。\"",
+            "\"金水。\"\n说完以后，他没有马上继续，而是给了大家一点消化信息的时间。\n\"为什么验八号，很简单。第一局一起玩，我不了解八号拿不同身份的时候会是什么状态，也不知道她的发言习惯。对我来说，与其去猜她的状态不如第一晚直接验掉。现在她是我的金水，我至少可以放心去听她发言。\"",
+            "他的手指轻轻点了点桌面。\n\"另外，王橹杰刚刚有一句话我挺认同的。\"\n\"第一天最重要的，是看视角喝站边\"",
             "\"所以我也不会因为二号跳了预言家，就把他打成狼人。我还是那句话，他不像预言家，但我暂时也不觉得他一定是狼。\"\n说到这里，他停了一下。\n\"当然。\"",
             "\"如果后面还有人跟我对跳。\"\n左奇函笑了一下。\n\"那就另说了。\"",
             "他把笔放回桌上，身体重新靠回椅背。\n\"我先聊到这里。\"\n\"后面听发言。\"",
@@ -26131,12 +26160,12 @@ function enterCivilianLine() {
             "他笑着回了一句。\n陈浚铭抿了抿嘴，没再解释。\n“没什么。”",
             "张桂源耸了耸肩，也没继续追问。\n“反正我先听后面发言。”\n说完他就坐了下来",
             "轮到我发言，",
-            "杨博文低头看了一眼自己记的东西，才抬起头。\n“我刚刚一直在记大家发言，因为前面跳的人有点多，我怕后面忘了。”\n“我现在其实比较偏六号一点，但不是因为他给我发了金水。因为我刚刚翻了一下，四号有一个地方我觉得有点奇怪。”",
-            "他把笔轻轻点在自己的本子上。\n“你前面说，你验八号，是因为你不知道八号拿狼会是什么状态，所以想先验掉。我当时记下来了。可是后面聊着聊着，你又开始聊八号不像狼，我就有点没跟上你的思路。既然一开始就是因为不知道，那后面这个判断是怎么来的，我觉得你没有解释清楚。”\n他说完，没有继续追着左奇函问，而是低头又看了一眼自己的笔记。",
-            "“还有一点，不一定对，就是我的个人感觉。我之前看过四号玩预言家，今天跟我印象里不太一样。以前你拿预言家会更着急一点，更想让大家马上相信你，但今天整体状态比较松，我不知道是不是打法变了”\n左奇函没有接话，只是安静地看着他。\n杨博文也没在意，继续往下说。",
+            "杨博文低头看了一眼自己记的东西，才抬起头。\n“我刚刚一直在记大家发言，因为前面跳的人有点多，我怕后面忘了。”\n“我现在其实比较偏陈奕恒一点，因为我刚刚翻了一下，哎，左奇函总让我觉得有点奇怪。”",
+        
+            "“不一定对，就是我的个人感觉。我之前看左奇函玩预言家，和今天不太一样。以前你拿预言家会更着急一点，更想让大家马上相信你，但今天倒是挺悠然自得”\n左奇函没有接话，只是安静地看着他。\n杨博文也没在意，继续往下说。",
             "他把笔盖扣上，停了一会儿。\n“不过今天毕竟是第一天，信息还是太少了。如果今天一定让我投的话，我会偏投四号；但如果场上能平票，我其实更希望平票。这样晚上还能再多拿一天信息，比现在直接出一个人要稳一点。”\n“我差不多就是这个想法。”",
-            "张函瑞一直安安静静听到最后，才慢慢开口：“我其实听下来，觉得大家今天都挺正常的，就是每个人今天的状态都挺像我认识的那个人。所以今天如果单纯让我盘状态，我其实盘不出来。”\n“九号刚刚说四号今天跟以前不太一样，这个我觉得也有道理，只是我自己一直不是特别喜欢拿状态去定义一个人的身份。可能今天紧张一点、放松一点，或者就是突然想换一种打法，我都会觉得有这种可能，所以四号现在在我这里还没有到必须出的程度。”\n说到这里，他的目光很自然地扫过桌上的每一个人，在一号身上停留了一瞬，又若无其事地移开。",
-            "“今天毕竟还是第一天，而且还是平安夜，说实话信息真的不多。我听完大家发言以后，没有一个人让我觉得‘今天非出不可’，所以如果场上最后能平票，我其实会更倾向于平票，把信息留到明天；当然，如果最后必须要投，我也会跟着场上的信息走，只是这一票我不会投得特别有把握。”\n他说完笑了笑。\n“差不多就这些吧。”"
+            "张函瑞一直安安静静听到最后，才慢慢开口：“我其实听下来，觉得大家今天都挺正常的吧，就是每个人今天的状态都挺像我认识的那个人。”\n“博文刚刚说左奇函今天跟以前不太一样，但是我自己不是特别喜欢拿状态去定义一个人的身份。可能今天紧张一点、放松一点，我都觉得有可能吧，所以四号应该还没有到必须出的程度。”\n说到这里，他的目光很自然地扫过桌上的每一个人，在一号身上停留了一瞬，又若无其事地移开。",
+            "“今天毕竟还是第一天，而且还是平安夜，说实话信息真的不多。我听完大家发言以后，没有一个人让我觉得‘今天非出不可’，所以如果场上最后能平票，张函瑞其实会更倾向于平票，当然，如果最后必须要投，这一票我不会投得特别有把握。”\n他说完笑了笑。\n“差不多就这些吧。”"
     ];
     showCivilianMessages(msgs, 0);
 }
@@ -26465,7 +26494,7 @@ function showPlayerSpeechInput(msgs, idx) {
     if (oldEl) oldEl.remove();
     var ma = document.createElement('div');
     ma.id = 'playerMicArea';
-    ma.style.cssText = 'position:absolute;bottom:10px;left:0;right:0;text-align:center;z-index:150;padding:0 16px;';
+    ma.style.cssText = 'position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);text-align:center;z-index:150;padding:0 16px;';
     var mb = document.createElement('div');
     mb.style.cssText = 'width:44px;height:44px;border-radius:50%;background:#E85D75;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;transition:all 0.2s;margin:0 auto;';
     mb.textContent = '\uD83C\uDFA4';
@@ -26483,12 +26512,16 @@ function showPlayerSpeechInput(msgs, idx) {
     sb.style.cssText = 'margin-top:6px;padding:6px 24px;background:#E85D75;color:white;border:none;border-radius:0;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s;';
     sb.onmouseenter = function(){sb.style.background='#d14a60';};
     sb.onmouseleave = function(){sb.style.background='#E85D75';};
-    sb.onclick = function(){submitPlayerSpeech(msgs, idx);};
+    sb.onclick = function(event){
+        if (event) event.stopPropagation();
+        submitPlayerSpeech(msgs, idx);
+    };
     ia.appendChild(ib);
     ia.appendChild(sb);
     ma.appendChild(mb);
     ma.appendChild(ia);
-    mb.onclick = function(){ia.style.display='block';mb.style.display='none';setTimeout(function(){document.getElementById('playerSpeechInput').focus();},100);};
+    ma.onclick = function(event){ if (event) event.stopPropagation(); };
+    mb.onclick = function(event){if (event) event.stopPropagation();ia.style.display='block';mb.style.display='none';setTimeout(function(){document.getElementById('playerSpeechInput').focus();},100);};
     var tb = document.getElementById('werewolfTextBox');
     if (tb) { tb.style.position = 'relative'; tb.appendChild(ma); tb.onclick = null; }
 }
@@ -26498,10 +26531,17 @@ function submitPlayerSpeech(msgs, idx) {
     if (!speech) { alert('\u8BF7\u8F93\u5165\u4F60\u7684\u53D1\u8A00'); return; }
     var ma = document.getElementById('playerMicArea');
     if (ma) ma.remove();
-    var cd = document.getElementById('werewolfTextContent');
-    if (cd) cd.innerHTML = '<div style="color:#E8E8E8;font-size:14px;padding:8px;">' + speech + '</div>';
     var tb = document.getElementById('werewolfTextBox');
-    if (tb) tb.onclick = function(){tb.onclick=null; showCivilianMessages(msgs, idx + 1);};
+    if (tb) tb.onclick = null;
+    showCivilianTypedText('\u201c' + speech + '\u201d', function() {
+        var speechBox = document.getElementById('werewolfTextBox');
+        if (speechBox) {
+            speechBox.onclick = function() {
+                speechBox.onclick = null;
+                showCivilianMessages(msgs, idx + 1);
+            };
+        }
+    });
 }
 // ===== 平民线投票系统 =====
 function startCivilianSpectatorVote(round) {
