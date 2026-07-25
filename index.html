@@ -1017,9 +1017,11 @@
         '102f03b789ce9bb0af04f157307422ff42f5cc213a0a909f08780f8e4771d77d',
         '466b98e746b0c7ea2df48cfdff86d0ae9fc4059acd5783daa2374b69cef2ee58',
         'a1334ab1a3cb67a61e70cc9abb0179610b00f4b4d62b036bc5db329743abd798',
-        '3cd083b63910d4b61e9352aa9abde97a881c7b70462de305dd8081731b72778a'
+        '3cd083b63910d4b61e9352aa9abde97a881c7b70462de305dd8081731b72778a',
+        'e3a35df9e70d385835d48e63f2524499a1cd28836180adbdf584832189474347',
+        'acd19eb85be70f497a636a3c8abe8ff95a99712b6776d04f5c4d44892e185683'
     ];
-    var fallbackPasswordHashes = [3941789459, 2285117425, 543908666, 224072432];
+    var fallbackPasswordHashes = [3941789459, 2285117425, 543908666, 224072432, 2380737071, 3244371534];
 
     function setPasswordValue(value) {
         passwordInput.value = value.replace(/\D/g, '').slice(0, 6);
@@ -1440,7 +1442,8 @@ onclick="showCompanySchedule()">
                 <option value="gpt-4-turbo">GPT-4-Turbo</option>
                 <option value="claude-3-opus">Claude 3 Opus</option>
                 <option value="claude-3-sonnet">Claude 3 Sonnet</option>
-                <option value="deepseek-chat">DeepSeek Chat</option>
+                        <option value="deepseek-v4-flash">DeepSeek V4 Flash（推荐）</option>
+                        <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
                 <option value="custom">自定义</option>
             </select>
             
@@ -1564,7 +1567,8 @@ onclick="showCompanySchedule()">
                 <option value="gpt-4-turbo">GPT-4-Turbo</option>
                 <option value="claude-3-opus">Claude 3 Opus</option>
                 <option value="claude-3-sonnet">Claude 3 Sonnet</option>
-                <option value="deepseek-chat">DeepSeek Chat</option>
+                        <option value="deepseek-v4-flash">DeepSeek V4 Flash（推荐）</option>
+                        <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
                 <option value="custom">自定义</option>
             </select>
         </div>
@@ -8309,6 +8313,15 @@ function loadApiSettings() {
         var baseUrl = localStorage.getItem('api_base_url');
         var apiKey = localStorage.getItem('api_key');
         var model = localStorage.getItem('api_model');
+        var savedCustomModel = localStorage.getItem('api_custom_model');
+
+        // DeepSeek 已停用旧模型名，自动迁移用户此前保存的设置
+        if (model === 'deepseek-chat' || model === 'deepseek-reasoner' ||
+            (model === 'custom' && (savedCustomModel === 'deepseek-chat' || savedCustomModel === 'deepseek-reasoner'))) {
+            model = 'deepseek-v4-flash';
+            localStorage.setItem('api_model', model);
+            localStorage.removeItem('api_custom_model');
+        }
         
         if (baseUrl) document.getElementById('apiBaseUrl').value = baseUrl;
         if (apiKey) document.getElementById('apiKey').value = apiKey;
@@ -24068,6 +24081,15 @@ function loadApiSettings2() {
         var baseUrl = localStorage.getItem('api_base_url');
         var apiKey = localStorage.getItem('api_key');
         var model = localStorage.getItem('api_model');
+        var savedCustomModel = localStorage.getItem('api_custom_model');
+
+        // DeepSeek 已停用旧模型名，自动迁移用户此前保存的设置
+        if (model === 'deepseek-chat' || model === 'deepseek-reasoner' ||
+            (model === 'custom' && (savedCustomModel === 'deepseek-chat' || savedCustomModel === 'deepseek-reasoner'))) {
+            model = 'deepseek-v4-flash';
+            localStorage.setItem('api_model', model);
+            localStorage.removeItem('api_custom_model');
+        }
         if (baseUrl) document.getElementById('apiBaseUrl2').value = baseUrl;
         if (apiKey) document.getElementById('apiKey2').value = apiKey;
         if (model) {
