@@ -5342,8 +5342,32 @@ function playEnding2GroupChat(data) {
         if (!playerGoodnightExists && goodnightPromptIndex >= 0 &&
             (alreadyHasPrompt || data.ending2GroupPhase === "completed" ||
              (Number(data.ending2GroupIndex) || 0) > goodnightPromptIndex)) {
+            // 异常旧存档若已经越过该节点，先回退到张函瑞的“晚安早点休息哦”。
+            // 这样选项只会紧跟这句话出现，后续消息需在玩家发送“晚安”后重新播放。
+            if (alreadyHasPrompt) {
+                var savedPromptMessageIndex = -1;
+                for (var promptSearchIndex = data.messages.length - 1; promptSearchIndex >= 0; promptSearchIndex--) {
+                    var savedMessage = data.messages[promptSearchIndex];
+                    var savedPlainText = String(savedMessage && savedMessage.text || "")
+                        .replace(/<[^>]*>/g, "").trim();
+                    if (savedMessage && savedMessage.isEnding2GroupFollowup === true &&
+                        savedMessage.from === "张函瑞" && savedPlainText === "晚安早点休息哦") {
+                        savedPromptMessageIndex = promptSearchIndex;
+                        break;
+                    }
+                }
+                if (savedPromptMessageIndex >= 0) {
+                    data.messages = data.messages.filter(function(msg, messageIndex) {
+                        return messageIndex <= savedPromptMessageIndex ||
+                            !msg || msg.isEnding2GroupFollowup !== true;
+                    });
+                }
+            }
+            data.ending2GroupPhase = "common";
+            data.ending2GroupIndex = goodnightPromptIndex + 1;
             data.ending2GroupAwaitingGoodnight = true;
             saveEnding2GroupProgress();
+            renderChatMessages();
             showEnding2GroupGoodnightChoice(data);
             return;
         }
