@@ -5230,19 +5230,23 @@ function deliverEnding2ZhangPrivateMessage() {
     if (!Number.isFinite(data.ending2PrivateStoryMinute) || data.ending2PrivateStoryMinute < 32) {
         data.ending2PrivateStoryMinute = 32;
     }
-    var exists = data.messages.some(function(msg) {
-        return msg && msg.isEnding2ZhangFollowup === true;
+    var followupMessage = data.messages.find(function(msg) {
+        return msg && msg.isEnding2ZhangFollowup === true &&
+            String(msg.text || "").replace(/<[^>]*>/g, "").trim() === "睡了吗";
     });
-    if (!exists) {
-        data.messages.push({
+    if (!followupMessage) {
+        followupMessage = {
             from: "other", text: "睡了吗", time: "0:31", avatar: "zgyweixin.png",
             date: "2023年10月15日", read: false, isEnding2ZhangFollowup: true
-        });
+        };
+        data.messages.push(followupMessage);
         data.newMsg = true;
     }
     renderChatList();
     saveEnding2GroupProgress();
-    if (!data.ending2ZhangPopupShown) {
+    var popupVersion = "ending2-sleep-popup-v2";
+    if (data.ending2ZhangPopupVersion !== popupVersion) {
+        data.ending2ZhangPopupVersion = popupVersion;
         data.ending2ZhangPopupShown = true;
         showMessageNotification(
             "张桂源",
@@ -5296,6 +5300,7 @@ function showEnding2GroupGoodnightChoice(data) {
     modal.querySelector("button").onclick = function() {
         addEnding2GroupMessage(data, ending2GroupMessage("me", "晚安", "0:30", ""), false);
         data.ending2GroupGoodnightSent = true;
+        data.ending2GroupAwaitingGoodnight = false;
         modal.remove();
         renderChatMessages();
         saveEnding2GroupProgress();
@@ -5303,8 +5308,18 @@ function showEnding2GroupGoodnightChoice(data) {
     };
 }
 
+function hasEnding2PlayerGoodnight(data) {
+    return !!(data && Array.isArray(data.messages) && data.messages.some(function(msg) {
+        var plainText = String(msg && msg.text || "").replace(/<[^>]*>/g, "").trim();
+        return msg && msg.isEnding2GroupFollowup === true && msg.from === "me" && plainText === "晚安";
+    }));
+}
+
 function playEnding2GroupChat(data) {
     if (!data || data.ending2CompletedInThisSave !== true || window._ending2GroupPlaying) return;
+    var playerGoodnightExists = hasEnding2PlayerGoodnight(data);
+    // 旧存档可能错误保存了“已发送”，以实际聊天记录为准自动纠正
+    data.ending2GroupGoodnightSent = playerGoodnightExists;
     if (data.ending2GroupPhase === "awaiting_choice") {
         showEnding2GroupChoice(data);
         return;
@@ -5313,16 +5328,20 @@ function playEnding2GroupChat(data) {
         showEnding2GroupGoodnightChoice(data);
         return;
     }
-    if (data.ending2GroupPhase === "common" && data.ending2GroupGoodnightSent !== true) {
+    if ((data.ending2GroupPhase === "common" || data.ending2GroupPhase === "completed") &&
+        data.ending2GroupGoodnightSent !== true) {
         var commonMessagesForGoodnight = getEnding2GroupCommonMessages();
         var goodnightPromptIndex = commonMessagesForGoodnight.findIndex(function(msg) {
             return msg.from === "张函瑞" && msg.text === "晚安早点休息哦";
         });
-        var playerGoodnightExists = Array.isArray(data.messages) && data.messages.some(function(msg) {
-            return msg && msg.isEnding2GroupFollowup === true && msg.from === "me" && msg.text === "晚安";
+        var alreadyHasPrompt = Array.isArray(data.messages) && data.messages.some(function(msg) {
+            var plainText = String(msg && msg.text || "").replace(/<[^>]*>/g, "").trim();
+            return msg && msg.isEnding2GroupFollowup === true &&
+                msg.from === "张函瑞" && plainText === "晚安早点休息哦";
         });
         if (!playerGoodnightExists && goodnightPromptIndex >= 0 &&
-            (Number(data.ending2GroupIndex) || 0) > goodnightPromptIndex) {
+            (alreadyHasPrompt || data.ending2GroupPhase === "completed" ||
+             (Number(data.ending2GroupIndex) || 0) > goodnightPromptIndex)) {
             data.ending2GroupAwaitingGoodnight = true;
             saveEnding2GroupProgress();
             showEnding2GroupGoodnightChoice(data);
