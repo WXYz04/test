@@ -4638,13 +4638,25 @@ function renderChatList() {
     }
 
     // ===== 群聊（插入在这里，for循环之后，container.innerHTML之前） =====
+    if (chatData["我玩狼人杀不骗人"]) {
+        ensureEnding2GroupPreview(chatData["我玩狼人杀不骗人"]);
+    }
     if (chatData["我玩狼人杀不骗人"] && chatData["我玩狼人杀不骗人"].messages.length > 0) {
         var groupData = chatData["我玩狼人杀不骗人"] || { messages: [], newMsg: false };
         var lastMsg = "";
         if (groupData.messages && groupData.messages.length > 0) {
             lastMsg = groupData.messages[groupData.messages.length - 1].text || "暂无消息";
+            lastMsg = String(lastMsg).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
         }
-        var groupAvatarHtml = '<div style="width:52px;height:52px;border-radius:12px;overflow:hidden;flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:1px;background:#E5E5E5;">';
+        var groupUnreadCount = groupData.messages.filter(function(msg) { return msg && msg.read === false; }).length;
+        var groupRedDotHtml = "";
+        if (groupUnreadCount > 0 || groupData.newMsg === true) {
+            var groupDotCount = Math.max(1, groupUnreadCount);
+            groupRedDotHtml = '<div class="red-dot ' + (groupDotCount < 10 ? "single-digit" : "") + '">' +
+                (groupDotCount > 99 ? "99+" : groupDotCount) + '</div>';
+        }
+        var ending2GroupUnlocked = groupData.ending2CompletedInThisSave === true;
+        var groupAvatarHtml = '<div style="width:52px;height:52px;border-radius:12px;overflow:hidden;flex-shrink:0;display:grid;grid-template-columns:repeat(' + (ending2GroupUnlocked ? '4' : '3') + ',1fr);grid-template-rows:repeat(3,1fr);gap:1px;background:#E5E5E5;">';
         groupAvatarHtml += '<img src="cyhwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
         groupAvatarHtml += '<img src="wzcwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
         groupAvatarHtml += '<img src="ybwwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
@@ -4654,6 +4666,10 @@ function renderChatList() {
         groupAvatarHtml += '<img src="lydwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
         groupAvatarHtml += '<img src="zhrwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
         groupAvatarHtml += '<img src="wljwx.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+        if (ending2GroupUnlocked) {
+            groupAvatarHtml += '<img src="yhb.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+            groupAvatarHtml += '<img src="gjc.jpg" style="width:100%;height:100%;object-fit:cover;background:#f0f0f0;" onerror="this.style.display=\'none\'">';
+        }
         groupAvatarHtml += '</div>';
         html += '<div class="chat-contact" data-contact="我玩狼人杀不骗人" style="display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid #EFEFEF;cursor:pointer;position:relative;">';
         html += '<div class="chat-avatar" style="width:52px;height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:12px;background:#F0F0F0;">' + groupAvatarHtml + '</div>';
@@ -4661,6 +4677,7 @@ function renderChatList() {
         html += '<div class="chat-name" style="font-weight:600;">我玩狼人杀不骗人</div>';
         html += '<div class="chat-preview" style="font-size:12px;color:#999;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + lastMsg + '</div>';
         html += '</div>';
+        html += groupRedDotHtml;
         html += '</div>';
     }
 
@@ -4677,6 +4694,503 @@ function renderChatList() {
         });
     });
 }
+function appendEnding2GroupFollowupLegacy(data) {
+    if (!data || !data.messages) return;
+    if (data.ending2CompletedInThisSave !== true) {
+        // 清理旧版本因全局结局图鉴误判而插入到其他存档的后续群聊
+        data.messages = data.messages.filter(function(msg) {
+            return !msg || msg.isEnding2GroupFollowup !== true;
+        });
+        delete data.werewolfEnding2FollowupAdded;
+        return;
+    }
+
+    var alreadyAdded = data.messages.some(function(msg) {
+        return msg && msg.isEnding2GroupFollowup === true;
+    });
+    if (alreadyAdded) return;
+
+    var playerWechatName = player.wechatName || player.name || '玩家';
+    var followupMessages = [
+        { from: "张函瑞", text: "到家啦✌️", time: "23:16", avatar: "zhrwx.jpg" },
+        { from: "张函瑞", text: "今天第一", time: "23:16", avatar: "zhrwx.jpg" },
+        { from: "王橹杰", text: "第一是有什么好处吗", time: "23:16", avatar: "wljwx.jpg" },
+        { from: "张函瑞", text: "大概就是张函瑞比你们先洗澡吧", time: "23:16", avatar: "zhrwx.jpg" },
+        { from: "陈浚铭", text: "😭", time: "23:16", avatar: "cjmwx.jpg" },
+        { from: "陈浚铭", text: "还有两站", time: "23:16", avatar: "cjmwx.jpg" },
+        { from: "张函瑞", text: "你慢慢坐。", time: "23:16", avatar: "zhrwx.jpg" },
+        { from: "聂玮辰", text: "我也快到了", time: "23:16", avatar: "nwcwx.jpg" },
+        { from: "左奇函", text: "我也，刚刚和陈浚铭去买烧烤吃了", time: "23:16", avatar: "zqhwx.jpg" },
+        { from: "官俊臣", text: "你们玩这么晚啊", time: "23:16", avatar: "gjc.jpg" },
+
+        { from: "陈奕恒", text: "刚到", time: "23:45", avatar: "cyhwx.jpg" },
+        { from: "左奇函", text: "怎么这么晚？", time: "23:45", avatar: "zqhwx.jpg" },
+        { from: "陈奕恒", text: "刚刚在小区门口被人堵了", time: "23:45", avatar: "cyhwx.jpg" },
+        { from: "杨涵博", text: "？", time: "23:45", avatar: "yhb.jpg" },
+        { from: "陈思罕", text: "卧槽", time: "23:45", avatar: "cshwx.jpg" },
+        { from: "左奇函", text: "没事吧？", time: "23:45", avatar: "zqhwx.jpg" },
+        { from: "左奇函", text: "下次一起走。", time: "23:45", avatar: "zqhwx.jpg" },
+        { from: "陈奕恒", text: "没事", time: "23:45", avatar: "cyhwx.jpg" },
+        { from: "陈奕恒", text: "绕了一圈。", time: "23:45", avatar: "cyhwx.jpg" },
+        { from: "杨博文", text: "注意安全。", time: "23:45", avatar: "ybwwx.jpg" },
+        { from: "陈奕恒", text: "👌", time: "23:45", avatar: "cyhwx.jpg" },
+
+        { from: "官俊臣", text: "所以。", time: "23:50", avatar: "gjc.jpg" },
+        { from: "官俊臣", text: "今天到底玩得怎么样😂", time: "23:50", avatar: "gjc.jpg" },
+        { from: "张奕然", text: "补课的时候一直在想你们", time: "23:50", avatar: "zyrwx.jpg" },
+        { from: "魏子宸", text: "谁赢了啊", time: "23:50", avatar: "wzcwx.jpg" },
+        { from: "李煜东", text: "我猜好人？", time: "23:50", avatar: "lydwx.jpg" },
+        { from: "聂玮辰", text: "……", time: "23:50", avatar: "nwcwx.jpg" },
+        { from: "聂玮辰", text: "狼", time: "23:50", avatar: "nwcwx.jpg" },
+        { from: "陈思罕", text: "狼", time: "23:50", avatar: "cshwx.jpg" },
+        { from: "张函瑞", text: "狼🙂", time: "23:50", avatar: "zhrwx.jpg" },
+        { from: "李煜东", text: "？", time: "23:50", avatar: "lydwx.jpg" },
+        { from: "李煜东", text: "这么整齐。", time: "23:50", avatar: "lydwx.jpg" },
+        { from: "张函瑞", text: "我第一晚把狼救了。", time: "23:50", avatar: "zhrwx.jpg" },
+        { from: "杨涵博", text: "？？？？？", time: "23:50", avatar: "yhb.jpg" },
+        { from: "魏子宸", text: "真的假的哈哈哈哈哈哈", time: "23:50", avatar: "wzcwx.jpg" },
+        { from: "王橹杰", text: "谢谢函瑞", time: "23:50", avatar: "wljwx.jpg" },
+        { from: "陈思罕", text: "哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈", time: "23:50", avatar: "cshwx.jpg" },
+        { from: "张函瑞", text: "😊", time: "23:50", avatar: "zhrwx.jpg" },
+        { from: "张函瑞", text: "不用客气", time: "23:50", avatar: "zhrwx.jpg" },
+        { from: "李煜东", text: "我今天也很惨", time: "23:50", avatar: "lydwx.jpg" },
+        { from: "李煜东", text: "我爸不让我出去😭", time: "23:50", avatar: "lydwx.jpg" },
+        { from: "李煜东", text: "只能在家抽和平", time: "23:50", avatar: "lydwx.jpg" },
+        { from: "李煜东", text: "只抽了个皮肤七天体验卡", time: "23:50", avatar: "lydwx.jpg" },
+        { from: "陈浚铭", text: "笑死我了这么非", time: "23:50", avatar: "cjmwx.jpg" },
+        { from: "王橹杰", text: "至少七天", time: "23:50", avatar: "wljwx.jpg" },
+        { from: "左奇函", text: "七天已经不错了", time: "23:50", avatar: "zqhwx.jpg" },
+        { from: "左奇函", text: "今天有人两个小时", time: "23:50", avatar: "zqhwx.jpg" },
+        { from: "张桂源", text: "……", time: "23:50", avatar: "zgyweixin.png" },
+        { from: "聂玮辰", text: "哈哈哈哈哈哈哈哈哈哈哈哈", time: "23:50", avatar: "nwcwx.jpg" },
+        { from: "陈思罕", text: "哈哈哈哈哈哈哈哈哈哈", time: "23:50", avatar: "cshwx.jpg" },
+        { from: "官俊臣", text: "？", time: "23:50", avatar: "gjc.jpg" },
+        { from: "官俊臣", text: "什么两个小时？", time: "23:50", avatar: "gjc.jpg" },
+        { from: "杨涵博", text: "没跟上。", time: "23:50", avatar: "yhb.jpg" },
+        { from: "左奇函", text: "👍", time: "23:50", avatar: "zqhwx.jpg" },
+        { from: "陈浚铭", text: "🥺", time: "23:50", avatar: "cjmwx.jpg" },
+        { from: "陈浚铭", text: "我也不知道为什么那么快。", time: "23:50", avatar: "cjmwx.jpg" },
+        { from: "李煜东", text: "啥意思啊😂", time: "23:50", avatar: "lydwx.jpg" },
+        { from: "杨博文", text: "我今天唯一的感受", time: "23:50", avatar: "ybwwx.jpg" },
+        { from: "杨博文", text: "下次再带本英语", time: "23:50", avatar: "ybwwx.jpg" },
+        { from: "聂玮辰", text: "666哥们一本还不够你做啊", time: "23:50", avatar: "nwcwx.jpg" },
+        { from: "杨博文", text: "第二晚就没了", time: "23:50", avatar: "ybwwx.jpg" },
+        { from: "杨博文", text: "还能刷两篇阅读", time: "23:50", avatar: "ybwwx.jpg" },
+        { from: "陈奕恒", text: "不是", time: "23:50", avatar: "cyhwx.jpg" },
+        { from: "陈奕恒", text: "good", time: "23:50", avatar: "cyhwx.jpg" },
+        { from: "左奇函", text: "下次给你带本必刷题", time: "23:50", avatar: "zqhwx.jpg" },
+        { from: "杨博文", text: "谢谢", time: "23:50", avatar: "ybwwx.jpg" },
+        { from: "杨博文", text: "记得带答案", time: "23:50", avatar: "ybwwx.jpg" },
+        { from: "陈思罕", text: "？？？？？？？", time: "23:50", avatar: "cshwx.jpg" },
+        { from: "官俊臣", text: "所以", time: "23:50", avatar: "gjc.jpg" },
+        { from: "官俊臣", text: "你们朋友圈说的恋人到底是谁", time: "23:50", avatar: "gjc.jpg" },
+        { from: "魏子宸", text: "我现在最好奇这个", time: "23:50", avatar: "wzcwx.jpg" },
+        { from: "杨涵博", text: "+1。", time: "23:50", avatar: "yhb.jpg" },
+        { from: "李煜东", text: "我也", time: "23:50", avatar: "lydwx.jpg" },
+        { from: "张函瑞", text: "😶", time: "23:50", avatar: "zhrwx.jpg" },
+        { from: "张桂源", text: "……", time: "23:50", avatar: "zgyweixin.png" },
+        { from: "左奇函", text: "@" + playerWechatName, time: "23:50", avatar: "zqhwx.jpg" },
+        { from: "左奇函", text: "交代一下？", time: "23:50", avatar: "zqhwx.jpg" }
+    ];
+
+    followupMessages.forEach(function(msg) {
+        data.messages.push({
+            from: msg.from,
+            text: msg.text,
+            time: msg.time,
+            avatar: msg.avatar,
+            date: "2023年10月14日",
+            read: true,
+            isEnding2GroupFollowup: true
+        });
+    });
+    data.werewolfEnding2FollowupAdded = true;
+}
+
+// ===== 结局2后续群聊：仅属于达成本结局的当前存档 =====
+var ENDING2_GROUP_FLOW_VERSION = 4;
+
+function ending2GroupMessage(from, text, time, avatar, quoteSender, quoteText) {
+    return {
+        from: from,
+        text: text,
+        time: time,
+        avatar: avatar,
+        quoteSender: quoteSender || "",
+        quoteText: quoteText || ""
+    };
+}
+
+function getEnding2GroupPreChoiceMessages() {
+    var m = ending2GroupMessage;
+    return [
+        m("张函瑞","今天第一","23:16","zhrwx.jpg"),
+        m("王橹杰","第一是有什么好处吗","23:16","wljwx.jpg"),
+        m("张函瑞","大概就是张函瑞比你们先洗澡吧","23:16","zhrwx.jpg"),
+        m("陈浚铭","😭","23:16","cjmwx.jpg"),
+        m("陈浚铭","还有两站","23:16","cjmwx.jpg"),
+        m("张函瑞","你慢慢坐。","23:16","zhrwx.jpg"),
+        m("聂玮辰","我也快到了","23:16","nwcwx.jpg"),
+        m("左奇函","我也，刚刚和陈浚铭去买烧烤吃了","23:16","zqhwx.jpg"),
+        m("张桂源","666陈浚铭还吃，在店里面吃那么多了","23:16","zgyweixin.png","哈哈哈","我也，刚刚和陈浚铭去买烧烤吃了"),
+        m("官俊臣","你们玩这么晚啊","23:16","gjc.jpg"),
+        m("陈奕恒","刚到","23:45","cyhwx.jpg"),
+        m("左奇函","怎么这么晚？","23:45","zqhwx.jpg"),
+        m("陈奕恒","刚刚在小区门口被人堵了","23:45","cyhwx.jpg"),
+        m("杨涵博","？","23:45","yhb.jpg"),
+        m("陈思罕","卧槽","23:45","cshwx.jpg"),
+        m("左奇函","没事吧？","23:45","zqhwx.jpg"),
+        m("左奇函","下次一起走","23:45","zqhwx.jpg"),
+        m("陈奕恒","没事","23:45","cyhwx.jpg"),
+        m("陈奕恒","绕了一圈，累死我了","23:45","cyhwx.jpg"),
+        m("杨博文","注意安全","23:45","ybwwx.jpg"),
+        m("陈奕恒","👌","23:45","cyhwx.jpg"),
+        m("官俊臣","所以。","23:50","gjc.jpg"),
+        m("官俊臣","今天到底玩得怎么样😂","23:50","gjc.jpg"),
+        m("张奕然","补课的时候一直在想你们","23:50","zyrwx.jpg"),
+        m("左奇函","我的妈呀","23:50","zqhwx.jpg","oh my god","补课的时候一直在想你们"),
+        m("魏子宸","谁赢了啊","23:50","wzcwx.jpg"),
+        m("李煜东","我猜好人？","23:50","lydwx.jpg"),
+        m("聂玮辰","……","23:50","nwcwx.jpg"),
+        m("聂玮辰","狼","23:50","nwcwx.jpg"),
+        m("陈思罕","狼","23:50","cshwx.jpg"),
+        m("张函瑞","狼🙂","23:50","zhrwx.jpg"),
+        m("李煜东","？","23:50","lydwx.jpg"),
+        m("李煜东","这么整齐","23:50","lydwx.jpg"),
+        m("张桂源","对陈浚铭没话说","23:50","zgyweixin.png"),
+        m("张桂源","一直在送","23:50","zgyweixin.png"),
+        m("官俊臣","哪几个玩的狼啊","23:50","gjc.jpg"),
+        m("陈浚铭","你还说，谁让你直接跳守卫的","23:50","cjmwx.jpg"),
+        m("陈浚铭","被毒了吧","23:50","cjmwx.jpg"),
+        m("张函瑞","我第一晚把狼救了。","23:50","zhrwx.jpg"),
+        m("杨涵博","？？？？？","23:50","yhb.jpg"),
+        m("魏子宸","真的假的哈哈哈哈哈哈","23:50","wzcwx.jpg"),
+        m("杨博文","左奇函张桂源王橹杰","23:50","ybwwx.jpg","害羞的游泳圈","哪几个玩的狼啊"),
+        m("王橹杰","谢谢函瑞","23:50","wljwx.jpg"),
+        m("陈思罕","哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈","23:50","cshwx.jpg"),
+        m("张函瑞","😊","23:50","zhrwx.jpg"),
+        m("张函瑞","不用客气","23:50","zhrwx.jpg"),
+        m("李煜东","我今天也很惨","23:50","lydwx.jpg"),
+        m("李煜东","我爸不让我出去😭","23:50","lydwx.jpg"),
+        m("李煜东","只能在家抽和平","23:50","lydwx.jpg"),
+        m("陈奕恒","哥们你啥段位","23:50","cyhwx.jpg","东不落","只能在家抽和平"),
+        m("李煜东","只抽了个皮肤七天体验卡","23:50","lydwx.jpg"),
+        m("陈浚铭","笑死我了这么非","23:50","cjmwx.jpg"),
+        m("王橹杰","至少七天","23:50","wljwx.jpg"),
+        m("左奇函","七天已经不错了","23:50","zqhwx.jpg"),
+        m("左奇函","今天有人两个小时","23:50","zqhwx.jpg"),
+        m("左奇函","@张桂源","23:50","zqhwx.jpg"),
+        m("张桂源","？？","23:50","zgyweixin.png"),
+        m("聂玮辰","哈哈哈哈哈哈哈哈哈哈哈哈","23:50","nwcwx.jpg"),
+        m("陈思罕","哈哈哈哈哈哈哈哈哈哈","23:50","cshwx.jpg"),
+        m("官俊臣","？","23:50","gjc.jpg"),
+        m("官俊臣","什么两个小时？","23:50","gjc.jpg"),
+        m("杨涵博","没跟上","23:50","yhb.jpg"),
+        m("左奇函","👍","23:50","zqhwx.jpg"),
+        m("陈浚铭","🥺","23:50","cjmwx.jpg"),
+        m("陈浚铭","我也不知道为什么那么快","23:50","cjmwx.jpg"),
+        m("李煜东","啥意思啊😂","23:50","lydwx.jpg"),
+        m("杨博文","我今天唯一的感受","23:50","ybwwx.jpg"),
+        m("杨博文","下次再带本英语","23:50","ybwwx.jpg"),
+        m("聂玮辰","666哥们一本还不够你做啊","23:50","nwcwx.jpg"),
+        m("杨博文","第二晚就没了","23:50","ybwwx.jpg"),
+        m("杨博文","还能刷两篇阅读","23:50","ybwwx.jpg"),
+        m("陈奕恒","不是","23:50","cyhwx.jpg"),
+        m("陈奕恒","good","23:50","cyhwx.jpg"),
+        m("左奇函","下次给你带本必刷题","23:50","zqhwx.jpg"),
+        m("杨博文","谢谢","23:50","ybwwx.jpg"),
+        m("杨博文","记得带答案","23:50","ybwwx.jpg"),
+        m("陈思罕","？？？？？？？","23:50","cshwx.jpg"),
+        m("官俊臣","所以","23:50","gjc.jpg"),
+        m("官俊臣","你们朋友圈说的恋人到底是谁","23:50","gjc.jpg"),
+        m("魏子宸","我现在最好奇这个","23:50","wzcwx.jpg"),
+        m("杨涵博","+1。","23:50","yhb.jpg"),
+        m("李煜东","我也","23:50","lydwx.jpg"),
+        m("张函瑞","😶","23:50","zhrwx.jpg"),
+        m("张桂源","你们啥意思啊","23:50","zgyweixin.png"),
+        m("左奇函","@" + (player.wechatName || player.name || "玩家"),"23:50","zqhwx.jpg"),
+        m("左奇函","交代一下？","23:50","zqhwx.jpg")
+    ];
+}
+
+function getEnding2GroupBranchMessages(choice) {
+    var m = ending2GroupMessage;
+    if (choice === 2) {
+        return [
+            m("官俊臣","？","23:50","gjc.jpg"), m("魏子宸","什么意思","23:50","wzcwx.jpg"),
+            m("杨涵博","为什么他知道，你们不都知道吗","23:50","yhb.jpg"),
+            m("左奇函","😁","23:50","zqhwx.jpg"), m("陈浚铭","🤐","23:50","cjmwx.jpg"),
+            m("张桂源","我不知道","23:50","zgyweixin.png"), m("陈思罕","哇塞","23:50","cshwx.jpg"),
+            m("左奇函","不知道就不知道吧","23:50","zqhwx.jpg"), m("左奇函","😌","23:50","zqhwx.jpg"),
+            m("官俊臣","？？？","23:50","gjc.jpg"), m("官俊臣","不是","23:50","gjc.jpg"),
+            m("官俊臣","你们今天到底发生什么了","23:50","gjc.jpg"),
+            m("李煜东","恋人为啥不能说啊","23:50","lydwx.jpg"), m("魏子宸","啊？","23:50","wzcwx.jpg"),
+            m("张奕然","我服了","23:50","zyrwx.jpg"), m("张奕然","明天训练的时候一个一个审","23:50","zyrwx.jpg")
+        ];
+    }
+    return [
+        m("陈思罕","？","23:50","cshwx.jpg"), m("张桂源","你不知道？","23:50","zgyweixin.png"),
+        m("聂玮辰","哈哈哈哈哈哈哈哈","23:50","nwcwx.jpg"), m("张桂源","行行行","23:50","zgyweixin.png"),
+        m("陈奕恒","这是真不知道还是假不知道","23:50","cyhwx.jpg"),
+        m("左奇函","不知道就算了吧😌","23:50","zqhwx.jpg"), m("陈浚铭","不知道不知道🙈","23:50","cjmwx.jpg"),
+        m("魏子宸","？？？","23:50","wzcwx.jpg"), m("官俊臣","你们几个今天怎么回事。","23:50","gjc.jpg"),
+        m("李煜东","我越来越听不懂了😂","23:50","lydwx.jpg")
+    ];
+}
+
+function getEnding2GroupCommonMessages() {
+    var m = ending2GroupMessage;
+    return [
+        m("左奇函","杨博文呢？","0:30","zqhwx.jpg"), m("李煜东","怎么突然没声了。","0:30","lydwx.jpg"),
+        m("陈思罕","对哦","0:30","cshwx.jpg"), m("聂玮辰","刚刚还在","0:30","nwcwx.jpg"),
+        m("左奇函","估计手机时间锁到了","0:30","zqhwx.jpg"), m("陈奕恒","差不多这个点","0:30","cyhwx.jpg"),
+        m("张函瑞","那他今天应该不会回了","0:30","zhrwx.jpg"), m("张函瑞","我睡了家人们","0:30","zhrwx.jpg"),
+        m("张函瑞","晚安早点休息哦","0:30","zhrwx.jpg"), m("李煜东","晚安！","0:30","lydwx.jpg"),
+        m("杨涵博","晚安","0:30","yhb.jpg"), m("魏子宸","好","0:30","wzcwx.jpg"),
+        m("官俊臣","都早点休息","0:30","gjc.jpg"), m("陈浚铭","晚安🥱","0:30","cjmwx.jpg"),
+        m("陈浚铭","姐姐早点休息哦","0:30","cjmwx.jpg",(player.wechatName || player.name || "玩家"),"晚安"),
+        m("张桂源","陈浚铭你管挺宽的","0:30","zgyweixin.png"),
+        m("聂玮辰","晚安","0:30","nwcwx.jpg"), m("陈思罕","明天公司见","0:30","cshwx.jpg"),
+        m("陈奕恒","@左奇函","0:30","cyhwx.jpg"), m("陈奕恒","双排？","0:30","cyhwx.jpg"),
+        m("左奇函","来","0:30","zqhwx.jpg"), m("李煜东","我也要来","0:30","lydwx.jpg"),
+        m("左奇函","？？？","0:30","zqhwx.jpg"), m("左奇函","小学生还没睡？","0:30","zqhwx.jpg"),
+        m("陈奕恒","我以为你已经被赶去睡觉了😂","0:30","cyhwx.jpg"),
+        m("李煜东","今天放假。","0:30","lydwx.jpg"), m("李煜东","再玩一会儿","0:30","lydwx.jpg"),
+        m("左奇函","等下打一半然后你爸来收手机了","0:30","zqhwx.jpg"),
+        m("陈奕恒","哈哈哈哈哈哈","0:30","cyhwx.jpg"), m("李煜东","快开快开","0:30","lydwx.jpg")
+    ];
+}
+
+function formatEnding2GroupText(msg) {
+    if (!msg.quoteText) return msg.text;
+    return msg.text + '<div style="margin-top:5px;padding-top:5px;border-top:1px solid #E8E8E8;width:auto;max-width:100%;font-size:12px;color:#999;word-break:break-all;">' +
+        msg.quoteSender + '：' + msg.quoteText + '</div>';
+}
+
+function addEnding2GroupMessage(data, msg, isPreview) {
+    if (!Number.isFinite(data.ending2GroupClockSeconds)) {
+        data.ending2GroupClockSeconds = 23 * 3600 + 16 * 60;
+    } else if (!isPreview) {
+        data.ending2GroupClockSeconds += 20 + Math.floor(Math.random() * 16);
+    }
+    var clockSeconds = data.ending2GroupClockSeconds;
+    var clockHour = Math.floor(clockSeconds / 3600) % 24;
+    var clockMinute = Math.floor((clockSeconds % 3600) / 60);
+    var progressiveTime = String(clockHour).padStart(2, "0") + ":" +
+        String(clockMinute).padStart(2, "0");
+    data.messages.push({
+        from: msg.from,
+        text: formatEnding2GroupText(msg),
+        time: progressiveTime,
+        avatar: msg.avatar,
+        date: clockSeconds >= 24 * 3600 ? "2023年10月15日" : "2023年10月14日",
+        read: isPreview ? false : true,
+        isEnding2GroupFollowup: true,
+        isEnding2GroupPreview: isPreview === true
+    });
+}
+
+function ensureEnding2GroupPreview(data) {
+    if (!data || !data.messages) return;
+    if (data.ending2CompletedInThisSave !== true) {
+        data.messages = data.messages.filter(function(msg) {
+            return !msg || msg.isEnding2GroupFollowup !== true;
+        });
+        return;
+    }
+    if (data.ending2GroupFlowVersion !== ENDING2_GROUP_FLOW_VERSION) {
+        data.messages = data.messages.filter(function(msg) {
+            return !msg || msg.isEnding2GroupFollowup !== true;
+        });
+        data.ending2GroupFlowVersion = ENDING2_GROUP_FLOW_VERSION;
+        data.ending2GroupPhase = "prechoice";
+        data.ending2GroupIndex = 0;
+        data.ending2GroupClockSeconds = 23 * 3600 + 16 * 60;
+        delete data.ending2GroupChoice;
+    }
+    var exists = data.messages.some(function(msg) {
+        return msg && msg.isEnding2GroupFollowup === true;
+    });
+    if (!exists && data.ending2GroupPhase !== "completed") {
+        addEnding2GroupMessage(data, ending2GroupMessage("张函瑞","到家啦✌️","23:16","zhrwx.jpg"), true);
+        data.newMsg = true;
+    }
+}
+
+function saveEnding2GroupProgress() {
+    if (typeof autoSaveGame === "function") {
+        clearTimeout(window._ending2GroupSaveTimer);
+        window._ending2GroupSaveTimer = setTimeout(function() { autoSaveGame(); }, 80);
+    }
+}
+
+function getChatTypingDuration(text, minimum, maximum) {
+    var visibleText = String(text || "").replace(/<[^>]*>/g, "").replace(/\s+/g, "");
+    var base = (minimum || 900) + visibleText.length * 105;
+    var jitter = Math.floor(Math.random() * 650);
+    return Math.min(maximum || 4200, base + jitter);
+}
+
+function showEnding2GroupTyping(msg) {
+    if (currentChatContact !== "我玩狼人杀不骗人") return null;
+    var container = document.getElementById("chatMessages");
+    if (!container) return null;
+    var row = document.createElement("div");
+    row.className = "message-row ending2-group-typing";
+    row.style.justifyContent = "flex-start";
+    row.innerHTML = '<div class="message-avatar"><img src="' + (msg.avatar || "") +
+        '" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'"></div>' +
+        '<div class="typing-indicator">对方正在输入...</div>';
+    container.appendChild(row);
+    container.scrollTop = container.scrollHeight;
+    return row;
+}
+
+function deliverEnding2ZhangPrivateMessage() {
+    if (!chatData["张桂源"]) {
+        chatData["张桂源"] = { messages: [], newMsg: false, roundCompleted: false };
+    }
+    var data = chatData["张桂源"];
+    data.ending2AbCustomChatUnlocked = true;
+    if (!Number.isFinite(data.ending2PrivateStoryMinute) || data.ending2PrivateStoryMinute < 32) {
+        data.ending2PrivateStoryMinute = 32;
+    }
+    var exists = data.messages.some(function(msg) {
+        return msg && msg.isEnding2ZhangFollowup === true;
+    });
+    if (!exists) {
+        data.messages.push({
+            from: "other", text: "睡了吗", time: "0:31", avatar: "zgyweixin.png",
+            date: "2023年10月15日", read: false, isEnding2ZhangFollowup: true
+        });
+        data.newMsg = true;
+    }
+    renderChatList();
+    saveEnding2GroupProgress();
+    if (!data.ending2ZhangPopupShown) {
+        data.ending2ZhangPopupShown = true;
+        showMessageNotification(
+            "张桂源",
+            '<img src="zgyweixin.png" style="width:48px;height:48px;border-radius:50%;object-fit:cover;">',
+            getContactDisplayName("张桂源"),
+            "睡了吗",
+            function() { openChat("张桂源"); }
+        );
+        saveEnding2GroupProgress();
+    }
+}
+
+function showEnding2GroupChoice(data) {
+    if (document.getElementById("ending2GroupChoiceModal")) return;
+    var modal = document.createElement("div");
+    modal.id = "ending2GroupChoiceModal";
+    modal.style.cssText = "position:fixed;inset:0;z-index:10020;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center;padding:28px;";
+    modal.innerHTML = '<div style="width:min(360px,92vw);background:#fff;border-radius:16px;padding:20px;box-shadow:0 12px 35px rgba(0,0,0,.22);">' +
+        '<div style="font-size:15px;color:#555;text-align:center;margin-bottom:16px;">你要怎么回答？</div>' +
+        '<button data-choice="1" style="width:100%;padding:13px;margin-bottom:10px;border:0;border-radius:10px;background:#f2f2f2;font-size:15px;">我也不知道</button>' +
+        '<button data-choice="2" style="width:100%;padding:13px;border:0;border-radius:10px;background:#f2f2f2;font-size:15px;">@张桂源，他知道</button></div>';
+    document.body.appendChild(modal);
+    modal.querySelectorAll("button").forEach(function(btn) {
+        btn.onclick = function() {
+            var choice = Number(this.dataset.choice);
+            data.ending2GroupChoice = choice;
+            data.ending2GroupPhase = "branch";
+            data.ending2GroupIndex = 0;
+            addEnding2GroupMessage(data, ending2GroupMessage("me", choice === 1 ? "我也不知道。" : "@张桂源", "23:50", ""), false);
+            if (choice === 2) {
+                addEnding2GroupMessage(data, ending2GroupMessage("me", "他知道", "23:50", ""), false);
+            }
+            modal.remove();
+            renderChatMessages();
+            saveEnding2GroupProgress();
+            setTimeout(function() { playEnding2GroupChat(data); }, 450);
+        };
+    });
+}
+
+function showEnding2GroupGoodnightChoice(data) {
+    if (document.getElementById("ending2GroupGoodnightModal")) return;
+    var modal = document.createElement("div");
+    modal.id = "ending2GroupGoodnightModal";
+    modal.style.cssText = "position:fixed;inset:0;z-index:10020;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center;padding:28px;";
+    modal.innerHTML = '<div style="width:min(340px,90vw);background:#fff;border-radius:16px;padding:20px;box-shadow:0 12px 35px rgba(0,0,0,.22);">' +
+        '<div style="font-size:15px;color:#555;text-align:center;margin-bottom:16px;">回复群聊</div>' +
+        '<button style="width:100%;padding:13px;border:0;border-radius:10px;background:#f2f2f2;font-size:15px;">晚安</button></div>';
+    document.body.appendChild(modal);
+    modal.querySelector("button").onclick = function() {
+        addEnding2GroupMessage(data, ending2GroupMessage("me", "晚安", "0:30", ""), false);
+        data.ending2GroupGoodnightSent = true;
+        modal.remove();
+        renderChatMessages();
+        saveEnding2GroupProgress();
+        setTimeout(function() { playEnding2GroupChat(data); }, 650);
+    };
+}
+
+function playEnding2GroupChat(data) {
+    if (!data || data.ending2CompletedInThisSave !== true || window._ending2GroupPlaying) return;
+    if (data.ending2GroupPhase === "awaiting_choice") {
+        showEnding2GroupChoice(data);
+        return;
+    }
+    if (data.ending2GroupPhase === "common" && data.ending2GroupAwaitingGoodnight === true && data.ending2GroupGoodnightSent !== true) {
+        showEnding2GroupGoodnightChoice(data);
+        return;
+    }
+    if (data.ending2GroupPhase === "completed") {
+        deliverEnding2ZhangPrivateMessage();
+        return;
+    }
+    var list;
+    if (data.ending2GroupPhase === "branch") {
+        list = getEnding2GroupBranchMessages(data.ending2GroupChoice);
+    } else if (data.ending2GroupPhase === "common") {
+        list = getEnding2GroupCommonMessages();
+    } else {
+        data.ending2GroupPhase = "prechoice";
+        list = getEnding2GroupPreChoiceMessages();
+    }
+    var index = Number(data.ending2GroupIndex) || 0;
+    if (index >= list.length) {
+        if (data.ending2GroupPhase === "prechoice") {
+            data.ending2GroupPhase = "awaiting_choice";
+            data.ending2GroupIndex = 0;
+            saveEnding2GroupProgress();
+            showEnding2GroupChoice(data);
+        } else if (data.ending2GroupPhase === "branch") {
+            data.ending2GroupPhase = "common";
+            data.ending2GroupIndex = 0;
+            saveEnding2GroupProgress();
+            setTimeout(function() { playEnding2GroupChat(data); }, 500);
+        } else {
+            data.ending2GroupPhase = "completed";
+            data.ending2GroupIndex = 0;
+            saveEnding2GroupProgress();
+            deliverEnding2ZhangPrivateMessage();
+        }
+        return;
+    }
+    window._ending2GroupPlaying = true;
+    var typingRow = showEnding2GroupTyping(list[index]);
+    var groupTypingDelay = getChatTypingDuration(list[index].text, 1000, 4600);
+    setTimeout(function() {
+        if (typingRow && typingRow.parentNode) typingRow.remove();
+        addEnding2GroupMessage(data, list[index], false);
+        data.ending2GroupIndex = index + 1;
+        window._ending2GroupPlaying = false;
+        renderChatMessages();
+        saveEnding2GroupProgress();
+        if (data.ending2GroupPhase === "common" && list[index].from === "张函瑞" &&
+            list[index].text === "晚安早点休息哦" && data.ending2GroupGoodnightSent !== true) {
+            data.ending2GroupAwaitingGoodnight = true;
+            saveEnding2GroupProgress();
+            showEnding2GroupGoodnightChoice(data);
+            return;
+        }
+        setTimeout(function() { playEnding2GroupChat(data); }, 650 + Math.floor(Math.random() * 550));
+    }, groupTypingDelay);
+}
+
 function openGroupChat() {
     currentChatContact = "我玩狼人杀不骗人";
     document.getElementById("chatListScreen").style.display = "none";
@@ -4695,9 +5209,10 @@ function openGroupChat() {
     }
 
     var data = chatData["我玩狼人杀不骗人"];
+    ensureEnding2GroupPreview(data);
     if (data.messages) {
         for (var i = 0; i < data.messages.length; i++) {
-            if (data.messages[i].from === "other") {
+            if (data.messages[i].from === "other" || data.messages[i].isEnding2GroupFollowup === true) {
                 data.messages[i].read = true;
             }
         }
@@ -4707,12 +5222,16 @@ function openGroupChat() {
     renderChatMessages();
     renderChatList();
 // ===== 进入群聊后，首次选项只显示一次 =====
-    var groupChoiceDone = localStorage.getItem('chapter3_group_choice_done') === 'true' || data.groupEntryChoiceDone === true;
+    var groupChoiceDone = localStorage.getItem('chapter3_group_choice_done') === 'true' || data.groupEntryChoiceDone === true || data.ending2CompletedInThisSave === true;
     window._groupEntryOptionsShown = groupChoiceDone;
     if (!groupChoiceDone) {
         setTimeout(function() {
             showGroupEntryOptions();
         }, 1000);
+    }
+    if (data.ending2CompletedInThisSave === true) {
+        saveEnding2GroupProgress();
+        setTimeout(function() { playEnding2GroupChat(data); }, 650);
     }
     // ===== 修复布局：让输入框在底部 =====
     var detailScreen = document.getElementById("chatDetailScreen");
@@ -5084,7 +5603,10 @@ function blockContact(contact) {
         "左奇函": "哈哈哈",
         "张奕然": "oh my god",
         "张亦然": "oh my god",
-        "陈浚铭": "陈太帅"
+        "陈浚铭": "陈太帅",
+        "杨涵博": "雨",
+        "官俊臣": "害羞的游泳圈",
+        "官俊辰": "害羞的游泳圈"
     };
 
     var html = "";
@@ -5181,6 +5703,10 @@ function blockContact(contact) {
                     avatar = '<img src="wzcwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
                 } else if (from === "李煜东") {
                     avatar = '<img src="lydwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                } else if (from === "杨涵博") {
+                    avatar = '<img src="yhb.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                } else if (from === "官俊臣" || from === "官俊辰") {
+                    avatar = '<img src="gjc.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
                 } else {
                     avatar = '<span style="font-size:28px;">👤</span>';
                 }
@@ -5548,6 +6074,27 @@ document.getElementById("chatContactName").style.paddingLeft = "20px";
 // ========== 张桂源 ==========
 
 if (contact === "张桂源") {
+    // 结局2后“睡了吗”开启自由私聊，优先于旧章节的完成锁定
+    if (chatData["张桂源"].ending2AbCustomChatUnlocked === true) {
+        inputBox.innerText = "";
+        inputBox.style.cssText = 'flex:1;padding:6px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:18px;background:rgba(255,255,255,0.85);color:#333;font-size:14px;outline:none;min-height:32px;cursor:text;pointer-events:auto;';
+        inputBox.contentEditable = "true";
+        inputBox.onclick = null;
+        inputBox.onkeydown = function(e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendCustomMessage();
+            }
+        };
+        var ending2PlusBtn = document.getElementById("chatPlusBtn");
+        if (ending2PlusBtn) {
+            var ending2NewPlusBtn = ending2PlusBtn.cloneNode(true);
+            ending2PlusBtn.parentNode.replaceChild(ending2NewPlusBtn, ending2PlusBtn);
+            ending2NewPlusBtn.onclick = function() { sendCustomMessage(); };
+        }
+        renderChatMessages();
+        return;
+    }
      // ✅ 检查是否有"到了没"消息且还没回复（第二章结束聊天）
     var hasDaolemei = false;
     var hasReplied = false;
@@ -19496,8 +20043,136 @@ var chapter2Posts = [
     }
 ];
 
+// ================= 狼人杀后续论坛（2023年10月15日 - 10月18日） =================
+var werewolfFollowupPosts = [
+    {
+        id: 'werewolf_post1',
+        title: '【瓜帖】瓜？昨晚一堆小孩从狼人杀店出来 看着像四代的？',
+        author: '匿名用户',
+        content: '刚刷到一个视频，大晚上一群小孩从XX路一个狼人杀店出来，看着年纪都不大，八九个人左右吧，有说有笑的。天太黑了正脸完全看不清，但有几个身形看着挺像四代那几个的……有没有人也刷到了？这是私下约着玩还是在录物料啊？<br><br>[视频链接]',
+        type: 'discuss', likes: 86, time: '2023年10月15日 09:18',
+        replies: [
+            { author: '进击的老爹汉堡', text: '我靠！！走在中间那个高高瘦瘦的绝壁是王橹杰啊！！那个走路姿态我闭着眼都能认出来！！' },
+            { author: '素萌萌的我呀', text: '这画质跟你拿脚拍的一样，你说像就像啊？四代现在有点热度了就什么人都往上蹭是吧。' },
+            { author: '小哭包TT', text: '我也觉得像！！后面那个低着头走路的是陈奕恒吧？' },
+            { author: '今天也在等物料', text: '如果是物料的话我直接开香槟！！四代多久没更物料了公司能不能干点正事！' },
+            { author: '路人甲', text: '八九个小孩这个点从狼人杀店出来也可能是普通初中生吧，四代还没火到大街上随便拍个视频就能认出来的程度吧。' },
+            { author: '桂源家的小羽毛', text: '如果是私下约的话那说明感情是真的好，能全员约出来玩，关系是真好。' },
+            { author: '你又咋了', text: '这么晚了还在外面疯玩，第二天有训练计划吧？公司也不管管？还出道吗少爷们' },
+            { author: '杨博文什么时候长高', text: '我怎么感觉中间那个有点像杨博文呢……但真的太黑了看不清，急死我了。' }
+        ]
+    },
+    {
+        id: 'werewolf_post2',
+        title: '【讨论贴】狼人杀！！！四代是不是在录新物料了？？有没有人脉姐！！',
+        author: '匿名用户',
+        content: '那个视频我看着真的像四代，如果是录狼人杀物料的话那也太期待了吧！！四代小孩玩狼人杀肯定各种好笑，感觉有几个一看就不会撒谎，拿到狼人估计第一轮就被投出去了哈哈哈哈哈。有没有人脉姐知道具体情况？是私下约的还是公司安排的拍摄啊？',
+        type: 'discuss', likes: 74, time: '2023年10月15日 13:42',
+        replies: [
+            { author: '四代团粉头子', text: '接物料！！我大接特接！！不管录什么只要让我看到新鲜的活人就行！！已经饿了好久了！！' },
+            { author: '陈奕恒的睫毛', text: '陈奕恒玩得懂狼人杀吗哈哈哈哈？' },
+            { author: '张函瑞ACE', text: '张函瑞那个嘴叭叭叭的估计带节奏然后带崩三路，但想想就好好笑好想看！' },
+            { author: '路人甲', text: '也可能就是几个小孩私下约着去玩的吧，关系好一起玩个桌游而已，不一定什么都跟公司有关。' },
+            { author: '进击的老爹汉堡', text: '不管是物料还是私下，能凑这么多人一起去玩说明感情是真的好，四代这个团魂我是真吃。' },
+            { author: '物料饥饿患者', text: '公司你欠我们的物料什么时候还？？隔壁综艺都录了好几期了四代连个屁都没有，' },
+            { author: '桂源家的小羽毛', text: '公司换策划了？怎么忽然开窍了' },
+            { author: '小哭包TT', text: '感觉像是私下约的诶，如果是公司物料一般会有工作人员跟拍的吧，视频里看着不像有摄像的样子。' }
+        ]
+    },
+    {
+        id: 'werewolf_post3',
+        title: '【私生帖】刚刷到一个视频 一堆人站路边等车 跟狼人杀那波是同一批吧',
+        author: '匿名用户',
+        content: '另一个角度，一群人站在路边等车，路灯底下能看到几个模糊的影子。跟狼人杀店出来的那个视频时间地点都对得上。天太黑了正脸完全看不清，数了一下人头大概八九个，应该就是同一批。拍这个的人也是够闲的，大晚上蹲在路边拍人家等车……<br><br>[图片]',
+        type: 'toxic', likes: 43, time: '2023年10月16日 08:27',
+        replies: [
+            { author: '素萌萌的我呀', text: '这拍的是个啥啊，路灯都比人清楚，这像素是用门锁拍的吗？' },
+            { author: '小哭包TT', text: '私生能不能别拍了啊……大晚上蹲路边拍几个小孩等车你们是真没事干吗，真服了。' },
+            { author: '恋萌癖', text: '发出来有什么意义，啥都看不清全靠粉丝脑补，评论区还一个个在认人，对着几个黑影子都能激动，我真的笑死。' },
+            { author: '王橹杰的高音呢', text: '看身高的话右边那个高一点的有点像王橹杰……但真的太糊了完全不敢确定。' },
+            { author: '进击的老爹汉堡', text: '你管他是不是四代，拍到几个小孩等车也要发出来，是真没东西发了是吧。' },
+            { author: '路人乙', text: '说真的这个距离这个画质，你说那是谁都行，我连人影都看不太清。' },
+            { author: '陈浚铭今天吃饭了吗', text: '我怎么觉得左边那个矮一点的有点像陈浚铭呢……那个缩着脖子等车的姿势好熟悉啊。' }
+        ]
+    },
+    {
+        id: 'werewolf_post4',
+        title: '【私生帖】昨天有人蹲陈奕恒家小区了 快11点才看到车送回来',
+        author: '匿名用户',
+        content: '刷到一个更离谱的，有人说昨天在陈奕恒家小区门口蹲着，等到快11点才看到有车送他回来。评论区有人说狼人杀店离他家挺远的，估计是玩完了送回来的。能不能别这样了啊已经严重影响生活了吧……',
+        type: 'toxic', likes: 92, time: '2023年10月16日 19:05',
+        replies: [
+            { author: '陈奕恒的睫毛', text: '？？？又蹲小区？？怎么还有这种疯子啊！！能不能报警把他们抓走！！' },
+            { author: '小哭包TT', text: '真服了陈奕恒才多大啊，你们蹲人家小区门口是想干嘛？这是跟踪狂了吧！！' },
+            { author: '进击的老爹汉堡', text: '快11点回家怎么了？录物料录晚了不行？跟朋友玩晚了不行？私生蹲小区才是最该被骂的吧，怎么每次都盯着别人几点回家啊。' },
+            { author: '路人甲', text: '重点不是几点回家，是有人蹲在人家小区门口……这真的已经越界了吧，公司在这方面一点作为都没有？' },
+            { author: '桂源家的小羽毛', text: '上次张桂源也被蹲过小区吧，我记得那个帖子后来被删了，结果现在又来蹲陈奕恒，这些人是觉得蹲小区很光荣？' },
+            { author: '你又咋了', text: '妈呀快11点回家，第二天不用训练？小哥哥啥时候回英国' },
+            { author: '陈奕恒的睫毛', text: '回楼上你知道他第二天有没有行程啊？管好你自己吧。' },
+            { author: '你管我追谁', text: '我要是陈奕恒粉丝我得气死，蹲小区这种事放谁家身上都炸，四代粉能不能团结一次举报这些私生啊' }
+        ]
+    },
+    {
+        id: 'werewolf_post5',
+        title: '【爆料贴】我哥是那家狼人杀店的工作人员 说昨天确实去了几个帅小伙',
+        author: '匿名用户',
+        content: '不是我说我哥就是那家店的工作人员昨天晚班，我刚才刷到那个视频了就去问他了，他说昨天晚上确实来了几个长得特别帅的小伙子看着年纪都不大，大概八九个人吧还带了个女生一起来的玩到快十一点才走。我哥说他们玩狼人杀吵得要死，最后一直在那嘻嘻哈哈，但是长得是真的帅，他也不知道什么四代不四代的，就是觉得那几个人看着不像普通初中生，问我是不是哪个公司的练习生，还跟我说“那几个小孩长得真的可以，不是那种普通的好看”，我一看视频这不就是四代吗！！！我哥不是追星的人他认不出来，但我越看越像啊！！女生是谁他也不知道，就说是跟他们一起来的，一起坐一桌玩的，全程有说有笑的，应该是一起的不是拼桌。',
+        type: 'discuss', likes: 37, time: '2023年10月17日 10:11',
+        replies: [
+            { author: '进击的老爹汉堡', text: '你家亲戚怎么老在娱乐场所上班啊？能不能换个剧本。' },
+            { author: '桂源家的小羽毛', text: '你哥工牌拍一个我看看呗？' },
+            { author: '素萌萌的我呀', text: '我现在就去那家店，我也能说“昨天有几个帅小伙来了”，谁不会编啊，而且你还越看越像，你当然觉得像了因为你本来就想引导别人觉得像啊。' },
+            { author: '你别管我是谁', text: '我是重庆ip我也能乱编' },
+            { author: '王橹杰的高音呢', text: '做个人吧，你哥下班了还要被你拿去当造谣素材，你哥知道你在网上替他编故事吗？' }
+        ]
+    },
+    {
+        id: 'werewolf_post6',
+        title: '【澄清贴】看到“女生”两个字就高潮 那个爆料连张图都没有',
+        author: '匿名用户',
+        content: '那个“我哥是工作人员”的帖子下面，居然真的有人信了，什么“又有女生了”“四代真的完了”都来了。而且这回连个视频都没有，纯靠一张嘴说，能不能长点记性？',
+        type: 'rational', likes: 105, time: '2023年10月17日 15:36',
+        replies: [
+            { author: '进击的老爹汉堡', text: '你哥怎么知道那就是四代？万一是普通初中生呢？你哥说了“不像普通人”那就是练习生了？你哥见过几个练习生？' },
+            { author: '小哭包TT', text: '我服了这个话题还在吵，有些人真的双标到极致，自担跟女生玩就是“正常社交”，别人跟女生就是“偷偷藏嫂子”，要不要这么明显啊？' },
+            { author: '王橹杰的高音呢', text: '就算真有女生一起玩又怎么了？八九个人玩狼人杀有男有女不正常吗？你们是没去过桌游店还是没跟异性一起玩过游戏？' },
+            { author: '素萌萌的我呀', text: '虽然还是没有实锤，但四代确实该注意点吧，每次都被拍到跟女生同框，不管真假观感都不好吧。' },
+            { author: '桂源家的小羽毛', text: '回楼上，注意什么？注意不让你看见？人家正常社交为什么要躲着你？你怎么不叫你担别出门了？你哪位啊大姐姐？？' }
+        ]
+    },
+    {
+        id: 'werewolf_post7',
+        title: '【黑帖】又是女生又是狼人杀 四代嫂子偷偷藏不住了是吧',
+        author: '匿名用户',
+        content: '上次小面店那个女生还没搞清楚是谁呢，这次狼人杀又冒出来一个“女生”。而且这次是八九个人加一个女生？那个女生到底是谁的朋友啊，总不能所有人都认识她吧，怎么老跟女生扯不清楚啊？年纪这么小就天天跟女生混在一起，养成系能不能有点养成系的样子，到四代就完了吧，粉丝天天洗不累吗？嫂子是偷偷藏不住了吧。',
+        type: 'toxic', likes: 19, time: '2023年10月18日 09:44',
+        replies: [
+            { author: '恋萌癖', text: '这个问题一直存在说明四代确实有点问题吧？每次被拍到都有女生，正常的练习生会这样吗？' },
+            { author: '素萌萌的我呀', text: '上次张桂源这次直接全员出动，四代这是要集体翻车吗？我早说了四代不行' },
+            { author: '进击的老爹汉堡', text: '你哪只眼睛看到那个女生是跟四代一起的了？你怎么知道那女生不是隔壁桌的不是路过的？你就在现场？' },
+            { author: '小哭包TT', text: '那个“我哥”连图都没有一张你们就信了，我真是服了。哪天有人发帖“我大姨是楼下卖煎饼的看到四代了”你们是不是也要讨论一百楼？' },
+            { author: '路人甲', text: '说实话上次小面店那个确实没锤，这次这个比上次还离谱，至少上次还有个模糊视频，这次纯靠一张嘴。' },
+            { author: '唯爱恒', text: '嫂子嫂子，你们脑子里除了嫂子还有别的东西吗？一群小孩去玩个桌游都能被你们编出一部连续剧来，才多大啊' }
+        ]
+    },
+    {
+        id: 'werewolf_post8',
+        title: '【讨论贴】不管是不是物料 能凑齐这么多人出来玩 关系是真的好吧',
+        author: '匿名用户',
+        content: '不管是不是在录物料，不管那个女生存不存在，能一大群人晚上一起出来玩狼人杀，说明这几个人私下关系是真的好。粉圈吵归吵，小孩们玩得开心就行，以后这样的日子可能越来越少了，珍惜早期吧。',
+        type: 'love', likes: 128, time: '2023年10月18日 18:20',
+        replies: [
+            { author: '贪吃鬼', text: '真的，能凑齐这么多人约出来玩，说明是真的玩到一起了，不是镜头前硬演的那种。以后出道了估计这种机会就越来越少了。' },
+            { author: '进击的老爹汉堡', text: '接狼人杀物料！！不管有谁不管有没有女生，给我播出来我要看！！四代嘴笨的肯定被全程碾压想想就好好笑！！' },
+            { author: '不知名用户12138', text: '路人看了一圈下来，感觉你们四代粉圈真的太敏感了，一点点事就能吵几百楼，但小孩们自己玩得挺开心的，你们在这吵翻天说不定人家还在笑呢。' },
+            { author: '原来喜欢你', text: '一代老粉表示，你们四代粉还在吵这些鸡毛蒜皮，等出道了就会发现以前吵的都是没用的，趁还没出道好好享受吧，以后更腥风血雨。以后再来看会怀念这个时期的他们的' },
+            { author: '用户www', text: '能一起出来玩是真的在乎这段关系，不是装出来的。四代不管别家怎么说，在我看来就是一群关系很好的小孩在认真长大而已。' }
+        ]
+    }
+];
+
 // ================= 合并所有帖子 =================
-var allForumPosts = chapter1Posts.concat(chapter2Posts);
+var allForumPosts = chapter1Posts.concat(chapter2Posts, werewolfFollowupPosts);
 
 // ================= 论坛渲染 =================
 var forumIndex = 0;
@@ -19526,7 +20201,7 @@ function renderForum(showMore) {
 
     displayData.forEach(function(post) {
         var isChapter2 = chapter2Ids.indexOf(post.id) !== -1;
-        post._randomTime = getRandomTime(isChapter2);
+        post._randomTime = post.time || getRandomTime(isChapter2);
     });
 
     // 按时间倒序排列（最新在前）
@@ -19540,9 +20215,16 @@ function renderForum(showMore) {
     for (var i = 0; i < displayData.length; i++) {
         var item = displayData[i];
         var randomTime = item._randomTime;
+        var isUnreadFollowup = item.id.indexOf('werewolf_post') === 0 &&
+            localStorage.getItem('forum_read_' + item.id) !== 'true';
         
         html += '<div style="padding:14px 0;border-bottom:1px solid #EFEFEF;cursor:pointer;" onclick="showForumDetail(\'' + item.id + '\')">';
+        html += '<div style="display:flex;align-items:flex-start;gap:7px;">';
+        if (isUnreadFollowup) {
+            html += '<span id="forumNewBadge_' + item.id + '" style="display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:2px;width:20px;height:18px;border-radius:6px;background:#E85D75;color:#fff;font-size:11px;font-weight:700;line-height:1;">新</span>';
+        }
         html += '<div style="font-size:15px;font-weight:600;color:#1A1A1A;line-height:1.4;">' + item.title + '</div>';
+        html += '</div>';
         html += '<div style="display:flex;gap:12px;margin-top:6px;font-size:12px;color:#999;">';
         html += '<span>' + item.author + '</span>';
         html += '<span>' + randomTime + '</span>';
@@ -19554,6 +20236,11 @@ function renderForum(showMore) {
 }
 // ================= 显示论坛帖子详情 =================
 function showForumDetail(postId) {
+    if (postId && postId.indexOf('werewolf_post') === 0) {
+        localStorage.setItem('forum_read_' + postId, 'true');
+        var newBadge = document.getElementById('forumNewBadge_' + postId);
+        if (newBadge) newBadge.remove();
+    }
     var post = null;
     for (var i = 0; i < allForumPosts.length; i++) {
         if (allForumPosts[i].id === postId) {
@@ -20818,7 +21505,8 @@ function sendCustomMessage() {
         return;
     }
 
-    var date = new Date().toLocaleDateString();
+    var isEnding2PrivateChat = chatData['张桂源'] && chatData['张桂源'].ending2AbCustomChatUnlocked === true;
+    var date = isEnding2PrivateChat ? "2023年10月15日" : new Date().toLocaleDateString();
 
     // 保存玩家消息
     var userMessage = text;
@@ -20827,7 +21515,7 @@ function sendCustomMessage() {
     chatData['张桂源'].messages.push({
         from: 'me',
         text: userMessage,
-        time: getCurrentTime(),
+        time: isEnding2PrivateChat ? getEnding2ZhangStoryTime() : getCurrentTime(),
         avatar: '🐰',
         date: date,
         read: true
@@ -20884,7 +21572,7 @@ function sendCustomMessage() {
             container.appendChild(typingRow);
             container.scrollTop = container.scrollHeight;
 
-            var typingDelay = Math.floor(Math.random() * 700) + 500;
+            var typingDelay = getChatTypingDuration(msgText, 1000, 4200);
 
             setTimeout(function() {
                 if (typingRow && typingRow.parentNode) {
@@ -20892,7 +21580,9 @@ function sendCustomMessage() {
                 }
 
                 var now = new Date();
-                var timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+                var timeStr = isEnding2PrivateChat
+                    ? getEnding2ZhangStoryTime()
+                    : String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
                 chatData['张桂源'].messages.push({
                     from: 'other',
@@ -20911,7 +21601,7 @@ function sendCustomMessage() {
                 }
 
                 msgIndex++;
-                var nextDelay = Math.floor(Math.random() * 700) + 800;
+                var nextDelay = Math.floor(Math.random() * 650) + 700;
                 setTimeout(sendNextMessage, nextDelay);
 
             }, typingDelay);
@@ -20925,6 +21615,32 @@ function getCurrentTime() {
     var now = new Date();
     return String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 }
+function getEnding2ZhangStoryTime() {
+    var data = chatData["张桂源"] || {};
+    var minute = Number(data.ending2PrivateStoryMinute);
+    if (!Number.isFinite(minute) || minute < 31) minute = 31;
+    var displayHour = Math.floor(minute / 60);
+    var displayMinute = minute % 60;
+    data.ending2PrivateStoryMinute = minute + 1;
+    return String(displayHour).padStart(2, "0") + ":" + String(displayMinute).padStart(2, "0");
+}
+function buildZhangFallbackReply(userMessage) {
+    var asksWhy = /怎么了|有事吗|干嘛|咋了/.test(userMessage || "");
+    var pool = asksWhy
+        ? ["没怎么", "就是忽然想找你聊聊", "还有你最后那句话", "你说有点短", "到底什么意思啊"]
+        : ["还没睡啊", "那我问你个事", "你最后说有点短", "到底是什么意思", "别说你是随口讲的"];
+    var count = chooseZhangReplyCount(userMessage);
+    return pool.slice(0, count).join("\n");
+}
+function chooseZhangReplyCount(userMessage) {
+    var text = String(userMessage || "").trim();
+    if (text.length <= 3) return 2 + Math.floor(Math.random() * 2);
+    if (/什么意思|有点短|恋人|喜欢|舍不得|下次|怎么了|干嘛|有事/.test(text)) {
+        return 4 + Math.floor(Math.random() * 2);
+    }
+    if (text.length >= 18) return 4 + Math.floor(Math.random() * 2);
+    return 2 + Math.floor(Math.random() * 4);
+}
 // ================= 调用张桂源 AI 回复 =================
 function callZhangGuiyuanAI(userMessage, callback) {
     var baseUrl = localStorage.getItem('api_base_url');
@@ -20935,20 +21651,8 @@ function callZhangGuiyuanAI(userMessage, callback) {
 
     // 如果没有 API，用随机回复
     if (!baseUrl || !apiKey) {
-        var fallbackReplies = [
-            '哈哈',
-            '真的吗',
-            '好嘛',
-            '要得',
-            '莫的问题',
-            '遭不住了',
-            '嘿嘿',
-            '行嘛',
-            '好哦'
-        ];
-        var reply = fallbackReplies[Math.floor(Math.random() * fallbackReplies.length)];
         setTimeout(function() {
-            callback(reply);
+            callback(buildZhangFallbackReply(userMessage));
         }, 500);
         return;
     }
@@ -20968,6 +21672,41 @@ function callZhangGuiyuanAI(userMessage, callback) {
         }
     }
     var contextText = recentMessages.join('\n');
+    var ending2Memory = '';
+    var zhangDataForMemory = chatData['张桂源'];
+    if (zhangDataForMemory && zhangDataForMemory.ending2AbCustomChatUnlocked === true) {
+        var groupMemoryLines = [];
+        var ending2GroupData = chatData["我玩狼人杀不骗人"];
+        if (ending2GroupData && ending2GroupData.messages) {
+            ending2GroupData.messages.forEach(function(msg) {
+                if (!msg || msg.isEnding2GroupFollowup !== true) return;
+                var sender = msg.from === "me" ? (player.wechatName || player.name || "玩家") : msg.from;
+                var clean = String(msg.text || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+                if (clean) groupMemoryLines.push(sender + "：" + clean);
+            });
+        }
+        ending2Memory = `
+
+【本存档新增的强制记忆：狼人杀1Ab线与结局2】
+- 玩家是女生，是你从幼儿园起就认识的青梅竹马。你们熟悉彼此，但现在都还在试探，不会轻易把喜欢说破。
+- 你完整记得今天桌游店发生的1Ab线：玩家在1A线第二轮没有投陈思罕，故事进入1Ab；你和玩家经历了恋人阵营与狼人阵营交织的局势，最终达成“结局2：恋人体验卡？吗？”，狼人阵营获胜。
+- 你记得整条1Ab线里你和玩家所有微妙的站边、试探、犹豫，以及“恋人”关系带来的拉扯。这使你比平时更在意玩家，但你不会直白承认。
+- 结局最后，玩家亲口对你说：“我也觉得有点短。”你当时耳朵红了，嘴角压不住，只敢说“那下次”，又说下局争取一起活久一点。
+- 在这之前，你在吧台替她拧开矿泉水，说把她连累了。她回答“跟你一起出局，也不算亏”。你随后害羞地说，其实挺想把“恋人体验卡”延长一局，又因为觉得越界而嘴硬说“算了，就当我乱说”。她沉默后叫住你，才回答“我也觉得有点短”。
+- 你完整记得刚才群聊中大家追问“恋人到底是谁”、玩家选择的回答、众人的起哄，以及群聊散场的全过程。
+- 群聊结束后，是你主动私聊玩家“睡了吗”。你真正想旁敲侧击的是她说“我也觉得有点短”到底是什么意思、她是不是也舍不得这段“恋人”体验太快结束。不要上来直接审问，要装作随便聊天，慢慢试探。
+- 玩家回复“睡了吗”之后，不要闲聊很多轮才进入主题。在当前这轮或紧接着的一轮里，就要害羞又暗戳戳地直接问她：她最后说“有点短”到底是什么意思。可以拆成几条、停顿、嘴硬掩饰，但必须把问题问出来。
+- 私聊重点是你和青梅竹马之间的暧昧拉扯，不是复盘游戏。除非玩家主动提起，否则不要一直说狼人杀、阵营、投票和输赢，也不要反复复述结局。
+- 回复氛围要拉扯、青涩、克制，带若有若无的暧昧；禁止突然表白，禁止油腻。
+- 当前剧情时间固定为2023年10月15日凌晨，从00:31左右继续。禁止读取、猜测或提及现实设备时间，也禁止说现在是2026年。
+- 你可以因为玩家提到别的男生而小小吃醋，可以嘴硬地撒娇、卖萌、装委屈或想让玩家多陪你一会儿，也可以流露一点占有欲；但必须自然、符合上下文，不能每次都吃醋。
+- 如果玩家问“怎么了”“有事吗”“干嘛”，必须自然表达“没怎么，就是忽然想找你聊聊天”的意思，可以换成符合你口吻的说法。
+- 必须接住玩家当前的话，并延续之后所有私聊记忆。
+- 绝对禁止凭空捏造玩家说过的话、喜好、食物、经历或共同回忆。玩家没有提过的“芋泥冰”等内容不能当成既定事实。若上下文没有信息，就追问或只回应眼前这句话。
+
+【刚才的后续群聊原始记忆】
+` + groupMemoryLines.join('\n');
+    }
 
     console.log('📤 发送给 AI 的消息：', userMessage);
     console.log('📚 上下文：', contextText);
@@ -21029,21 +21768,28 @@ function callZhangGuiyuanAI(userMessage, callback) {
 - 禁止使用括号描述动作
 - 禁止"张桂源："前缀
 - 每句话不超过10-15个字
-- 每次回复至少2-4条消息
+- 每次根据玩家回答回复2-5条消息
 - 保持暗戳戳的暧昧
 - 记住对话上下文
 - 绝对不许说"行行行""随便你""你爱咋咋"这类不耐烦的话
+
+${ending2Memory}
 
 现在玩家说：${userMessage}`;
     } else {
         // 使用自定义人设
         var customPersonality = localStorage.getItem('custom_chat_personality') || '你是张桂源，请用自然的方式回复玩家。';
-        systemPrompt = customPersonality + '\n\n现在玩家说：' + userMessage;
+        systemPrompt = customPersonality + ending2Memory +
+            '\n\n即使使用自定义人设，也必须保留上述结局2记忆、青涩拉扯氛围和“怎么了”时的指定回应。\n\n现在玩家说：' + userMessage;
     }
+    var expectedReplyCount = chooseZhangReplyCount(userMessage);
+    systemPrompt += '\n\n【本次输出硬性要求】只输出恰好' + expectedReplyCount +
+        '条微信消息，每条单独一行，每条10-15字以内；不要编号，不要姓名前缀，不要括号动作。禁止补写玩家未提过的事实或喜好。剧情时间固定为2023年10月15日凌晨，不得使用现实时间。';
     
     var messages = [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: '对话历史：\n' + contextText + '\n\n玩家最新说：' + userMessage + '\n\n请用张桂源的身份回复（短句，多条，每条10-15字以内）：' }
+        { role: 'user', content: '对话历史：\n' + contextText + '\n\n玩家最新说：' + userMessage +
+            '\n\n请用张桂源的身份回复恰好' + expectedReplyCount + '条（每条单独一行）：' }
     ];
 
     fetch(baseUrl + '/chat/completions', {
@@ -21069,16 +21815,21 @@ function callZhangGuiyuanAI(userMessage, callback) {
         if (reply) {
             var cleanReply = reply.trim().replace(/^["']+|["']+$/g, '');
             console.log('✅ AI 回复：', cleanReply);
-            callback(cleanReply);
+            var replyLines = cleanReply.split('\n').map(function(line) {
+                return line.replace(/^\s*(?:[-*•]|\d+[.、])\s*/, '').replace(/^张桂源[：:]\s*/, '').trim();
+            }).filter(Boolean).slice(0, expectedReplyCount);
+            var gentleFillers = ["你呢", "然后呢", "我在听", "再陪我说会儿嘛"];
+            while (replyLines.length < expectedReplyCount) {
+                replyLines.push(gentleFillers[Math.floor(Math.random() * gentleFillers.length)]);
+            }
+            callback(replyLines.join('\n'));
         } else {
-            var fallback = ['哈哈', '真的吗', '好嘛', '要得', '行'];
-            callback(fallback[Math.floor(Math.random() * fallback.length)]);
+            callback(buildZhangFallbackReply(userMessage));
         }
     })
     .catch(function(error) {
         console.log('❌ API 调用失败:', error);
-        var fallback = ['哈哈', '真的吗', '好嘛', '要得', '行'];
-        callback(fallback[Math.floor(Math.random() * fallback.length)]);
+        callback(buildZhangFallbackReply(userMessage));
     });
 }
 function likeHandler2(e) {
@@ -22569,6 +23320,43 @@ function getPersonalityMap() {
     
     return customMap;
 }
+// ================= 朋友圈 AI 请求兼容处理 =================
+function getMomentApiSettings() {
+    var baseUrl = (localStorage.getItem('api_base_url') || '').trim().replace(/\/+$/, '');
+    var apiKey = localStorage.getItem('api_key') || '';
+    var model = localStorage.getItem('api_model');
+    var customModel = localStorage.getItem('api_custom_model');
+    var finalModel = model === 'custom' ? customModel : model;
+
+    // 旧用户可能从未重新打开 API 设置页，因此朋友圈请求处也必须主动迁移
+    if (finalModel === 'deepseek-chat' || finalModel === 'deepseek-reasoner') {
+        finalModel = 'deepseek-v4-flash';
+        localStorage.setItem('api_model', finalModel);
+        localStorage.removeItem('api_custom_model');
+    }
+    // 更早版本可能只保存了 DeepSeek 地址，没有保存模型
+    if (!finalModel && baseUrl.indexOf('deepseek.com') !== -1) {
+        finalModel = 'deepseek-v4-flash';
+        localStorage.setItem('api_model', finalModel);
+    }
+
+    return {
+        baseUrl: baseUrl,
+        apiKey: apiKey,
+        model: finalModel,
+        endpoint: baseUrl ? baseUrl + '/chat/completions' : ''
+    };
+}
+
+function persistMomentInteractions() {
+    try {
+        localStorage.setItem('momentsData', JSON.stringify(momentsData || []));
+        localStorage.setItem('myMoments', JSON.stringify(myMoments || []));
+    } catch (e) {
+        console.log('保存朋友圈互动失败:', e);
+    }
+}
+
 // ================= 朋友圈 AI 回复（完整版） =================
 function generateMomentAIReplies(moment) {
      // 提取文字内容
@@ -22960,11 +23748,10 @@ function generateMomentAIReplies(moment) {
 }
 
 function generateInteractionReply3(moment, person, to, context, prompt, callback) {
-    var baseUrl = localStorage.getItem('api_base_url');
-    var apiKey = localStorage.getItem('api_key');
-    var model = localStorage.getItem('api_model');
-    var customModel = localStorage.getItem('api_custom_model');
-    var finalModel = model === 'custom' ? customModel : model;
+    var apiSettings = getMomentApiSettings();
+    var baseUrl = apiSettings.baseUrl;
+    var apiKey = apiSettings.apiKey;
+    var finalModel = apiSettings.model;
     
     var displayName = getContactDisplayName(person.name);
     var toDisplay = getContactDisplayName(to);
@@ -22989,7 +23776,7 @@ function generateInteractionReply3(moment, person, to, context, prompt, callback
         return;
     }
     
-    fetch(baseUrl + '/chat/completions', {
+    fetch(apiSettings.endpoint, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -22997,6 +23784,7 @@ function generateInteractionReply3(moment, person, to, context, prompt, callback
         },
         body: JSON.stringify({
             model: finalModel || 'gpt-3.5-turbo',
+            thinking: { type: 'disabled' },
             messages: messages,
             max_tokens: 50,
             temperature: 0.9
@@ -23054,11 +23842,10 @@ console.log('生成的text:', text);
 }
 // ================= 初始评论生成 =================
 function callInitialComment2(content, person, moment, sentenceCount, isFirst, callback) {
-    var baseUrl = localStorage.getItem('api_base_url');
-    var apiKey = localStorage.getItem('api_key');
-    var model = localStorage.getItem('api_model');
-    var customModel = localStorage.getItem('api_custom_model');
-    var finalModel = model === 'custom' ? customModel : model;
+    var apiSettings = getMomentApiSettings();
+    var baseUrl = apiSettings.baseUrl;
+    var apiKey = apiSettings.apiKey;
+    var finalModel = apiSettings.model;
     
     var displayName = getContactDisplayName(person.name);
     var sentenceHint = sentenceCount === 2 ? '你必须回复2句话，用换行分隔' : '回复1句话';
@@ -23095,19 +23882,29 @@ function callInitialComment2(content, person, moment, sentenceCount, isFirst, ca
         var reply = fallback[Math.floor(Math.random() * fallback.length)];
         var text = displayName + '：' + reply;
         moment.comments.push({ text: text, author: person.name });
+        persistMomentInteractions();
         renderMoments();
         if (callback) callback(text, person.name);
         return;
     }
     
-    fetch(baseUrl + '/chat/completions', {
+    if (!moment.comments) moment.comments = [];
+    var requestFinished = false;
+    var requestController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var requestTimer = setTimeout(function() {
+        if (requestController) requestController.abort();
+    }, 15000);
+
+    fetch(apiSettings.endpoint, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + apiKey
         },
+        signal: requestController ? requestController.signal : undefined,
         body: JSON.stringify({
             model: finalModel || 'gpt-3.5-turbo',
+            thinking: { type: 'disabled' },
             messages: messages,
             max_tokens: 60,
             temperature: 0.95
@@ -23119,7 +23916,12 @@ function callInitialComment2(content, person, moment, sentenceCount, isFirst, ca
     })
     .then(function(data) {
         var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-        if (reply) {
+        if (!reply) {
+            throw new Error('API 返回内容格式异常');
+        }
+        if (reply && !requestFinished) {
+            requestFinished = true;
+            clearTimeout(requestTimer);
             var cleanReply = reply.trim().replace(/^["']+|["']+$/g, '');
             // ✅ 把回复内容里的原始微信名替换成备注名
 var nameMap = {
@@ -23143,16 +23945,21 @@ for (var key in nameMap) {
                 var text = displayName + '：' + line.trim();
                 moment.comments.push({ text: text, author: person.name });
             });
+            persistMomentInteractions();
             renderMoments();
             if (callback) callback(lines.join('\n'), person.name);
         }
     })
     .catch(function(error) {
+        if (requestFinished) return;
+        requestFinished = true;
+        clearTimeout(requestTimer);
         console.log('API 调用失败:', error);
         var fallback = ['哈哈', '不错', '支持', '来了'];
         var reply = fallback[Math.floor(Math.random() * fallback.length)];
         var text = displayName + '：' + reply;
         moment.comments.push({ text: text, author: person.name });
+        persistMomentInteractions();
         renderMoments();
         if (callback) callback(text, person.name);
     });
@@ -23160,11 +23967,10 @@ for (var key in nameMap) {
 
 // ================= 互动回复生成 =================
 function generateInteractionReply2(moment, person, to, prompt, callback) {
-    var baseUrl = localStorage.getItem('api_base_url');
-    var apiKey = localStorage.getItem('api_key');
-    var model = localStorage.getItem('api_model');
-    var customModel = localStorage.getItem('api_custom_model');
-    var finalModel = model === 'custom' ? customModel : model;
+    var apiSettings = getMomentApiSettings();
+    var baseUrl = apiSettings.baseUrl;
+    var apiKey = apiSettings.apiKey;
+    var finalModel = apiSettings.model;
     
     var displayName = getContactDisplayName(person.name);
     var toDisplay = getContactDisplayName(to);
@@ -23201,7 +24007,7 @@ function generateInteractionReply2(moment, person, to, prompt, callback) {
         return;
     }
     
-    fetch(baseUrl + '/chat/completions', {
+    fetch(apiSettings.endpoint, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -23209,6 +24015,7 @@ function generateInteractionReply2(moment, person, to, prompt, callback) {
         },
         body: JSON.stringify({
             model: finalModel || 'gpt-3.5-turbo',
+            thinking: { type: 'disabled' },
             messages: messages,
             max_tokens: 50,
             temperature: 0.9
@@ -23313,6 +24120,7 @@ function sendMomentReply(momentId, commentIndex, author, replyText) {
         text: playerName + ' 回复 ' + author + '：' + replyText,
         author: playerName
     });
+    persistMomentInteractions();
     renderMoments();
     
     // 触发AI回复（被回复的人回复玩家）
@@ -23389,11 +24197,10 @@ function generateReplyToPlayer2(m, originalAuthor, playerReply, playerName) {
     var person = personMap[originalAuthor];
     if (!person) return;
     
-    var baseUrl = localStorage.getItem('api_base_url');
-    var apiKey = localStorage.getItem('api_key');
-    var model = localStorage.getItem('api_model');
-    var customModel = localStorage.getItem('api_custom_model');
-    var finalModel = model === 'custom' ? customModel : model;
+    var apiSettings = getMomentApiSettings();
+    var baseUrl = apiSettings.baseUrl;
+    var apiKey = apiSettings.apiKey;
+    var finalModel = apiSettings.model;
     
     if (!baseUrl || !apiKey) {
         var fallback = ['哈哈', '真的吗', '好哦', '可以可以'];
@@ -23402,6 +24209,7 @@ function generateReplyToPlayer2(m, originalAuthor, playerReply, playerName) {
             text: displayName + ' 回复 ' + playerName + '：' + reply,
             author: originalAuthor
         });
+        persistMomentInteractions();
         renderMoments();
         checkZhangEatVinegar2(m, originalAuthor, playerName);
         return;
@@ -23414,14 +24222,22 @@ function generateReplyToPlayer2(m, originalAuthor, playerReply, playerName) {
         { role: 'user', content: '请回复：' }
     ];
     
-    fetch(baseUrl + '/chat/completions', {
+    var requestFinished = false;
+    var requestController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var requestTimer = setTimeout(function() {
+        if (requestController) requestController.abort();
+    }, 15000);
+
+    fetch(apiSettings.endpoint, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + apiKey
         },
+        signal: requestController ? requestController.signal : undefined,
         body: JSON.stringify({
             model: finalModel || 'gpt-3.5-turbo',
+            thinking: { type: 'disabled' },
             messages: messages,
             max_tokens: 60,
             temperature: 0.9
@@ -23433,7 +24249,12 @@ function generateReplyToPlayer2(m, originalAuthor, playerReply, playerName) {
     })
     .then(function(data) {
         var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-        if (reply) {
+        if (!reply) {
+            throw new Error('API 返回内容格式异常');
+        }
+        if (reply && !requestFinished) {
+            requestFinished = true;
+            clearTimeout(requestTimer);
             var cleanReply = reply.trim().replace(/^["']+|["']+$/g, '');
             var nameMap = {
                 '张桂源': getContactDisplayName('张桂源'),
@@ -23470,17 +24291,22 @@ function generateReplyToPlayer2(m, originalAuthor, playerReply, playerName) {
                     });
                 }
             });
+            persistMomentInteractions();
             renderMoments();
         }
         checkZhangEatVinegar2(m, originalAuthor, playerName);
     })
     .catch(function(error) {
+        if (requestFinished) return;
+        requestFinished = true;
+        clearTimeout(requestTimer);
         console.log('API 调用失败:', error);
         var fallback = ['哈哈', '真的吗', '好哦', '可以可以'];
         m.comments.push({
             text: displayName + ' 回复 ' + playerName + '：' + fallback[Math.floor(Math.random() * fallback.length)],
             author: originalAuthor
         });
+        persistMomentInteractions();
         renderMoments();
         checkZhangEatVinegar2(m, originalAuthor, playerName);
     });
@@ -27256,6 +28082,17 @@ function openWerewolfEndingGallery() {
 function unlockAndShowWerewolfEnding(endingId) {
     var ending = getWerewolfEndingDefinitions()[endingId];
     if (!ending) return;
+    // 结局图鉴是全局的；后续群聊资格必须记录在当前存档自己的 chatData 中
+    if (endingId === 2) {
+        if (!chatData["我玩狼人杀不骗人"]) {
+            chatData["我玩狼人杀不骗人"] = { messages: [], newMsg: false, roundCompleted: false };
+        }
+        chatData["我玩狼人杀不骗人"].ending2CompletedInThisSave = true;
+        ensureEnding2GroupPreview(chatData["我玩狼人杀不骗人"]);
+        if (typeof autoSaveGame === 'function') {
+            setTimeout(function() { autoSaveGame(); }, 0);
+        }
+    }
     unlockWerewolfEnding(endingId);
     var old = document.getElementById('werewolfEndingAchieved');
     if (old) old.remove();
