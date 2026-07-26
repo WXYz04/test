@@ -5194,11 +5194,23 @@ function ensureEnding2ZhangWeibo() {
         ]
     });
     allArtistWeibo.sort(function(a, b) {
-        return String(a.time || "") < String(b.time || "") ? 1 : -1;
+        return parseWeiboTimeValue(b.time) - parseWeiboTimeValue(a.time);
     });
     try {
         localStorage.setItem("allArtistWeibo", JSON.stringify(allArtistWeibo));
     } catch (e) {}
+}
+
+function parseWeiboTimeValue(timeText) {
+    var match = String(timeText || "").match(/(\d{4})年(\d{1,2})月(\d{1,2})日(?:\s+(\d{1,2}):(\d{1,2}))?/);
+    if (!match) return 0;
+    return new Date(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3]),
+        Number(match[4]) || 0,
+        Number(match[5]) || 0
+    ).getTime();
 }
 
 function ensureEnding2SocialUpdates() {
@@ -5272,13 +5284,14 @@ function showEnding2GroupChoice(data) {
 }
 
 function showEnding2GroupGoodnightChoice(data) {
-    if (document.getElementById("ending2GroupGoodnightModal")) return;
+    var existingModal = document.getElementById("ending2GroupGoodnightModal");
+    if (existingModal) existingModal.remove();
     var modal = document.createElement("div");
     modal.id = "ending2GroupGoodnightModal";
-    modal.style.cssText = "position:fixed;inset:0;z-index:10020;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center;padding:28px;";
-    modal.innerHTML = '<div style="width:min(340px,90vw);background:#fff;border-radius:16px;padding:20px;box-shadow:0 12px 35px rgba(0,0,0,.22);">' +
+    modal.style.cssText = "position:fixed;top:0;right:0;bottom:0;left:0;width:100%;height:100%;z-index:2147483647;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;";
+    modal.innerHTML = '<div style="width:90%;max-width:340px;background:#fff;border-radius:16px;padding:20px;box-sizing:border-box;box-shadow:0 12px 35px rgba(0,0,0,.22);">' +
         '<div style="font-size:15px;color:#555;text-align:center;margin-bottom:16px;">回复群聊</div>' +
-        '<button style="width:100%;padding:13px;border:0;border-radius:10px;background:#f2f2f2;font-size:15px;">晚安</button></div>';
+        '<button type="button" style="display:block;width:100%;padding:13px;border:0;border-radius:10px;background:#f2f2f2;color:#222;font-size:15px;-webkit-appearance:none;appearance:none;">晚安</button></div>';
     document.body.appendChild(modal);
     modal.querySelector("button").onclick = function() {
         addEnding2GroupMessage(data, ending2GroupMessage("me", "晚安", "0:30", ""), false);
@@ -5299,6 +5312,22 @@ function playEnding2GroupChat(data) {
     if (data.ending2GroupPhase === "common" && data.ending2GroupAwaitingGoodnight === true && data.ending2GroupGoodnightSent !== true) {
         showEnding2GroupGoodnightChoice(data);
         return;
+    }
+    if (data.ending2GroupPhase === "common" && data.ending2GroupGoodnightSent !== true) {
+        var commonMessagesForGoodnight = getEnding2GroupCommonMessages();
+        var goodnightPromptIndex = commonMessagesForGoodnight.findIndex(function(msg) {
+            return msg.from === "张函瑞" && msg.text === "晚安早点休息哦";
+        });
+        var playerGoodnightExists = Array.isArray(data.messages) && data.messages.some(function(msg) {
+            return msg && msg.isEnding2GroupFollowup === true && msg.from === "me" && msg.text === "晚安";
+        });
+        if (!playerGoodnightExists && goodnightPromptIndex >= 0 &&
+            (Number(data.ending2GroupIndex) || 0) > goodnightPromptIndex) {
+            data.ending2GroupAwaitingGoodnight = true;
+            saveEnding2GroupProgress();
+            showEnding2GroupGoodnightChoice(data);
+            return;
+        }
     }
     if (data.ending2GroupPhase === "completed") {
         deliverEnding2ZhangPrivateMessage();
@@ -22442,7 +22471,24 @@ function getArtistBigWeibo(name) {
             }
         }
         
-        return newWeibos.concat(baseWeibos);
+        // 结局、章节等流程写入 allArtistWeibo 的动态微博也要显示在张桂源主页
+        var storedZhangWeibos = Array.isArray(allArtistWeibo)
+            ? allArtistWeibo.filter(function(w) {
+                return w && (w.author === 'TF家族-张桂源' || w.id === 'ending2_zhang_weibo');
+            })
+            : [];
+        var mergedWeibos = newWeibos.concat(storedZhangWeibos, baseWeibos);
+        var seenWeiboIds = {};
+        mergedWeibos = mergedWeibos.filter(function(w) {
+            var key = w.id || (String(w.time || '') + '|' + String(w.content || ''));
+            if (seenWeiboIds[key]) return false;
+            seenWeiboIds[key] = true;
+            return true;
+        });
+        mergedWeibos.sort(function(a, b) {
+            return parseWeiboTimeValue(b.time) - parseWeiboTimeValue(a.time);
+        });
+        return mergedWeibos;
     }
     return [];
 }
