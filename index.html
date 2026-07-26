@@ -8525,12 +8525,13 @@ finalSelected.push({
         targetWeibo.comments = [];
     }
 
-    var baseUrl = localStorage.getItem('api_base_url');
-    var apiKey = localStorage.getItem('api_key');
-    var model = localStorage.getItem('api_model');
-    var customModel = localStorage.getItem('api_custom_model');
-    var finalModel = model === 'custom' ? customModel : model;
-    var hasApi = baseUrl && apiKey;
+    // 与已经能正常工作的朋友圈评论共用同一套 API 地址、模型迁移和末尾斜杠处理
+    var weiboApiSettings = getMomentApiSettings();
+    var baseUrl = weiboApiSettings.baseUrl;
+    var apiKey = weiboApiSettings.apiKey;
+    var finalModel = weiboApiSettings.model;
+    var apiEndpoint = weiboApiSettings.endpoint;
+    var hasApi = !!(apiEndpoint && apiKey && finalModel);
 
     finalSelected.forEach(function(role, idx) {
         var delay = idx * 2000 + 1000;
@@ -8657,7 +8658,7 @@ finalSelected.push({
                     roleReplies = [
                         '哥哥？'
                     ];
-                } else if (role.includes('小T') || role.includes('智能')) {
+                } else if (role.baseRole.includes('小T') || role.baseRole.includes('智能')) {
     replies = [
         '你说得对！我支持你！',
         '就是就是 你说啥都对',
@@ -8801,16 +8802,24 @@ if (containsZhang && !containsBiaobai) {
                 { role: 'user', content: userPrompt }
             ];
 
-            fetch(baseUrl + '/chat/completions', {
+            var requestFinished = false;
+            var requestController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            var requestTimer = setTimeout(function() {
+                if (requestController) requestController.abort();
+            }, 15000);
+
+            fetch(apiEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + apiKey
                 },
+                signal: requestController ? requestController.signal : undefined,
                 body: JSON.stringify({
                     model: finalModel || 'gpt-3.5-turbo',
+                    thinking: { type: 'disabled' },
                     messages: messages,
-                    max_tokens: 50,
+                    max_tokens: 60,
                     temperature: 0.95
                 })
             })
@@ -8820,7 +8829,10 @@ if (containsZhang && !containsBiaobai) {
             })
             .then(function(data) {
                 var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-                if (reply) {
+                if (!reply) throw new Error('API 返回内容格式异常');
+                if (reply && !requestFinished) {
+                    requestFinished = true;
+                    clearTimeout(requestTimer);
                     var finalWeibo = null;
                     for (var i = 0; i < allMyWeibo.length; i++) {
                         if (allMyWeibo[i].id === weibo.id) {
@@ -8840,28 +8852,22 @@ if (containsZhang && !containsBiaobai) {
                 }
             })
             .catch(function(error) {
+                if (requestFinished) return;
+                requestFinished = true;
+                clearTimeout(requestTimer);
                 console.log('API 调用失败:', error);
-                var fallback = ['哈哈', '真的吗', '好厉害', '不错', '嗯嗯', '懂了', '我服了'];
-                var replyText = fallback[Math.floor(Math.random() * fallback.length)];
-                var finalWeibo = null;
-                for (var i = 0; i < allMyWeibo.length; i++) {
-                    if (allMyWeibo[i].id === weibo.id) {
-                        finalWeibo = allMyWeibo[i];
-                        break;
-                    }
-                }
-                if (finalWeibo) {
-                    if (!finalWeibo.comments) finalWeibo.comments = [];
-                    finalWeibo.comments.push({
-                        author: role.name,
-                        text: replyText
-                    });
-                    saveMyWeibo();
-                    renderWeibo();
-                }
             });
         }, delay);
     });
+}
+
+function triggerWeiboComments(weibo) {
+    if (!weibo || !weibo.id) return;
+    try {
+        generateAiReplies(weibo);
+    } catch (error) {
+        console.log('微博评论任务启动失败:', error);
+    }
 }
 // 调用 AI API
 function callAiApi(role, userPrompt, callback) {
@@ -8975,7 +8981,7 @@ function publishWeibo() {
     // 触发 AI 回复
     console.log('发表微博成功，触发 AI 回复');
     setTimeout(function() {
-        generateAiReplies(newWeibo);
+        triggerWeiboComments(newWeibo);
     }, 500);
 }
 
@@ -9081,7 +9087,7 @@ function publishWeibo() {
     
     // ✅ 触发 AI 回复
     setTimeout(function() {
-        generateAiReplies(newWeibo);
+        triggerWeiboComments(newWeibo);
     }, 500);
 }
 
@@ -20775,8 +20781,7 @@ function refreshForum() {
 
 // 论坛 Tab 切换时调用
 renderForum(false);
-// 清除 localStorage 中残留的微博数据（仅执行一次）
-localStorage.removeItem('allMyWeibo');
+// 自定义微博及其评论需要跨页面、跨刷新保留，禁止在启动时清空 allMyWeibo
 loadBlockedUsers();
 // 强制设置成就区域宽度
 setTimeout(function() {
