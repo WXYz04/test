@@ -5324,51 +5324,54 @@ function playEnding2GroupChat(data) {
         showEnding2GroupChoice(data);
         return;
     }
-    if (data.ending2GroupPhase === "common" && data.ending2GroupAwaitingGoodnight === true && data.ending2GroupGoodnightSent !== true) {
-        showEnding2GroupGoodnightChoice(data);
-        return;
-    }
     if ((data.ending2GroupPhase === "common" || data.ending2GroupPhase === "completed") &&
         data.ending2GroupGoodnightSent !== true) {
         var commonMessagesForGoodnight = getEnding2GroupCommonMessages();
         var goodnightPromptIndex = commonMessagesForGoodnight.findIndex(function(msg) {
             return msg.from === "张函瑞" && msg.text === "晚安早点休息哦";
         });
-        var alreadyHasPrompt = Array.isArray(data.messages) && data.messages.some(function(msg) {
-            var plainText = String(msg && msg.text || "").replace(/<[^>]*>/g, "").trim();
-            return msg && msg.isEnding2GroupFollowup === true &&
-                msg.from === "张函瑞" && plainText === "晚安早点休息哦";
-        });
+        var savedPromptMessageIndex = -1;
+        var latestEnding2MessageIndex = -1;
+        if (Array.isArray(data.messages)) {
+            for (var promptSearchIndex = data.messages.length - 1; promptSearchIndex >= 0; promptSearchIndex--) {
+                var savedMessage = data.messages[promptSearchIndex];
+                if (!savedMessage || savedMessage.isEnding2GroupFollowup !== true) continue;
+                if (latestEnding2MessageIndex < 0) latestEnding2MessageIndex = promptSearchIndex;
+                var savedPlainText = String(savedMessage.text || "").replace(/<[^>]*>/g, "").trim();
+                if (savedPromptMessageIndex < 0 && savedMessage.from === "张函瑞" &&
+                    savedPlainText === "晚安早点休息哦") {
+                    savedPromptMessageIndex = promptSearchIndex;
+                }
+            }
+        }
+        var alreadyHasPrompt = savedPromptMessageIndex >= 0;
+        var promptIsLatestEnding2Message =
+            alreadyHasPrompt && savedPromptMessageIndex === latestEnding2MessageIndex;
+
+        // 正常流程中这句话刚播放完，或玩家退出后重新进入：此时才允许显示选项。
+        if (data.ending2GroupPhase === "common" &&
+            data.ending2GroupAwaitingGoodnight === true && promptIsLatestEnding2Message) {
+            showEnding2GroupGoodnightChoice(data);
+            return;
+        }
+
         if (!playerGoodnightExists && goodnightPromptIndex >= 0 &&
             (alreadyHasPrompt || data.ending2GroupPhase === "completed" ||
              (Number(data.ending2GroupIndex) || 0) > goodnightPromptIndex)) {
-            // 异常旧存档若已经越过该节点，先回退到张函瑞的“晚安早点休息哦”。
-            // 这样选项只会紧跟这句话出现，后续消息需在玩家发送“晚安”后重新播放。
-            if (alreadyHasPrompt) {
-                var savedPromptMessageIndex = -1;
-                for (var promptSearchIndex = data.messages.length - 1; promptSearchIndex >= 0; promptSearchIndex--) {
-                    var savedMessage = data.messages[promptSearchIndex];
-                    var savedPlainText = String(savedMessage && savedMessage.text || "")
-                        .replace(/<[^>]*>/g, "").trim();
-                    if (savedMessage && savedMessage.isEnding2GroupFollowup === true &&
-                        savedMessage.from === "张函瑞" && savedPlainText === "晚安早点休息哦") {
-                        savedPromptMessageIndex = promptSearchIndex;
-                        break;
-                    }
-                }
-                if (savedPromptMessageIndex >= 0) {
-                    data.messages = data.messages.filter(function(msg, messageIndex) {
-                        return messageIndex <= savedPromptMessageIndex ||
-                            !msg || msg.isEnding2GroupFollowup !== true;
-                    });
-                }
+            // 异常旧存档先删除这句及其后续，再由正常播放流程重新发出这句话。
+            // 弹窗只能由“晚安早点休息哦”刚播放完毕的回调触发。
+            if (savedPromptMessageIndex >= 0) {
+                data.messages = data.messages.filter(function(msg, messageIndex) {
+                    return messageIndex < savedPromptMessageIndex ||
+                        !msg || msg.isEnding2GroupFollowup !== true;
+                });
             }
             data.ending2GroupPhase = "common";
-            data.ending2GroupIndex = goodnightPromptIndex + 1;
-            data.ending2GroupAwaitingGoodnight = true;
+            data.ending2GroupIndex = goodnightPromptIndex;
+            data.ending2GroupAwaitingGoodnight = false;
             saveEnding2GroupProgress();
             renderChatMessages();
-            showEnding2GroupGoodnightChoice(data);
+            setTimeout(function() { playEnding2GroupChat(data); }, 450);
             return;
         }
     }
@@ -26137,7 +26140,7 @@ function enterWerewolf() {
     
     var textBox = document.createElement('div');
     textBox.id = 'werewolfTextBox';
-    textBox.style.cssText = 'background:rgba(0,0,0,0.7);height:33.33vh;padding:20px 24px;overflow-y:hidden;color:#E8E8E8;font-size:14px;line-height:1.8;font-family:inherit;cursor:pointer;';
+    textBox.style.cssText = 'position:relative;background:rgba(0,0,0,0.7);height:33.33vh;padding:30px 24px 20px;overflow-y:hidden;color:#E8E8E8;font-size:14px;line-height:1.8;font-family:inherit;cursor:pointer;';
     textBox.innerHTML = '<div id="werewolfTextContent" style="white-space:pre-line;"></div>';
     
     werewolfPage.appendChild(textBox);
@@ -26150,8 +26153,27 @@ function enterWerewolf() {
     var preludeFastForward = false;
     var preludeLongPressTimer = null;
     var preludeSuppressClick = false;
+    var preludeSkipped = false;
     var contentDiv = document.getElementById('werewolfTextContent');
     textBox.dataset.preludeLongPressActive = '1';
+
+    var skipPreludeBtn = document.createElement('button');
+    skipPreludeBtn.id = 'werewolfPreludeSkipBtn';
+    skipPreludeBtn.type = 'button';
+    skipPreludeBtn.textContent = '跳过此段';
+    skipPreludeBtn.style.cssText = 'position:absolute;top:6px;left:10px;z-index:190;padding:2px 7px;border:1px solid rgba(255,255,255,.28);border-radius:10px;background:rgba(0,0,0,.42);color:rgba(255,255,255,.78);font-size:10px;line-height:1.4;cursor:pointer;';
+    skipPreludeBtn.onclick = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (preludeSkipped) return;
+        preludeSkipped = true;
+        isAnimating = false;
+        currentIndex = paragraphs.length;
+        textBox.dataset.preludeLongPressActive = '0';
+        stopPreludeFastForward();
+        showIdentityCards();
+    };
+    textBox.appendChild(skipPreludeBtn);
 
     function showPreludeSpeedBadge() {
         var badge = document.getElementById('werewolfPreludeSpeedBadge');
@@ -26206,6 +26228,7 @@ function enterWerewolf() {
         var typingSpeed = 30;
         
         function typeChar() {
+            if (preludeSkipped) return;
             if (index < chars.length) {
                 var char = chars[index];
                 if (char === '\n') {
@@ -26224,6 +26247,7 @@ function enterWerewolf() {
     }
     
    function showParagraph(index) {
+    if (preludeSkipped) return;
     window._werewolfCurrentIndex = index;
     if (index >= paragraphs.length) {
         textBox.onclick = showIdentityCards;
@@ -26231,6 +26255,7 @@ function enterWerewolf() {
     }
     
     typeText(paragraphs[index], function() {
+        if (preludeSkipped) return;
         textBox.onclick = function() {
             if (!isAnimating) {
                 currentIndex++;
@@ -26292,6 +26317,9 @@ function showChosenIdentity(identity, subText) {
     
 }
 function showIdentityCards() {
+    var skipPreludeBtn = document.getElementById('werewolfPreludeSkipBtn');
+    if (skipPreludeBtn) skipPreludeBtn.remove();
+
     // 清除之前的文本内容
     var contentDiv = document.getElementById('werewolfTextContent');
     if (contentDiv) {
@@ -28213,6 +28241,9 @@ function enterHunterLine() {
 
 // ===== 狼人杀分线共用场景 =====
 function setupWerewolfBranchCommon() {
+    var skipPreludeBtn = document.getElementById('werewolfPreludeSkipBtn');
+    if (skipPreludeBtn) skipPreludeBtn.remove();
+
     // 注入毒药动画CSS
     if (!document.getElementById('witchBranchAnim')) {
         var style = document.createElement('style');
