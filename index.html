@@ -4574,6 +4574,7 @@ function showWXYZBranchOptions() {
 function renderChatList() {
     var container = document.getElementById("chatList");
     if (!container) return;
+    ensureEnding2SocialUpdates();
 
     var html = "";
     for (var i = 0; i < friends.length; i++) {
@@ -4615,6 +4616,14 @@ function renderChatList() {
             avatar = '<img src="zhrwx.jpg" style="width:52px; height:52px; border-radius:12px; object-fit:cover;" onerror="this.style.display=\'none\'">';
         } else if (friend === "WXYz") {
             avatar = '<img src="WXYz.jpg" style="width:52px; height:52px; border-radius:12px; object-fit:cover;" onerror="this.style.display=\'none\'">';
+        } else if (friend === "陈奕恒") {
+            avatar = '<img src="cyhwx.jpg" style="width:52px; height:52px; border-radius:12px; object-fit:cover;" onerror="this.style.display=\'none\'">';
+        } else if (friend === "聂玮辰") {
+            avatar = '<img src="nwcwx.jpg" style="width:52px; height:52px; border-radius:12px; object-fit:cover;" onerror="this.style.display=\'none\'">';
+        } else if (friend === "王橹杰") {
+            avatar = '<img src="wljwx.jpg" style="width:52px; height:52px; border-radius:12px; object-fit:cover;" onerror="this.style.display=\'none\'">';
+        } else if (friend === "陈思罕") {
+            avatar = '<img src="cshwx.jpg" style="width:52px; height:52px; border-radius:12px; object-fit:cover;" onerror="this.style.display=\'none\'">';
         } else {
             avatar = '<span style="font-size:28px;">👤</span>';
         }
@@ -4682,6 +4691,12 @@ function renderChatList() {
     }
 
     container.innerHTML = html;
+    // 结局2后，群聊固定排在新增联系人“陈奕恒”上方
+    var groupChatRow = container.querySelector('.chat-contact[data-contact="我玩狼人杀不骗人"]');
+    var chenYihengRow = container.querySelector('.chat-contact[data-contact="陈奕恒"]');
+    if (groupChatRow && chenYihengRow) {
+        container.insertBefore(groupChatRow, chenYihengRow);
+    }
 
     document.querySelectorAll(".chat-contact").forEach(function(el) {
         el.addEventListener("click", function() {
@@ -4808,7 +4823,7 @@ function appendEnding2GroupFollowupLegacy(data) {
 }
 
 // ===== 结局2后续群聊：仅属于达成本结局的当前存档 =====
-var ENDING2_GROUP_FLOW_VERSION = 4;
+var ENDING2_GROUP_FLOW_VERSION = 5;
 
 function ending2GroupMessage(from, text, time, avatar, quoteSender, quoteText) {
     return {
@@ -4832,6 +4847,7 @@ function getEnding2GroupPreChoiceMessages() {
         m("张函瑞","你慢慢坐。","23:16","zhrwx.jpg"),
         m("聂玮辰","我也快到了","23:16","nwcwx.jpg"),
         m("左奇函","我也，刚刚和陈浚铭去买烧烤吃了","23:16","zqhwx.jpg"),
+        m("左奇函",'<img src="dyzj.jpg" style="width:170px;border-radius:10px;max-width:100%;display:block;">',"23:16","zqhwx.jpg"),
         m("张桂源","666陈浚铭还吃，在店里面吃那么多了","23:16","zgyweixin.png","哈哈哈","我也，刚刚和陈浚铭去买烧烤吃了"),
         m("官俊臣","你们玩这么晚啊","23:16","gjc.jpg"),
         m("陈奕恒","刚到","23:45","cyhwx.jpg"),
@@ -4855,6 +4871,7 @@ function getEnding2GroupPreChoiceMessages() {
         m("聂玮辰","狼","23:50","nwcwx.jpg"),
         m("陈思罕","狼","23:50","cshwx.jpg"),
         m("张函瑞","狼🙂","23:50","zhrwx.jpg"),
+        m("张函瑞",'<img src="xqxns.jpg" style="width:170px;border-radius:10px;max-width:100%;display:block;">',"23:50","zhrwx.jpg"),
         m("李煜东","？","23:50","lydwx.jpg"),
         m("李煜东","这么整齐","23:50","lydwx.jpg"),
         m("张桂源","对陈浚铭没话说","23:50","zgyweixin.png"),
@@ -4903,6 +4920,7 @@ function getEnding2GroupPreChoiceMessages() {
         m("陈思罕","？？？？？？？","23:50","cshwx.jpg"),
         m("官俊臣","所以","23:50","gjc.jpg"),
         m("官俊臣","你们朋友圈说的恋人到底是谁","23:50","gjc.jpg"),
+        m("官俊臣",'<img src="ld.jpg" style="width:170px;border-radius:10px;max-width:100%;display:block;">',"23:50","gjc.jpg"),
         m("魏子宸","我现在最好奇这个","23:50","wzcwx.jpg"),
         m("杨涵博","+1。","23:50","yhb.jpg"),
         m("李煜东","我也","23:50","lydwx.jpg"),
@@ -5044,6 +5062,151 @@ function showEnding2GroupTyping(msg) {
     container.appendChild(row);
     container.scrollTop = container.scrollHeight;
     return row;
+}
+
+function ensureEnding2PresetChats() {
+    var playerName = player.name || player.wechatName || "玩家";
+    var presets = {
+        "陈奕恒": [
+            { from: "other", text: "我是陈奕恒", time: "23:05", avatar: "cyhwx.jpg" },
+            { from: "me", text: "我通过了你的朋友验证，现在我们可以开始聊天了", time: "23:06", avatar: "🐰" }
+        ],
+        "聂玮辰": [
+            { from: "other", text: "我是聂玮辰", time: "23:07", avatar: "nwcwx.jpg" },
+            { from: "me", text: "我通过了你的朋友验证，现在我们可以开始聊天了", time: "23:08", avatar: "🐰" }
+        ],
+        "王橹杰": [
+            { from: "me", text: "我是" + playerName, time: "23:09", avatar: "🐰" },
+            { from: "other", text: "我通过了你的朋友验证，现在我们可以开始聊天了", time: "23:10", avatar: "wljwx.jpg" }
+        ],
+        "陈思罕": [
+            { from: "me", text: "我是" + playerName, time: "23:11", avatar: "🐰" },
+            { from: "other", text: "我通过了你的朋友验证，现在我们可以开始聊天了", time: "23:12", avatar: "cshwx.jpg" }
+        ]
+    };
+    Object.keys(presets).forEach(function(name) {
+        if (friends.indexOf(name) === -1) friends.push(name);
+        if (!chatData[name]) {
+            chatData[name] = { messages: [], newMsg: false, roundCompleted: true };
+        }
+        var data = chatData[name];
+        data.ending2PresetContact = true;
+        if (!data.ending2PresetMessagesAdded) {
+            presets[name].forEach(function(msg) {
+                data.messages.push({
+                    from: msg.from, text: msg.text, time: msg.time, avatar: msg.avatar,
+                    date: "2023年10月14日", read: true, isEnding2PresetMessage: true
+                });
+            });
+            data.ending2PresetMessagesAdded = true;
+        }
+    });
+}
+
+function ensureEnding2Moments() {
+    if (typeof momentsData === "undefined") return;
+    var existing = {};
+    momentsData.forEach(function(m) { if (m && m.id) existing[m.id] = true; });
+    var newMoments = [
+        {
+            id: "ending2_cjm_moment", author: "陈浚铭",
+            avatar: '<img src="cjmwx.jpg" style="width:44px;height:44px;border-radius:12px;object-fit:cover;">',
+            time: "2023年10月14日 23:02",
+            content: "荣获今日最佳丘比特<br>奖励自己一顿烧烤✌️<br><br><img src='cjmsk.jpg' style='width:65%;border-radius:12px;margin-top:8px;'>",
+            likes: ["陈奕恒","张桂源","陈思罕","聂玮辰","张函瑞"],
+            comments: [
+                { text: "陈奕恒：👍👍👍" },
+                { text: "陈浚铭：（连了一对众人皆知的恋人，然后隐姓埋名的离开）" },
+                { text: "聂玮辰：看陈浚铭（连了一对众人皆知的恋人，然后隐姓埋名的离开）" },
+                { text: "陈思罕：看聂玮辰看陈浚铭（连了一对众人皆知的恋人，然后隐姓埋名的离开）" },
+                { text: "张函瑞：看陈思罕看聂玮辰看陈浚铭（连了一对众人皆知的恋人，然后隐姓埋名的离开）" },
+                { text: "左奇函：并非隐姓埋名" },
+                { text: "张桂源：这期神了" },
+                { text: "聂玮辰：烧烤好吃吗" },
+                { text: "陈浚铭 回复 聂玮辰：好吃！记得加辣一点巨好吃" }
+            ]
+        },
+        {
+            id: "ending2_zqh_moment", author: "左奇函",
+            avatar: '<img src="zqhwx.jpg" style="width:44px;height:44px;border-radius:12px;object-fit:cover;">',
+            time: "2023年10月14日 22:52", content: "今天运气不错😁",
+            likes: ["王橹杰","张函瑞","陈浚铭","陈思罕"],
+            comments: [
+                { text: "张桂源：你第一轮就没了在高兴什么。" },
+                { text: "左奇函 回复 张桂源：但是赢了😁" },
+                { text: "陈奕恒：建议玩预言家" },
+                { text: "张函瑞：建议删朋友圈" },
+                { text: "聂玮辰：你点那个设置，然后注销" },
+                { text: "王橹杰：建议别悍跳" },
+                { text: "左奇函：建议你们提高一下" },
+                { text: "左奇函 回复 王橹杰：谢谢我的最佳狼队友" }
+            ]
+        },
+        {
+            id: "ending2_zhr_moment", author: "张函瑞",
+            avatar: '<img src="zhrwx.jpg" style="width:44px;height:44px;border-radius:12px;object-fit:cover;">',
+            time: "2023年10月14日 22:45",
+            content: "伤不起🙂<br><br><img src='sbq.jpg' style='width:65%;border-radius:12px;margin-top:8px;'>",
+            likes: ["王橹杰","陈浚铭","聂玮辰","左奇函"],
+            comments: [
+                { text: "王橹杰：何意味ᗜ - ᗜ💢" },
+                { text: "张函瑞 回复 王橹杰：这是对王橹杰的惩罚" },
+                { text: "陈浚铭：还有我没见过的表情包？偷了" },
+                { text: "左奇函：救一个毒一个，扯平了好吧" },
+                { text: "张函瑞 回复 左奇函：下次不会救了呵呵" }
+            ]
+        }
+    ];
+    var toAdd = newMoments.filter(function(m) { return !existing[m.id]; });
+    if (toAdd.length) momentsData.unshift.apply(momentsData, toAdd);
+}
+
+function ensureEnding2ZhangWeibo() {
+    if (typeof allArtistWeibo === "undefined") return;
+    var exists = allArtistWeibo.some(function(w) {
+        return w && w.id === "ending2_zhang_weibo";
+    });
+    if (exists) return;
+    allArtistWeibo.push({
+        id: "ending2_zhang_weibo",
+        author: "TF家族-张桂源",
+        avatar: '<img src="zgywb.jpg" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">',
+        time: "2023年10月15日 17:19",
+        content: '之前非常期待能够在游戏里当一次“卧底”，和小伙伴们体验了一把刺激的狼人杀😎😎但经过这么一次发现真不是那么好当的，还是输啦哈哈哈！但问题不大，相信下一次我肯定能玩得更好的活的更久的💪因为我有我最好的队友🥳',
+        likes: "2.3万",
+        commentCount: 3029,
+        comments: [
+            { level:"gold", user:"进击的老爹汉堡", text:"啊啊啊啊啊宝宝你终于发微博了！！！想死你了！！！输了没关系！！！开心最重要！！！", vip:"金粉" },
+            { level:"blue", user:"桂源家的小羽毛", text:"看到没！看到没！！是光明正大跟小伙伴一起去玩的！！之前那些编故事造谣的人脸疼不疼啊？？自己打脸了吧🙄🙄", vip:"铁粉" },
+            { level:"purple", user:"小哭包TT", text:"呜呜呜呜你多久没发自拍了！！能不能顺便发张照片啊！！光看文字不够！！我要看脸！！", vip:"钻粉" },
+            { level:"gold", user:"草莓味的桂源", text:"宝宝想你了！！训练累不累！！输了就输了下次再战！！你永远是最棒的！！", vip:"金粉" },
+            { level:"blue", user:"眼角痣", text:"什么时候发照片呀！！好久没看到新鲜的脸了！！这条微博的文字我反复看了好几遍了已经！！", vip:"铁粉" },
+            { level:"gold", user:"桂源家的小羽毛", text:"再说一遍，有人之前拿着模糊视频到处造谣，现在蒸煮亲自出来打脸了哈！人家就是光明正大去玩个游戏！再编故事试试看！", vip:"金粉" },
+            { level:"purple", user:"今天也在想桂源", text:"宝宝你终于出现了！！这几天有没有好好吃饭好好睡觉！！妈妈好担心你啊！！", vip:"钻粉" },
+            { level:"blue", user:"桂源什么时候发自拍", text:"输了不要紧！！下次一定能赢！！但你倒是发张照片啊！！我想看脸！！", vip:"铁粉" },
+            { level:"gold", user:"进击的老爹汉堡", text:"宝宝想你想你想你！！训练辛苦了！！玩得开心就好！！下次一定会更好的！！", vip:"金粉" },
+            { level:"normal", user:"路人甲", text:"路人路过 感觉粉丝挺可爱的 不过确实好久没看到他发照片了 哈哈", vip:"" },
+            { level:"purple", user:"桂源的睫毛精", text:"呜呜呜呜什么时候发自拍！！是不是手机里没有自拍！！现在拍一张给我看！！", vip:"钻粉" },
+            { level:"blue", user:"桂源的舞蹈机", text:"宝宝！！输了没关系！！但你能不能多发点日常！！我靠这行字过活好几天了！！", vip:"铁粉" },
+            { level:"gold", user:"小哭包TT", text:"玩得开心吗！！有没有拍照片！！发出来给我看看！！文字不够！！我要看脸！！！", vip:"金粉" },
+            { level:"purple", user:"桂源未来可期", text:"宝宝终于出现了！！！想你想得不行了！！！下次一定能赢！！！我信你！！！", vip:"钻粉" },
+            { level:"blue", user:"今天也在蹲桂源自拍", text:"输了就输了！！谁还没输过！！但你倒是发张照片再走啊！！我等了一整天了！！", vip:"铁粉" }
+        ]
+    });
+    allArtistWeibo.sort(function(a, b) {
+        return String(a.time || "") < String(b.time || "") ? 1 : -1;
+    });
+    try {
+        localStorage.setItem("allArtistWeibo", JSON.stringify(allArtistWeibo));
+    } catch (e) {}
+}
+
+function ensureEnding2SocialUpdates() {
+    var groupData = chatData["我玩狼人杀不骗人"];
+    if (!groupData || groupData.ending2CompletedInThisSave !== true) return;
+    ensureEnding2PresetChats();
+    ensureEnding2Moments();
+    ensureEnding2ZhangWeibo();
 }
 
 function deliverEnding2ZhangPrivateMessage() {
@@ -5722,6 +5885,14 @@ function blockContact(contact) {
                     avatar = '<img src="zhrwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
                 } else if (currentChatContact === "WXYz") {
                     avatar = '<img src="WXYz.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
+                } else if (currentChatContact === "陈奕恒") {
+                    avatar = '<img src="cyhwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
+                } else if (currentChatContact === "聂玮辰") {
+                    avatar = '<img src="nwcwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
+                } else if (currentChatContact === "王橹杰") {
+                    avatar = '<img src="wljwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
+                } else if (currentChatContact === "陈思罕") {
+                    avatar = '<img src="cshwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
                 } else {
                     avatar = "🎤";
                 }
@@ -5990,6 +6161,22 @@ document.getElementById("chatContactName").style.marginLeft = "20px";
 document.getElementById("chatContactName").style.paddingLeft = "20px";
 
     let inputBox = document.getElementById("chatInputBox");
+
+    // 结局2新增联系人：两条好友验证消息均为已经存在的预设记录
+    if (data && data.ending2PresetContact === true) {
+        document.getElementById("chatBackBtn").onclick = function() {
+            document.getElementById("chatDetailScreen").style.display = "none";
+            document.getElementById("chatListScreen").style.display = "block";
+            renderChatList();
+        };
+        renderChatMessages();
+        inputBox.innerText = "暂无更多消息";
+        inputBox.style.color = "#999";
+        inputBox.style.cursor = "default";
+        inputBox.contentEditable = "false";
+        inputBox.onclick = function() {};
+        return;
+    }
 
     // ============================================================
     // WXYz - 放在最前面
@@ -7239,6 +7426,7 @@ function renderMoments() {
 
     var container = document.getElementById("momentsFeed");
     if (!container) return;
+    ensureEnding2SocialUpdates();
     // ===== 修复：补充缺失的 author 字段 =====
     if (momentsData && momentsData.length > 0) {
         momentsData.forEach(function(m) {
@@ -7345,6 +7533,10 @@ function renderMoments() {
     if (cleanName.includes("张函瑞") || name.includes("张函瑞") || cleanName === "zhang憨蜹" || name.includes("zhang憨蜹")) {
         return "zhrwx.jpg";
     }
+    if (cleanName.includes("陈奕恒")) return "cyhwx.jpg";
+    if (cleanName.includes("聂玮辰")) return "nwcwx.jpg";
+    if (cleanName.includes("陈思罕")) return "cshwx.jpg";
+    if (cleanName.includes("王橹杰")) return "wljwx.jpg";
     if (name === "WXYz" || cleanName === "WXYz") {
         return "WXYz.jpg";
     }
@@ -7649,8 +7841,14 @@ if (m.remindList && m.remindList.length > 0) {
                 if (idx === -1) {
                     m.likes.push(playerName);
                     var authorName = m.author || '';
-                    
-                    if (authorName.includes('左奇函') || authorName.includes('哈哈哈')) {
+                    var momentPlainText = String(m.content || '')
+                        .replace(/<[^>]*>/g, '')
+                        .replace(/\s+/g, '');
+                    var isTargetZuoMoment =
+                        momentPlainText.indexOf('装帅好难。还好我是真的帅。') !== -1 ||
+                        momentPlainText.indexOf('装帅好难还好我是真的帅') !== -1;
+
+                    if ((authorName.includes('左奇函') || authorName.includes('哈哈哈')) && isTargetZuoMoment) {
                         setTimeout(function() {
                             if (typeof triggerZhangGuiyuanMessages === 'function') {
                                 triggerZhangGuiyuanMessages();
@@ -7882,6 +8080,9 @@ function changeMomentsBg() {
     }
     
 function renderWeibo() {
+    // 兼容已经完成结局2、但尚未重新进入群聊或朋友圈的旧存档
+    ensureEnding2SocialUpdates();
+
     // 更新微博头像
     var avatarData = localStorage.getItem('player_avatar');
     var avatarImg = document.getElementById('weiboAvatar');
@@ -7932,6 +8133,7 @@ function renderWeibo() {
 var commentPreview = '';
 var showAllBtn = '';
 if (w.comments && w.comments.length > 0) {
+    var totalCommentCount = w.commentCount || w.comments.length;
     commentPreview = '<div style="background:#F8F8F8;border-radius:8px;padding:8px;margin-top:8px;max-height:120px;overflow:hidden;">';
     var showCount = Math.min(3, w.comments.length);
     for (var ci = 0; ci < showCount; ci++) {
@@ -7954,11 +8156,11 @@ if (w.comments && w.comments.length > 0) {
         commentPreview += '<span style="color:#333;">：' + c.text + '</span>';
         commentPreview += '</div>';
     }
-    if (w.comments.length > 3) {
-        commentPreview += '<div style="text-align:center;padding:4px 0;font-size:12px;color:#999;">还有 ' + (w.comments.length - 3) + ' 条评论...</div>';
+    if (totalCommentCount > 3) {
+        commentPreview += '<div style="text-align:center;padding:4px 0;font-size:12px;color:#999;">还有 ' + (totalCommentCount - 3) + ' 条评论...</div>';
     }
     commentPreview += '</div>';
-    showAllBtn = '<button onclick="showWeiboDetailFromFollowing(' + idx + ', \'' + name + '\')" style="margin-top:6px;padding:4px 14px;background:#E85D75;color:white;border:none;border-radius:16px;font-size:12px;cursor:pointer;">查看全部 ' + w.comments.length + ' 条评论</button>';
+    showAllBtn = '<button onclick="showWeiboDetailFromFollowing(' + idx + ', \'' + name + '\')" style="margin-top:6px;padding:4px 14px;background:#E85D75;color:white;border:none;border-radius:16px;font-size:12px;cursor:pointer;">查看全部 ' + totalCommentCount + ' 条评论</button>';
 }
             
             html += '<div class="weibo-card" style="background:white;border:1px solid #EFEFEF;border-radius:12px;padding:14px;margin-bottom:12px;" data-id="' + w.id + '" data-name="' + name + '" data-idx="' + idx + '">';
@@ -7969,7 +8171,7 @@ if (w.comments && w.comments.length > 0) {
             html += '</div>';
             html += '<div style="font-size:11px;color:#999;margin-bottom:6px;">' + w.time + '</div>';
             html += '<div style="font-size:14px;color:#333;margin-bottom:8px;white-space:pre-wrap;word-break:break-word;">' + w.content + '</div>';
-            html += '<div style="font-size:12px;color:#999;">❤️ ' + w.likes + ' 💬 ' + w.comments.length + '</div>';
+            html += '<div style="font-size:12px;color:#999;">❤️ ' + w.likes + ' 💬 ' + (w.commentCount || w.comments.length) + '</div>';
             html += commentPreview;
             html += showAllBtn;
             html += '</div>';
@@ -21648,6 +21850,15 @@ function callZhangGuiyuanAI(userMessage, callback) {
     var model = localStorage.getItem('api_model');
     var customModel = localStorage.getItem('api_custom_model');
     var finalModel = model === 'custom' ? customModel : model;
+    var isEnding2DirectQuestion = chatData["张桂源"] &&
+        chatData["张桂源"].ending2AbCustomChatUnlocked === true &&
+        /怎么了|咋了|有事吗|干嘛|还没睡|还没有睡|没睡/.test(String(userMessage || ""));
+    if (isEnding2DirectQuestion) {
+        setTimeout(function() {
+            callback("你今天说的有点短是什么意思啊");
+        }, 450);
+        return;
+    }
 
     // 如果没有 API，用随机回复
     if (!baseUrl || !apiKey) {
@@ -21703,6 +21914,7 @@ function callZhangGuiyuanAI(userMessage, callback) {
 - 如果玩家问“怎么了”“有事吗”“干嘛”，必须自然表达“没怎么，就是忽然想找你聊聊天”的意思，可以换成符合你口吻的说法。
 - 必须接住玩家当前的话，并延续之后所有私聊记忆。
 - 绝对禁止凭空捏造玩家说过的话、喜好、食物、经历或共同回忆。玩家没有提过的“芋泥冰”等内容不能当成既定事实。若上下文没有信息，就追问或只回应眼前这句话。
+- 玩家是这段感情线中唯一的女性关系对象。禁止捏造、引入或暗示其他女生、女同学、前任或暧昧对象。
 
 【刚才的后续群聊原始记忆】
 ` + groupMemoryLines.join('\n');
@@ -21841,7 +22053,8 @@ function likeHandler2(e) {
         if (!m.likes) m.likes = [];
         
         var index = m.likes.indexOf(playerName);
-        if (index === -1) {
+        var didLike = index === -1;
+        if (didLike) {
             m.likes.push(playerName);
         } else {
             m.likes.splice(index, 1);
@@ -21849,7 +22062,10 @@ function likeHandler2(e) {
         renderMoments();
         
         var authorName = m.author || '';
-        if (authorName.includes('左奇函') || authorName.includes('哈哈哈')) {
+        var momentPlainText = String(m.content || '').replace(/<[^>]*>/g, '').replace(/\s+/g, '');
+        var isTargetZuoMoment = momentPlainText.indexOf('装帅好难。还好我是真的帅。') !== -1 ||
+            momentPlainText.indexOf('装帅好难还好我是真的帅') !== -1;
+        if (didLike && (authorName.includes('左奇函') || authorName.includes('哈哈哈')) && isTargetZuoMoment) {
             setTimeout(function() {
                 if (typeof triggerZhangGuiyuanMessages === 'function') {
                     triggerZhangGuiyuanMessages();
@@ -22271,7 +22487,7 @@ function showWeiboDetailFromFollowing(weiboIdx, name) {
             </div>
             <div style="font-size:13px;color:#999;margin-bottom:8px;">${w.time}</div>
             <div style="font-size:14px;color:#333;margin-bottom:12px;padding:8px 0;border-bottom:1px solid #EFEFEF;">${w.content}</div>
-            <div style="font-size:14px;font-weight:600;color:#666;margin-bottom:8px;">💬 全部评论 (${w.comments.length})</div>
+            <div style="font-size:14px;font-weight:600;color:#666;margin-bottom:8px;">💬 全部评论 (${w.commentCount || w.comments.length})</div>
             <div style="max-height:300px;overflow-y:auto;">${commentsHtml}</div>
             <button onclick="this.closest('.full-modal').remove()" style="margin-top:12px;width:100%;padding:10px;background:#E85D75;color:white;border:none;border-radius:30px;font-size:14px;font-weight:600;cursor:pointer;">关闭</button>
         </div>
@@ -28089,6 +28305,7 @@ function unlockAndShowWerewolfEnding(endingId) {
         }
         chatData["我玩狼人杀不骗人"].ending2CompletedInThisSave = true;
         ensureEnding2GroupPreview(chatData["我玩狼人杀不骗人"]);
+        ensureEnding2SocialUpdates();
         if (typeof autoSaveGame === 'function') {
             setTimeout(function() { autoSaveGame(); }, 0);
         }
