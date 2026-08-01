@@ -6336,6 +6336,18 @@ document.getElementById("chatContactName").style.paddingLeft = "20px";
 // ========== 张桂源 ==========
 
 if (contact === "张桂源") {
+    // 第四章运动会聊天优先于旧章节/结局后的自由聊天逻辑
+    if (chatData["张桂源"] && chatData["张桂源"].chapter4StoryChat && chatData["张桂源"].chapter4StoryChat.active) {
+        document.getElementById("chatBackBtn").onclick = function() {
+            document.getElementById("chatDetailScreen").style.display = "none";
+            document.getElementById("chatListScreen").style.display = "block";
+            renderChatList();
+        };
+        renderChatMessages();
+        chapter4LockChatInput(chatData["张桂源"].chapter4StoryChat.complete ? "聊天已完成，请返回剧情页面继续" : "请点击选项回复");
+        setTimeout(resumeChapter4StoryChat, 250);
+        return;
+    }
     // 结局2后“睡了吗”开启自由私聊，优先于旧章节的完成锁定
     if (chatData["张桂源"].ending2AbCustomChatUnlocked === true) {
         inputBox.innerText = "";
@@ -11683,6 +11695,10 @@ setTimeout(() => {
     var chapter4TypingText = "";
     var chapter4TypingPos = 0;
     var chapter4Transitioning = false;
+    var chapter4SessionActive = false;
+    var chapter4ChatTriggered = false;
+    var chapter4ChatComplete = false;
+    var chapter4StoryChoiceShown = false;
 
     function getChapter4Paragraphs() {
         return `自从那场狼人杀结束以后，你和张桂源之间，好像有什么东西悄悄变得不太一样了。
@@ -11794,177 +11810,395 @@ setTimeout(() => {
     }
 
     function getChapter4Scene2Paragraphs() {
-        return `运动会那天，学校从一大早就没有安静过。
-你刚走进校门，便看见教学楼前挂起了新做的横幅。两侧的树上系着彩旗，风一吹，红的、黄的、蓝的布料便在晨光里哗啦啦地响。操场入口被来来往往的学生堵得严严实实，有人抱着整箱矿泉水，有人扛着班牌，还有几个男生一人抓着一条桌腿，从人群里横冲直撞地抬过去，险些把旁边同学手里的零食撞翻。
-主席台上的音响已经开始试音。
-老师拿着话筒说了几声“喂”，巨大的回声从操场这一头荡到另一头，又和各班的说笑声混在一起。
-广播站的学生抱着一大摞加油稿来回跑，运动员们围在体育委员身边核对自己的项目，平时一到早读就趴在桌上补觉的人，今天也精神得不得了，隔着大半个操场喊同学的名字。
+        return `运动会那天
+你刚走进校门，便看见教学楼前挂起了新做的横幅。两侧的树上系着彩旗，风一吹，红的、黄的、蓝的布料便在晨光里哗啦啦地响。
+操场入口被来来往往的学生堵得严严实实，有人抱着整箱矿泉水往操场里面送，有人扛着彩旗，还有几个男生一人抓着一条桌腿，从人群里横冲直撞地抬过去
+主席台上的音响已经开始试音
+“喂喂喂__一——二——三——四——”
+巨大的回声从操场这一头荡到另一头，又和各班的说笑声混在一起。
 每个人似乎都有事情做。
-有人在讨论班服，有人在分零食，有人已经提前约好了上午去看谁跑一百米，下午又要去哪个场地看球赛。
-整个学校都因为这场运动会醒得比平时更早，也比平时更热闹。
-可你走进操场以后，第一件事却不是去找自己班的位置。
+有人在讨论哪个班的班服好看，有人在分零食，有人已经提前约好了上午去看谁跑一百米，下午又要去给哪个篮球队加油。
+可你走进操场以后，却怎么也融不进这份热闹中。
 你站在人群边上，目光越过一块块高高举起的班牌，先看向主席台旁边临时搭出的候场区，又望向教学楼通往操场的那条路。
 到处都是人。
 就是没有张桂源。
 你跟着班里的队伍向前走了几步，仍旧忍不住回头。
-有时操场入口处刚好出现一道身形相似的身影，你的目光便会下意识停在那里。等那人走近，发现只是别班的学生，又若无其事地将视线移开。
-身边的同学正兴奋地商量着等会儿要拍多少照片，你一句也没有听清。
-昨天晚上，张桂源还笑着让你早点到，说要给你一个惊喜。
-他说得那么笃定，害得你从昨晚开始便忍不住去猜。
-可现在，开幕式都快开始了，他还是没有出现。
-其实他也没说惊喜一定是他本人。
-或许只是准备发给你一段视频，或许又是从练习室里找到了什么奇怪的东西，觉得你一定会喜欢。
-可你还是在这样热闹的早晨里，一遍又一遍地寻找他。
-仿佛周围所有喧闹都只是背景。
-你真正想看见的，从始至终只有一个人。
+有时操场入口处刚好出现一道身形相似的身影，你的目光便会下意识停在那里，等那人走近，发现只是别班的学生
+身边的同学正兴奋地商量着等会儿要拍多少照片，你一句也没有听清
+昨天晚上，张桂源还笑着说要给你一个惊喜
+他说得那么笃定，害得你从昨晚开始便忍不住去猜，可现在，开幕式都快开始了，他还是没有出现。
+仿佛周围所有喧闹都只是背景
+你真正想见的，从始至终只有一个人
 “喂。”
 肩膀忽然被人从后面轻轻拍了一下。
-你转过身，看见W从两个班的队伍中间绕了过来。她手里捏着两根棒棒糖，一根已经拆开含在嘴里，另一根直接递到了你面前。
+你转过身，看见W从两个班的队伍中间绕了过来，她手里捏着两根棒棒糖，一根已经拆开叼在嘴里，另一根直接递到了你面前。
 “给你。”
-你接过那根葡萄味的棒棒糖。
+你接过棒棒糖
 “你怎么过来了？”
-“我们班还乱着呢，少我一个也看不出来。”
-她说着站到你身边，顺着你的目光往操场入口看了一眼。
-只看了两秒，她便明白过来，声音也随之压低。
+“我们班还乱着呢，就来找你玩咯”
+她看了看你班上的队伍
 “张呢？”
-你轻轻摇头。
-“不知道。”
 “他今天不来？”
 “我也不知道。”
-W转头看你：“你没问他？”
-“他昨天只说让我早点到，说有惊喜。”
-你顿了一下，又补充道：“但他没说是什么。”
-W含着糖，若有所思地“哦”了一声。
-“那他应该会来吧。”
-“为什么？”
-“不来还让你早点到干什么，总不能准备一大早给你发个表情包吧。”
-你被她说得有些想笑，却仍旧故意道：“他又不是做不出来这种事。”
-“也是。”
-W赞同地点点头，又朝操场周围看了一圈，确定没有找到张桂源以后，才把话题转到下午的比赛上。
 “你八百米别紧张。”
 她轻轻碰了一下你的胳膊。
-“到时候我陪你去检录，跑之前也陪着你。你跑你的，实在跑不动就慢慢来，反正我在终点等你。”
-你低头拆开棒棒糖的包装，小声说：“我肯定最后一名。”
-“最后一名怎么了？”
-W说得理所当然。
-“总有人要最后一名，凭什么不能是你。”
-你抬眼看她。
-“你这是在安慰我吗？”
-“是啊。”她忍着笑，“是不是特别有效？”
-你无语地把她往旁边推了一下。
-W笑着躲开，随后像是忽然想到什么，朝刚才你一直寻找的方向扬了扬下巴。
-“而且就算张桂源真来了，他也没什么用。”
+“到时候我陪你去检录，而且就算张桂源真来了，他也没什么用。”
 “为什么？”
-“他又不能陪你一起跑。”
-她说完，故意露出几分嫌弃。
-“八百米这种时候，还是得靠我。张桂源最多站在旁边给你喊两句，喊得还不一定有我大声。”
-你捏着刚拆开的糖纸，安静了一下。
-“我没跟他说。”
-W脸上的笑微微停住。
-“什么？”
-“八百米。”
-你将棒棒糖放进嘴里，含糊地重复：“我没告诉他我要跑。”
-“为什么不说？”
+“他能陪你一起跑？估计明天你的身份证就被开出来了”
+“有这么夸张？？其实……我没跟他说。”
+“啊？为什么不说？”
 “又不是什么大事。”
 你低着头，把皱起来的糖纸一点点抚平。
 其实你也说不清为什么没有告诉他。
 也许是觉得他每天练习已经够累了，没必要再听你为一次运动会抱怨；也许是害怕自己表现得太差，被他看见会觉得丢脸；又或许，只是因为你们最近明明每天都在说话，你却仍旧不知道，该用怎样的语气告诉他——
-我下午要跑八百米。
-我有一点害怕。
-你能不能来看看我。
-这些话太像是在期待什么。
+我下午要跑八百米
+我有一点害怕
+你能不能来看看我？？
+这些话太像是在期待什么，明明是很正常的一些话，但是你怕被他拒绝
 所以你什么都没有说。
-W看了你一会儿，没有追问，只伸手轻轻捏了一下你的脸。
-“行吧，没说就没说。”
-“反正我知道。”
-她说。
-“我陪你。”
-不远处传来班主任催集合的声音。W回头应了一声，又匆匆朝你摆手。
-“我先回去了，开幕式结束再找你。”
+“我先回去了，开幕式结束再找你”
 她跑回自己班时，广播里恰好响起了集合通知。
-散落在操场四周的学生纷纷归队，一块块班牌重新被高高举起。你跟着人群站进十一班的方阵，周围的说话声渐渐低下去，却并没有彻底安静。
+散落在操场四周的学生纷纷归队，一块块班牌重新被高高举起，你跟着人群站进十一班的方阵，周围的说话声渐渐低下去，却并没有彻底安静。
 阳光越过教学楼，落在鲜红的塑胶跑道上。
 升旗，奏国歌，校长致辞，运动员代表宣誓。
 开幕式按部就班地进行。
-台上的人认真念着稿子，台下却总有人趁老师不注意悄悄说话。前排有人被太阳晃得眯起眼睛，后排的男生借着蹲下来系鞋带的机会，和旁边的人笑成一团。
 你站在人群里，手中的棒棒糖已经只剩下一根白色塑料杆。
 张桂源仍旧没有出现。
-你渐渐开始觉得，或许真的是自己想多了。
 直到主持人的声音重新从音响里传出来。
 “接下来，请欣赏本届运动会开幕式的第一个节目。”
-原本有些松散的队伍稍稍安静下来。
 “由我校舞蹈团带来舞蹈表演——”
 音乐名称从广播中报出的一瞬间，你怔了一下。
-这个名字，你听过很多次。
-过去的这段时间里，张桂源隔三岔五便会把手机架在练习室的水瓶旁，给你看这支舞的新进度。有时只跳其中十几秒，有时从头到尾走一遍，跳完以后坐在地上喘气，还不忘追着问你刚才哪个动作最好看。
+这首歌，你听过很多次。
+过去的这段时间里，张桂源隔三岔五便会把手机架在练习室的水瓶旁，给你看这支舞的新进度
 你看过他反复练习同一个转身。
 看过他因为一处节拍没踩准，皱着眉重新放音乐。
-也看过他练到额前的头发全被汗水打湿，仍旧不肯承认自己累，硬要再来一遍。
-你原以为那只是公司最近安排给他的练习。
-直到现在才明白，原来他说的惊喜，早就藏在那些视频里。
+也看过他练到额前的头发全被汗水打湿，还是一遍一遍纠正细节。
+你原以为那是公司给他安排的舞台
 舞蹈团的成员从主席台侧面依次走了出来。
-统一的白衬衫，黑色长裤，干净得没有太多舞台装饰。没有夸张的妆容，也没有刺眼的灯光，只有清晨落在操场上的阳光，和一群站在台上的少年少女。
-张桂源站在队伍最前面。
-领舞的位置。
+统一的白衬衫，黑色长裤，没有太多舞台装饰，也没有夸张的妆容，只有落在舞台上的阳光，和一群站在光里的少年。
+张桂源站在队伍最前面领舞的位置。
 你几乎一眼便看见了他。
-他的白衬衫袖口挽到手肘，露出清瘦的小臂。头发没有做复杂的造型，只是柔软地落在额前，脸上也没有化妆，连眉眼间那一点少年人的青涩都看得清清楚楚。
-他站在那里，不像视频中已经开始被许多人认识的练习生。
-更像十一班一个很久没有回学校的普通男生。
-只是恰好会跳舞。
-又恰好站在所有人目光汇聚的地方。
+他的白衬衫袖口挽到手肘，露出清瘦的小臂，头发没有做复杂的造型，只是柔软地落在额前，脸上也没有化妆。
 周围很快传来窃窃私语。
 “领舞那个是不是十一班的？”
 “好像是，叫张桂源。”
-“就是那个练习生吧？”
-“对，我刷到过他。”
-“他平时是不是都不来学校了？”
-“白衬衫那个吗？本人还挺帅的。”
-你没有接话。
-音乐响起以后，张桂源脸上原本残留的那点羞涩很快消失了。
-第一个动作，你就认了出来。
-是他之前在视频里练过很多遍的开场。
-手臂抬起的角度，向后踩出的那一步，还有转身时短暂停留的节拍，都与你隔着屏幕看见过的一模一样。可又好像完全不同。
-视频里的他，总是在动作结束以后立刻跑到镜头前，弯下腰看你有没有说话。
-而现在，他站在舞蹈团的最前方，带着身后所有人的动作向前。白衬衫的衣摆随着转身扬起，阳光落在他的侧脸上，额前的碎发被风吹得轻轻晃动。
-你甚至记得其中某个动作，他曾经练错过很多次。
-那天他不服气，一连跳了五遍，直到你说最后一次已经很好了，才终于肯停下来。
-现在，那段动作干净地落在音乐里。
-没有迟疑，也没有错误。
+“是不是那个练习生吧”
+“对，我刷到过他”
+“我去本人竟然这么帅”
+“哪个啊？最前面那个吗？还真挺帅的啊”
+每一个动作，你都无比熟悉，你甚至能预测他下一个动作是什么
+但是视频里的他，总是在动作结束以后立刻跑到镜头前，弯下腰看你有没有说话，喘着气问你跳的怎么样。
+而现在，他站在舞蹈团的最前方，带着身后所有人的动作向前，白衬衫的衣摆随着转身扬起，阳光落在他的侧脸上
 身后有人低声惊叹了一句。
-“领舞跳得好好。”
+“张桂源跳的好好啊”
 你望着台上的他，心里忽然生出一种很奇怪的感觉。
-像是你偷偷看过一颗星星还没有升起来时的模样。
-你知道他是怎样一次次练习，怎样满头大汗地坐在地上，怎样因为你一句夸奖就忍不住笑起来。
-可如今，周围所有人都在看他。
-他们只会看见这支已经完成的舞。
+像是你偷偷看过一颗星星还没有升起来时的模样，可如今，周围所有人都在看他。
 只有你知道，这些看起来轻松又漂亮的动作背后，藏着多少个深夜。
-音乐走到最后。
-张桂源站在队伍最前方，随着最后一个节拍定住动作。短暂的安静过后，掌声和欢呼声同时响起。
+音乐走到最后，张桂源站在队伍最前方，随着最后一个节拍定住动作。短暂的安静过后，掌声和欢呼声同时响起。
 舞蹈团的成员并排站好，一起朝台下鞠躬。
 他起身时，视线下意识扫过十一班的方向。
 操场上站着那么多人，你不知道他究竟能不能找到自己。
-可下一秒，他的目光似乎停顿了一瞬。
-很短。
-短到你甚至来不及确认，他便已经跟着其他人转身离场。
-可你还是忽然弯起了嘴角。
-他说的惊喜，原来不是一句随口的玩笑。
-他真的来了。
-开幕式结束以后，各班依次退到操场旁划分好的休息区域。整齐的方阵很快散开，周围重新变得嘈杂起来。有人抱着水往比赛场地跑，有人迫不及待地讨论刚才的节目，还有几个女生一边往回走，一边打听张桂源究竟在哪个班。
-你跟着同学回到十一班的位置。
+开幕式结束以后，各班依次退到操场旁划分好的休息区域，整齐的方阵很快散开，周围重新变得嘈杂起来。有好几个女生一边往回走，一边来你们班打听张桂源
+你跟着大部队回到十一班的位置。
 没过多久，身后便传来一阵热闹的声音。
-“张桂源回来了。”
-“刚才跳得可以啊。”
+“回来了？”
+“刚才跳得可以啊”
 “你今天还走不走？”
 你忍不住回过头。
-张桂源已经换上了校服外套，里面仍旧是刚才表演时穿的白衬衫。他被几个男生围着，脸上带着刚运动完的薄红，一边笑着回应他们，一边走向自己原来的位置。
-没有特意靠近你。
-也没有在这么多人面前表现出任何不同。
-他只是回到那张空了一个星期的椅子上坐下，接过同桌递来的水，低头拧开瓶盖。
-你们之间隔着几排同学。
+张桂源已经换上了校服外套，里面仍旧是刚才表演时穿的白衬衫。他被几个男生围着，走向自己的位置。
 他仰头喝了两口水，放下瓶子时，才像是不经意般朝你的方向看过来。
-目光相撞的那一刻，他的眼睛很轻地弯了一下。
-随后立刻移开。
-几秒后，你放在手里的手机震动起来。`.split("\n").filter(function(line) { return line.trim(); });
+目光相撞的那一刻，他的眼睛很轻地弯了一下
+随后立刻移开
+几秒后，你放在手里的手机震动起来`.split("\n").filter(function(line) { return line.trim(); });
+    }
+
+    function getChapter4CommonParagraphs() {
+        return `你收回手机
+广播里已经开始通知上午第一项比赛检录，体育委员拿着名单，一边走一边喊上午比赛的同学先过来确认项目。
+名单传到你手里的时候，你想再确认一遍比赛时间。
+女子八百米。
+你的名字端端正正印在那一栏，这几天只要一想到八百米，胃里都会莫名发紧。
+你轻轻吸了口气，正准备把名单递给后面的同学，视线却顺着纸张往下滑了一格。
+篮球，张桂源。
+你的动作顿了一下。
+身后有人轻轻碰了碰你的手臂。
+"看完了吗？"
+你回过神，把名单递了过去，下意识抬起头，目光越过前面几排同学，朝男生那边望过去。
+篮球队的人已经开始往球场走了。
+几个男生抱着球，说说笑笑地走在最前面，时不时有人回头催一句："快点啊。"
+张桂源走在最后，像是早就料到你会抬头一样。
+几乎是在你望过去的同时，他也看见了你。
+隔着大半个操场，他没有立刻跟上前面的队伍，只是站在那里，冲你笑了一下。
+前面的男生又回头喊了他一声。
+他侧过脸应了一句，抬手示意马上过去，却还是没有动。
+广播里不断重复着检录通知，旁边几个班正往另一块场地走，人群来来往往，不停有人从你们中间穿过去。
+他却一直站在那里，只能看见他的嘴唇缓缓动着，像是在说一句很长的话。
+前半句，他说得很慢，几乎每说一个字都会停顿一下，像是在等你跟上。
+等下过来。
+你愣了一下。
+还没来得及反应，他已经继续往下说。
+他说后半句的时候，嘴角一直扬着，眼睛也弯弯的，一边说，还一边抬起手，轻轻指了指自己怀里的篮球。
+给我加油。
+最后四个字，你一下子就看懂了。
+隔着那么远，你朝他点了点头。
+张桂源这才笑着转过身，小跑着追上前面的队友。几个男生不知道在说什么，自然的把手搭在张桂源肩上，很快便闹成一团。
+你站在人群里，看着他们一路朝篮球场走去，忽然想起自己的比赛是在下午。
+时间还早，幸好篮球赛是上午
+“通知，通知——”
+操场上方的广播突然响了起来。
+原本还在休息区聊天的同学慢慢停下了声音，大家抬头朝主席台的方向看过去。
+“因赛事安排调整，女子八百米比赛时间提前，请参加该项目的运动员立即到检录处集合。”
+广播里的声音通过音响传遍整个操场，隔了几秒，又重复了一遍。
+“通知，通知，请参加女子八百米比赛的运动员立即到检录处集合。”
+这一次，周围彻底热闹起来。
+“八百米提前了？”
+“不是下午吗？”
+“怎么突然改时间？”
+旁边几个原本还坐着休息的同学站了起来，体育委员拿着名单在人群里确认名字，一大堆参加项目的运动员也开始往检录处走。
+你坐在那里，没有马上动，明明广播里的每一个字你都听清楚了，可那一刻却像是没有真正反应过来。
+脑子里空空的，什么都没有想，甚至连害怕都没有来得及产生。
+只是当体育委员走过来喊你的名字时，你下意识站了起来。
+然后跟着人群往前走。
+明明大脑像断开了一样，没有认真想过要不要去，也没有想好等会儿该怎么办，可身体已经顺着人群走到了检录处。
+等你回过神的时候，自己已经站在人群里面了。
+前面是正在确认信息的运动员，旁边不断有人经过，工作人员低头核对着名单。
+你站在那里，看着手里的号码牌，突然不知道该做什么。
+“让一下，让一下。”
+熟悉的声音从人群外传来。
+W的声音很快靠近，刚站到你旁边，她先看了一眼周围，又看了看你。
+“我靠。”
+“谁改的啊？”
+“脑子有病吧。”
+她声音不算小，旁边几个同样在等待检录的女生听见以后，都忍不住往这边看了一眼。
+“不是，怎么突然改到现在？刚刚广播一响，我还以为我听错了。”
+可是你一句都听不进去，你只是盯着前面的跑道入口，感觉胸口闷闷的。
+W看了你一会儿，伸手在你背上轻轻拍了两下。
+“别紧张。”
+她的声音放低了一些。
+“没事，现在还没开始呢，你别自己吓自己”
+你接过水，小口喝了一点。
+冰凉的水顺着喉咙下去，好像终于让你稍微回过神。
+你低头看着手里的号码牌，小声说：
+“我有点害怕”
+这句话说出来以后，反而轻松了一点。
+“害怕多正常啊”
+“本来就是傻吊体育委员强迫你的，神人想出来的抽签”
+她看着前面的跑道，停了一会儿，又转回来。
+“但是如果你想跑的话”
+“我会和你一起跑。”
+你看着她，心里那股乱糟糟的感觉慢慢平了一点。
+可是看向前面的跑道时，紧张依旧存在。
+八百米就在前面。
+你不知道自己到底能不能跑下来。
+工作人员开始喊下一组运动员准备检录。
+W轻轻推了推你的肩膀。
+“走吧。”
+“先去检录。”
+请做出你的选择：`.split("\n").filter(function(line) { return line.trim(); });
+    }
+
+    function getChapter4RouteABeforeJs() {
+        return `真正站到起跑线上的时候，你才发现比刚刚在检录处还要紧张
+工作人员举起发令枪的时候，你的手心还是湿的。
+红色的塑胶跑道在阳光下有些刺眼。
+体育课的时候，平时老师让跑两圈，你虽然也会觉得累，而且都是熟悉的同学，大家一边嫌弃埋怨老师，一边慢慢跑完，有时候你跟不上了，也不会觉得有什么压力。
+可是现在不一样。
+你站在运动会的跑道上，旁边的人都在认真比赛，跑道外还有那么多双眼睛看着，你甚至觉得自己的每一个动作都会被放大。
+W站在跑道外侧，朝你挥了挥手。
+枪声响起。
+所有人同时冲了出去。
+你没有跟着最前面的人加速，而是按照自己的速度往前跑。
+刚开始的时候，你甚至觉得还可以接受，呼吸虽然比平时快一点，但还没有到难受的程度。
+跑过第一个弯道的时候，你还能听见W的声音。
+“我靠你太牛了”
+“xx（此处读取玩家的昵称）你是我女神”
+进入第二圈以后，身体开始慢慢反应过来，刚才还能忽略的疲惫，一点一点变得明显。
+腿开始发酸，呼吸也没有办法像刚开始一样控制。
+你想维持刚才的速度，可身体却不像第一圈那么听话。
+旁边的人陆续超过你。
+明明平时体育课两圈跑完也没有这么痛苦，可是为什么现在才第二圈，你就已经觉得这么累了。
+你早就知道自己大概率不会跑得很好，可是当你真的站在这里，当所有人都在往前，被一个个超越过后，那种失落还是会慢慢冒出来
+身体的疲惫越来越明显，连抬腿都变成了一件需要努力的事情
+你开始数还有多少距离还剩多少，什么时候才能结束
+就在你快要坚持不下去的时候，脑海里突然想起了以前刷到过的一句话
+有人说，跑八百米的时候，如果想着自己喜欢的人，好像就会更容易坚持下来
+以前看到的时候，你觉得这句话特别夸张，喜欢一个人怎么可能真的变成力气
+可是现在，你累得脑子都快没有办法思考的时候，最先出现的人，竟然还是张桂源
+想到这里，你突然又有了一点力气
+但是这点力气没持续多久，你还是没坚持下来，开始走了起来
+算了，不喜欢你了
+这个想法冒出来的时候，你自己都觉得有点幼稚
+“加油！”
+终点方向传来W的声音。
+你抬起头。
+她站在那里，用力朝你挥手。
+“快到了！”
+“再坚持一下！”
+你看到了终点线
+也看到了那个一直在那里等你的朋友
+最后几十米，你已经没有办法想太多，你只是凭着本能往前
+直到冲过终点的那一刻，你才终于停下来
+那一瞬间，整个人像被抽空了力气。
+你弯下腰，大口喘着气，耳边所有声音都变得模糊。
+下一秒，W已经跑过来扶住了你。
+她扶着你的胳膊，让你不要一下蹲下去。
+“先走两步。”
+你靠着她，连说话的力气都没有，嗓子一股涌上来的血腥味
+回去的路上，你几乎把大部分重量都靠在她身上。
+其实你已经能自己走了，可W还是一直扶着你。
+路过操场的时候，广播里的声音还在继续，刚结束一场比赛，下一场又开始检录，整个校园依旧热闹，教学楼这边，反而安静了很多。`.split("\n").filter(function(line) { return line.trim(); });
+    }
+
+    function getChapter4RouteAJs() {
+        return `你回到座位上，几乎刚坐下，就趴到了桌子上。
+刚才跑的时候还靠着一股劲撑着，现在停下来以后，连手指都懒得动。
+W站在旁边看了你一会儿。
+她伸手碰了一下你的额头，又看了看你的脸色。
+“你等会儿。”
+“我去给你拿点葡……”
+你原本闭着眼睛，感觉教室里突然安静了一点。
+你侧过脸，看见站在门口的人。
+张桂源。
+他像是刚从篮球场赶过来，身上的球衣还没有换，额前的头发被汗水打湿，几缕碎发贴在眉间，呼吸也还没有完全平稳下来。
+他的视线落在你身上以后，明显停了一下，下一秒，他快步走过来，在你面前蹲了下来。
+你低头看着他。
+他的脸就在你面前。
+近到你能看见他因为刚运动完微微泛红的脸颊，也能看见额前还没有擦干的汗珠顺着发梢落下来。
+他只是仰头看着你，眉头轻轻皱着。
+“现在还难受吗？”
+他的声音比平时低了一点，可能是刚跑过来的原因，还有些喘。
+其实你已经缓过来很多了，可是看着他蹲在那里，一直盯着你看，突然不知道该说什么。
+“还好。”
+你小声说。
+张桂源没有立刻放心。
+他看着你，又问了一遍。
+“真的？”
+你点了点头。
+“真的。”
+他这才稍微松了一口气，可视线还是没有从你身上移开。
+“有没有哪里不舒服？”
+“头晕吗？”
+“腿还酸不酸？”
+你摇了摇头。
+“就是有点累。”
+听见这句话以后，张桂源才轻轻呼出一口气。
+“吓我一跳。”
+他说得很轻。
+你愣了一下。
+“啊？”
+张桂源低头笑了一下，有些不好意思地抿了抿唇。
+“刚听W说你跑800，我都快吓死了”
+他伸手把手里的杯子递给你。
+“先喝点葡萄糖”
+你低头，这才注意到他手里一直拿着一个透明杯子。
+“你去弄的？”
+你看着他。
+张桂源点了点头。
+“嗯。”
+“篮球比赛那边刚好有。”
+窗外的广播声还在继续，操场上的欢呼声隔着玻璃传进来，热闹得和安静的教室形成了很明显的对比。
+你低头接过那杯葡萄糖，喝完那杯葡萄糖以后，张桂源才像终于放心了一点。
+“你篮球比赛呢？”
+你看着他。
+张桂源靠在椅背上，安静了两秒，突然轻轻叹了一口气。
+“输了。”
+你的心一下提了起来。
+“啊？”
+“本来打得好好的。”
+“然后收到消息，就回来了。”
+你愣住了。
+“所以……”
+你看着他，有些不知道该说什么。
+虽然你知道运动会的篮球比赛没有那么重要，可如果真的是因为你，让他放弃比赛回来，你心里还是会有一点过意不去。
+“那怎么办？”
+你小声问。
+张桂源抬头看你。
+“什么怎么办？”
+“就是……”
+你停了一下。
+“你不是输了吗？”
+“因为我吗？”
+张桂源看着你，眼底慢慢浮出一点笑意。
+可是他没有解释。
+反而故意顺着你的话说：
+“嗯。”
+“因为你。”
+你一下不知道该怎么接。
+窗外广播里的声音还在继续，操场上的欢呼声一阵一阵传进来，可教室里安静得只能听见你们两个人的声音。`.split("\n").filter(function(line) { return line.trim(); });
+    }
+
+    function getChapter4CompensationRoute1() {
+        return `“那……”
+你看着他。
+“要怎么补偿你？”
+话刚说出口，你自己都觉得有点奇怪。
+明明应该是他自己跑回来的，可不知道为什么，被他说了几句以后，好像真的变成了你的责任。
+张桂源看着你，脸上有点震惊，像是没有想到你真的会认真问。
+过了一会儿，他双手撑在你的桌面上，微微俯下身。
+“嗯……”
+“让我想想。”
+你看着他。
+“你刚刚不是还说得很严重吗？”
+“怎么现在又开始想了？”
+张桂源笑了一下。
+“这种事情当然要认真想。”
+“毕竟是你的补、偿”
+他说完，故意停顿了一下。
+“我想要……”
+他看着你。
+“你……”
+你的呼吸停了一瞬，张桂源自己也愣了一下。
+那一刻，两个人都没有说话。
+他像是突然意识到刚才那个字太容易让人误会，视线很快移开。
+“你……”
+“你的文具盒。”
+你：“？”
+你看着他，张桂源仿佛故意不看你，摆弄着你的文具盒
+“对啊”
+“你的文具盒。”
+“怎么了？你把链接发我”
+你忍不住笑。
+“你是不是根本没想好？”
+他没有回答，只是偏开头笑了一下。
+“算了。”
+他把一样东西拿出来，金色的奖牌出现在他手里。
+“这是……”
+张桂源低头看了一眼奖牌，又看向你。
+“我今天篮球第一。”
+“所以……”
+他停顿了一下。
+“我觉得呢也可以给某位跑完800米的朋友一个奖励”
+你这才反应过来。
+“你骗我？”
+张桂源终于笑了出来。
+“嗯。”
+“谁让你刚才真的相信了。”
+你还没来得及说什么，张桂源已经起身站到了你面前。
+你抬头看他。
+“干嘛？”
+“给你戴上。”
+奖牌的带子从他手里绕过。
+你下意识坐直了一点。
+他的手从你肩侧经过，手指不小心碰到了你的脸侧。
+张桂源像是被烫到一样，立刻收回手。
+“那个……”
+下一秒，他飞快地补了一句：
+“哎呀，刚刚打球。”
+“把手打累了有点抖”
+你愣了一下。
+“？我发现你今天说话很莫名其妙诶”
+“真的，刚刚比赛太累了。你都不知道隔壁班几个多猛”
+你忍不住笑了一下。
+塑料材质轻轻贴在你的校服外套上，发出很轻的一声响。
+张桂源的手从你耳侧收回去。
+这一次，他没有马上看你。
+像是在努力让自己看起来很正常。
+过了几秒，他才低声说：
+“好了。”
+“现在是你的了。”
+你低头看着胸前的奖牌。
+明明只是一个学校运动会的奖牌，甚至有点幼稚。
+可是因为是他递过来的，突然就变得不一样了。`.split("\n").filter(function(line) { return line.trim(); });
     }
 
     function buildChapter4Pages() {
@@ -12002,8 +12236,8 @@ W看了你一会儿，没有追问，只伸手轻轻捏了一下你的脸。
         return pages;
     }
 
-    function buildChapter4Scene2Pages() {
-        var paragraphs = getChapter4Scene2Paragraphs();
+    function buildChapter4Scene2Pages(sourceParagraphs) {
+        var paragraphs = sourceParagraphs || getChapter4Scene2Paragraphs();
         var pages = [];
         var current = [];
         var count = 0;
@@ -12027,12 +12261,28 @@ W看了你一会儿，没有追问，只伸手轻轻捏了一下你的脸。
         return pages;
     }
 
+    function buildChapter4CommonPages() {
+        return buildChapter4Scene2Pages(getChapter4CommonParagraphs());
+    }
+
+    function buildChapter4RouteAPages(source) {
+        var nickname = player.nickname || player.name || "你";
+        var paragraphs = source.map(function(line) {
+            return line.replace("xx（此处读取玩家的昵称）", nickname);
+        });
+        return buildChapter4Scene2Pages(paragraphs);
+    }
+
     function openChapter4Story() {
         hideChapter4Story();
         chapter4Pages = buildChapter4Pages();
         chapter4PageIndex = 0;
         chapter4Scene = 1;
         chapter4Transitioning = false;
+        chapter4SessionActive = true;
+        chapter4ChatTriggered = false;
+        chapter4ChatComplete = false;
+        chapter4StoryChoiceShown = false;
         var overlay = document.createElement("div");
         overlay.id = "chapter4StoryOverlay";
         overlay.innerHTML = `
@@ -12084,7 +12334,8 @@ W看了你一会儿，没有追问，只伸手轻轻捏了一下你的脸。
             if (chapter4TypingPos >= chapter4TypingText.length) {
                 clearInterval(chapter4TypingTimer);
                 chapter4TypingTimer = null;
-                hint.textContent = index === chapter4Pages.length - 1 ? (chapter4Scene === 1 ? "点击进入下一幕" : "本段剧情结束") : "点击继续";
+                updateChapter4Hint();
+                onChapter4PageFullyShown();
             }
         }, 34);
     }
@@ -12098,7 +12349,8 @@ W看了你一会儿，没有追问，只伸手轻轻捏了一下你的脸。
             chapter4TypingTimer = null;
             chapter4TypingPos = chapter4TypingText.length;
             textElement.textContent = chapter4TypingText;
-            hint.textContent = chapter4PageIndex === chapter4Pages.length - 1 ? (chapter4Scene === 1 ? "点击进入下一幕" : "本段剧情结束") : "点击继续";
+            updateChapter4Hint();
+            onChapter4PageFullyShown();
             return;
         }
         if (chapter4PageIndex < chapter4Pages.length - 1) {
@@ -12106,7 +12358,147 @@ W看了你一会儿，没有追问，只伸手轻轻捏了一下你的脸。
             showChapter4Page(chapter4PageIndex);
         } else if (chapter4Scene === 1) {
             transitionChapter4ToScene2();
+        } else if (chapter4Scene === 2) {
+            if (!chapter4ChatTriggered) triggerChapter4StoryChat();
+            if (chapter4ChatComplete) startChapter4CommonStory();
+        } else if (chapter4Scene === 3) {
+            showChapter4StoryChoice();
+        } else if (chapter4Scene === 4) {
+            transitionChapter4ToJsScene();
+        } else if (chapter4Scene === 5) {
+            showChapter4CompensationChoice();
         }
+    }
+
+    function updateChapter4Hint() {
+        var hint = document.getElementById("chapter4Continue");
+        if (!hint) return;
+        if (chapter4PageIndex < chapter4Pages.length - 1) {
+            hint.textContent = "点击继续";
+        } else if (chapter4Scene === 1) {
+            hint.textContent = "点击进入下一幕";
+        } else if (chapter4Scene === 2) {
+            hint.textContent = chapter4ChatComplete ? "点击继续剧情" : "请查看微信消息";
+        } else if (chapter4Scene === 3) {
+            hint.textContent = "请选择";
+        } else if (chapter4Scene === 4) {
+            hint.textContent = "点击进入下一幕";
+        } else if (chapter4Scene === 5) {
+            hint.textContent = "请选择";
+        } else {
+            hint.textContent = "本段剧情结束";
+        }
+    }
+
+    function onChapter4PageFullyShown() {
+        if (chapter4Scene === 2 && chapter4PageIndex === chapter4Pages.length - 1) {
+            triggerChapter4StoryChat();
+        } else if (chapter4Scene === 3 && chapter4PageIndex === chapter4Pages.length - 1) {
+            showChapter4StoryChoice();
+        } else if (chapter4Scene === 5 && chapter4PageIndex === chapter4Pages.length - 1) {
+            showChapter4CompensationChoice();
+        }
+    }
+
+    function startChapter4CommonStory() {
+        chapter4Scene = 3;
+        chapter4Pages = buildChapter4CommonPages();
+        chapter4PageIndex = 0;
+        chapter4StoryChoiceShown = false;
+        showChapter4Page(0);
+    }
+
+    function createChapter4StoryChoicePanel(id, options, callback) {
+        var overlay = document.getElementById("chapter4StoryOverlay");
+        if (!overlay) return null;
+        var old = document.getElementById(id);
+        if (old) old.remove();
+        var panel = document.createElement("div");
+        panel.id = id;
+        panel.className = "chapter4-story-choice-panel";
+        panel.style.cssText = "position:absolute;left:28px;right:28px;top:47%;transform:translateY(-50%);z-index:7;display:flex;flex-direction:column;gap:12px;align-items:stretch;";
+        options.forEach(function(option, index) {
+            var button = document.createElement("button");
+            button.type = "button";
+            button.textContent = option;
+            button.dataset.choice = index;
+            button.style.cssText = "width:100%;min-height:48px;padding:12px 18px;background:rgba(0,0,0,.86);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:2px;font-size:15px;letter-spacing:.5px;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;text-align:center;";
+            button.onclick = function(event) {
+                event.stopPropagation();
+                panel.remove();
+                callback(index);
+            };
+            panel.appendChild(button);
+        });
+        overlay.appendChild(panel);
+        return panel;
+    }
+
+    function showChapter4StoryChoice() {
+        if (chapter4StoryChoiceShown || chapter4Scene !== 3) return;
+        chapter4StoryChoiceShown = true;
+        createChapter4StoryChoicePanel("chapter4StoryChoiceModal", [
+            "留下来参加女子800米比赛",
+            "选择放弃这场比赛"
+        ], function(choice) {
+                chapter4StoryChoiceShown = false;
+                if (choice === 0) {
+                    chapter4Scene = 4;
+                    chapter4Pages = buildChapter4RouteAPages(getChapter4RouteABeforeJs());
+                    chapter4PageIndex = 0;
+                    showChapter4Page(0);
+                } else {
+                    var textElement = document.getElementById("chapter4Text");
+                    var hint = document.getElementById("chapter4Continue");
+                    if (textElement) textElement.textContent = "你选择了放弃这场比赛。";
+                    if (hint) hint.textContent = "B线后续待更新";
+                    chapter4Scene = 6;
+                }
+        });
+    }
+
+    function showChapter4CompensationChoice() {
+        if (chapter4StoryChoiceShown || chapter4Scene !== 5) return;
+        chapter4StoryChoiceShown = true;
+        createChapter4StoryChoicePanel("chapter4CompensationChoiceModal", [
+            "那要怎么补偿你",
+            "对不起……"
+        ], function(choice) {
+            chapter4StoryChoiceShown = false;
+            if (choice === 0) {
+                chapter4Scene = 7;
+                chapter4Pages = buildChapter4RouteAPages(getChapter4CompensationRoute1());
+                chapter4PageIndex = 0;
+                showChapter4Page(0);
+            } else {
+                var textElement = document.getElementById("chapter4Text");
+                var hint = document.getElementById("chapter4Continue");
+                if (textElement) textElement.textContent = "“对不起……”";
+                if (hint) hint.textContent = "该分支后续待更新";
+                chapter4Scene = 8;
+            }
+        });
+    }
+
+    function transitionChapter4ToJsScene() {
+        var overlay = document.getElementById("chapter4StoryOverlay");
+        if (!overlay || chapter4Transitioning) return;
+        chapter4Transitioning = true;
+        var curtain = document.createElement("div");
+        curtain.id = "chapter4SceneCurtain";
+        overlay.appendChild(curtain);
+        requestAnimationFrame(function() { curtain.classList.add("play"); });
+        setTimeout(function() {
+            overlay.style.backgroundImage = "linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.16)),url('js.jpg')";
+            chapter4Scene = 5;
+            chapter4Pages = buildChapter4RouteAPages(getChapter4RouteAJs());
+            chapter4PageIndex = 0;
+            showChapter4Page(0);
+        }, 675);
+        setTimeout(function() {
+            curtain.remove();
+            chapter4Transitioning = false;
+        }, 1400);
     }
 
     function transitionChapter4ToScene2() {
@@ -12132,14 +12524,287 @@ W看了你一会儿，没有追问，只伸手轻轻捏了一下你的脸。
         }, 1400);
     }
 
+    function triggerChapter4StoryChat() {
+        if (chapter4ChatTriggered) return;
+        chapter4ChatTriggered = true;
+        if (!chatData["张桂源"]) chatData["张桂源"] = { messages: [], newMsg: false };
+        var data = chatData["张桂源"];
+        data.chapter4StoryChat = { active: true, stage: "opening", running: false, complete: false };
+        data.messages.push({
+            from: "other", text: "帅不帅", time: getCurrentTime(), avatar: "zgyweixin.png",
+            date: new Date().toLocaleDateString(), read: false, chapter4Story: true
+        });
+        data.newMsg = true;
+        renderChatList();
+        showMessageNotification(
+            "张桂源",
+            '<img src="zgyweixin.png" style="width:48px;height:48px;border-radius:12px;object-fit:cover;">',
+            "张桂源",
+            "帅不帅",
+            function() {
+                switchPage("chat");
+                openChat("张桂源");
+            }
+        );
+        updateChapter4Hint();
+    }
+
+    function chapter4AddChatMessage(from, text, isImage) {
+        var data = chatData["张桂源"];
+        data.messages.push({
+            from: from,
+            text: isImage ? '<img src="' + text + '" style="width:160px;border-radius:10px;max-width:100%;display:block;">' : text,
+            time: getCurrentTime(),
+            avatar: from === "other" ? "zgyweixin.png" : "",
+            date: new Date().toLocaleDateString(),
+            read: true,
+            isImage: !!isImage,
+            chapter4Story: true
+        });
+        if (currentChatContact === "张桂源" && document.getElementById("chatDetailScreen").style.display !== "none") {
+            renderChatMessages();
+        }
+        renderChatList();
+    }
+
+    function chapter4ShowTyping() {
+        if (currentChatContact !== "张桂源" || document.getElementById("chatDetailScreen").style.display === "none") return;
+        var container = document.getElementById("chatMessages");
+        if (!container || document.getElementById("chapter4ChatTyping")) return;
+        var row = document.createElement("div");
+        row.id = "chapter4ChatTyping";
+        row.className = "message-row";
+        row.innerHTML = '<div class="message-avatar"><img src="zgyweixin.png" style="width:40px;height:40px;border-radius:12px;object-fit:cover;"></div><div class="typing-indicator">对方正在输入...</div>';
+        container.appendChild(row);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function chapter4QueueOtherMessages(items, done) {
+        var data = chatData["张桂源"];
+        var state = data.chapter4StoryChat;
+        state.running = true;
+        var index = 0;
+        function sendNext() {
+            if (index >= items.length) {
+                var last = items.length ? items[items.length - 1] : "";
+                var lastLength = typeof last === "string" ? last.length : 8;
+                setTimeout(function() {
+                    state.running = false;
+                    if (done) done();
+                }, Math.max(1900, Math.min(3300, 1450 + lastLength * 65)));
+                return;
+            }
+            var item = items[index++];
+            chapter4ShowTyping();
+            var length = typeof item === "string" ? item.length : 8;
+            // 每一条回复都单独保留“正在输入中”，短消息也不会瞬间跳过。
+            var delay = Math.max(1550, Math.min(4200, 1200 + length * 85));
+            setTimeout(function() {
+                var typing = document.getElementById("chapter4ChatTyping");
+                if (typing) typing.remove();
+                if (typeof item === "object" && item.image) chapter4AddChatMessage("other", item.image, true);
+                else chapter4AddChatMessage("other", item || "\u200b", false);
+                sendNext();
+            }, delay);
+        }
+        // 最后一条发完后预留阅读时间，再出现玩家选项。
+        sendNext();
+    }
+
+    function chapter4LockChatInput(text) {
+        var input = document.getElementById("chatInputBox");
+        if (!input) return;
+        input.innerText = text || "请点击选项回复";
+        input.style.color = "#999";
+        input.style.cursor = "default";
+        input.contentEditable = "false";
+        input.onclick = function() { alert(text || "请点击选项回复"); };
+        input.onkeydown = null;
+    }
+
+    function chapter4AskReply(options, handler) {
+        chapter4LockChatInput("请点击选项回复");
+        var chatPage = document.getElementById("chatPage");
+        var detail = document.getElementById("chatDetailScreen");
+        if (!chatPage || !chatPage.classList.contains("active") || !detail || detail.style.display === "none") return;
+        var existing = document.querySelector(".option-modal");
+        if (existing) existing.remove();
+        showOptionsModal(options, "选择回复", function(choice) {
+            var messages = document.getElementById("chatMessages");
+            if (messages) messages.style.paddingBottom = "8px";
+            chapter4AddChatMessage("me", options[choice], false);
+            handler(choice);
+        });
+        var modal = document.querySelector(".option-modal");
+        if (modal) {
+            modal.classList.add("chapter4-chat-options");
+            modal.style.maxHeight = "28vh";
+            modal.style.padding = "10px 12px";
+            modal.querySelectorAll(".option-btn").forEach(function(button) {
+                button.style.padding = "9px 11px";
+                button.style.margin = "4px 0";
+                button.style.borderRadius = "12px";
+            });
+            var messages = document.getElementById("chatMessages");
+            if (messages) {
+                messages.style.paddingBottom = Math.min(modal.offsetHeight + 12, 190) + "px";
+                messages.scrollTop = messages.scrollHeight;
+            }
+        }
+    }
+
+    function resumeChapter4StoryChat() {
+        var data = chatData["张桂源"];
+        var state = data && data.chapter4StoryChat;
+        if (!state || !state.active) return;
+        if (state.complete) {
+            chapter4LockChatInput("聊天已完成，请返回剧情页面继续");
+            return;
+        }
+        chapter4LockChatInput(state.running ? "对方正在输入..." : "请点击选项回复");
+        if (state.running) return;
+
+        if (state.stage === "opening") {
+            chapter4QueueOtherMessages([{ image: "sbs.jpg" }, "我也要吃棒棒糖"], function() {
+                state.stage = "surprise";
+                resumeChapter4StoryChat();
+            });
+        } else if (state.stage === "surprise") {
+            chapter4AskReply(["这就是你说的惊喜"], function() {
+                chapter4QueueOtherMessages(["怎么样？"], function() {
+                    state.stage = "rating";
+                    resumeChapter4StoryChat();
+                });
+            });
+        } else if (state.stage === "rating") {
+            chapter4AskReply(["不怎么样", "很帅"], function(choice) {
+                if (choice === 0) {
+                    chapter4QueueOtherMessages(["不怎么样？？", "骗人是小狗", "就只提前给你跳过", "好伤心啊"], function() {
+                        state.stage = "ask_friends";
+                        resumeChapter4StoryChat();
+                    });
+                } else {
+                    chapter4QueueOtherMessages(["我就知道"], function() {
+                        state.stage = "tidy";
+                        resumeChapter4StoryChat();
+                    });
+                }
+            });
+        } else if (state.stage === "ask_friends") {
+            chapter4AskReply(["左奇函他们呢？不是一起训练吗"], function() {
+                chapter4QueueOtherMessages(["我给他们看啥啊", "惩罚你重新评价", "快点"], function() {
+                    state.stage = "compliment";
+                    resumeChapter4StoryChat();
+                });
+            });
+        } else if (state.stage === "compliment") {
+            chapter4AskReply(["好好好你最帅了"], function() {
+                state.stage = "next_show";
+                resumeChapter4StoryChat();
+            });
+        } else if (state.stage === "next_show") {
+            chapter4AskReply(["下次还给我看好不好？"], function() {
+                chapter4QueueOtherMessages(["我可没说下次还给你看"], function() {
+                    state.stage = "threat";
+                    resumeChapter4StoryChat();
+                });
+            });
+        } else if (state.stage === "threat") {
+            chapter4AskReply(["哦那拉黑了", "那以后别打视频了"], function(choice) {
+                var replies = choice === 0 ? ["我错了我错了", { image: "wcl.jpg" }] : ["别啊", "我错了……"];
+                chapter4QueueOtherMessages(replies, function() {
+                    chapter4QueueOtherMessages(["只给你一个人看"], function() {
+                        state.stage = "who";
+                        resumeChapter4StoryChat();
+                    });
+                });
+            });
+        } else if (state.stage === "who") {
+            chapter4AskReply(["给谁？我是谁？"], function() {
+                chapter4QueueOtherMessages(["只给" + (player.nickname || player.name || "你") + "看"], function() {
+                    state.stage = "accept";
+                    resumeChapter4StoryChat();
+                });
+            });
+        } else if (state.stage === "accept") {
+            chapter4AskReply(["这还差不多"], function() { completeChapter4StoryChat(); });
+        } else if (state.stage === "tidy") {
+            chapter4AskReply(["你们跳的还蛮整齐的"], function() {
+                chapter4QueueOtherMessages(["？", "你还看其他人啊", "三心二意"], function() {
+                    state.stage = "confused";
+                    resumeChapter4StoryChat();
+                });
+            });
+        } else if (state.stage === "confused") {
+            chapter4AskReply(["？？"], function() {
+                chapter4QueueOtherMessages(["下次争取一下跳独舞", "我视频都只发给你一个人看的"], function() {
+                    state.stage = "tracking";
+                    resumeChapter4StoryChat();
+                });
+            });
+        } else if (state.stage === "tracking") {
+            chapter4AskReply(["那我在你身上加个自动追踪？"], function() {
+                chapter4QueueOtherMessages(["可以有"], function() { completeChapter4StoryChat(); });
+            });
+        }
+    }
+
+    function completeChapter4StoryChat() {
+        var state = chatData["张桂源"].chapter4StoryChat;
+        state.complete = true;
+        state.stage = "complete";
+        state.running = false;
+        chapter4ChatComplete = true;
+        chapter4LockChatInput("聊天已完成，请返回剧情页面继续");
+        updateChapter4Hint();
+        showMessageNotification(
+            "第四章剧情", "<div style='font-size:34px'>📖</div>", "第四章剧情",
+            "聊天完成，返回剧情页面继续",
+            function() { switchPage("story"); }
+        );
+    }
+
     function hideChapter4Story() {
         clearInterval(chapter4TypingTimer);
         chapter4TypingTimer = null;
         var overlay = document.getElementById("chapter4StoryOverlay");
         if (overlay) overlay.remove();
+        document.querySelectorAll(".chapter4-story-choice-panel").forEach(function(panel) { panel.remove(); });
+    }
+
+    function suspendChapter4Story() {
+        clearInterval(chapter4TypingTimer);
+        chapter4TypingTimer = null;
+        if (chapter4TypingPos < chapter4TypingText.length) {
+            chapter4TypingPos = chapter4TypingText.length;
+            var textElement = document.getElementById("chapter4Text");
+            if (textElement) textElement.textContent = chapter4TypingText;
+            updateChapter4Hint();
+            onChapter4PageFullyShown();
+        }
+        var overlay = document.getElementById("chapter4StoryOverlay");
+        if (overlay) overlay.style.display = "none";
+        document.querySelectorAll(".chapter4-story-choice-panel").forEach(function(panel) { panel.remove(); });
+        if (chapter4Scene === 3 || chapter4Scene === 5) chapter4StoryChoiceShown = false;
+    }
+
+    function restoreChapter4Story() {
+        var overlay = document.getElementById("chapter4StoryOverlay");
+        if (overlay) {
+            overlay.style.display = "block";
+            document.getElementById("chapterSelectPage").style.display = "none";
+            document.getElementById("storyDetailPage").style.display = "block";
+            updateChapter4Hint();
+            if (chapter4Scene === 3 && chapter4PageIndex === chapter4Pages.length - 1) {
+                setTimeout(showChapter4StoryChoice, 100);
+            } else if (chapter4Scene === 5 && chapter4PageIndex === chapter4Pages.length - 1) {
+                setTimeout(showChapter4CompensationChoice, 100);
+            }
+        }
     }
 
     function closeChapter4Story() {
+        chapter4SessionActive = false;
         hideChapter4Story();
         document.getElementById("storyDetailPage").style.display = "none";
         document.getElementById("chapterSelectPage").style.display = "block";
@@ -12149,7 +12814,12 @@ W看了你一会儿，没有追问，只伸手轻轻捏了一下你的脸。
     // ================= 页面切换 =================
 function switchPage(pageId) {
     console.log('switchPage 被调用:', pageId);
-    hideChapter4Story();
+    if (chapter4SessionActive) {
+        if (pageId === "story") restoreChapter4Story();
+        else suspendChapter4Story();
+    } else {
+        hideChapter4Story();
+    }
     
     // 切换页面时关闭选项弹窗
     if (typeof closeOptionModal === 'function') {
@@ -12221,10 +12891,11 @@ function switchPage(pageId) {
         var chapterSelect = document.getElementById('chapterSelectPage');
         var storyDetail = document.getElementById('storyDetailPage');
         var storyMap = document.getElementById('storyMapPage');
-        if (chapterSelect) chapterSelect.style.display = 'block';
-        if (storyDetail) storyDetail.style.display = 'none';
+        if (chapterSelect) chapterSelect.style.display = chapter4SessionActive ? 'none' : 'block';
+        if (storyDetail) storyDetail.style.display = chapter4SessionActive ? 'block' : 'none';
         if (storyMap) storyMap.style.display = 'none';
         if (typeof renderChapterList === 'function') renderChapterList();
+        if (chapter4SessionActive) restoreChapter4Story();
     }
     if (pageId === 'publishMoment') {
     openPublishMomentPage();
