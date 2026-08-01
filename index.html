@@ -1001,6 +1001,7 @@
             <button class="password-action-btn" id="passwordGateDelete" type="button">删除</button>
         </div>
         <button id="passwordGateSubmit" type="button">确认进入</button>
+        <div style="margin-top:8px;color:#8f2635;font-size:12px;font-weight:700;text-align:center;line-height:1.5;">拿我链接盈利的人你活不到过年</div>
         <div id="passwordGateStatus" aria-live="polite"></div>
         <div class="password-gate-notice">
             <div>本模拟器不盈利，请注意识别，不要通过骗子手中买入</div>
@@ -1017,11 +1018,10 @@
         '102f03b789ce9bb0af04f157307422ff42f5cc213a0a909f08780f8e4771d77d',
         '466b98e746b0c7ea2df48cfdff86d0ae9fc4059acd5783daa2374b69cef2ee58',
         'a1334ab1a3cb67a61e70cc9abb0179610b00f4b4d62b036bc5db329743abd798',
-        '3cd083b63910d4b61e9352aa9abde97a881c7b70462de305dd8081731b72778a',
         'e3a35df9e70d385835d48e63f2524499a1cd28836180adbdf584832189474347',
         'acd19eb85be70f497a636a3c8abe8ff95a99712b6776d04f5c4d44892e185683'
     ];
-    var fallbackPasswordHashes = [3941789459, 2285117425, 543908666, 224072432, 2380737071, 3244371534];
+    var fallbackPasswordHashes = [3941789459, 2285117425, 543908666, 2380737071, 3244371534];
 
     function setPasswordValue(value) {
         passwordInput.value = value.replace(/\D/g, '').slice(0, 6);
@@ -10334,7 +10334,7 @@ function initMomentsData() {
         "重庆的夏天永远不会结束",
         "他和他的朋友",
         "第三章（预留）",
-        "第四章（预留）"
+        "运动会前夕"
     ];
 
     var html = "";
@@ -10359,6 +10359,11 @@ for (var i = 0; i < totalChapters; i++) {
             isLocked = false;
             unlockedChapters[2] = true;
         }
+        // 第四章无需前置条件，默认解锁
+        if (i === 3) {
+            isLocked = false;
+            unlockedChapters[3] = true;
+        }
     }
 
     if (isLocked) {
@@ -10382,7 +10387,7 @@ for (var i = 0; i < totalChapters; i++) {
             <div class="chapter-card ${isLocked ? 'locked' : ''}" data-index="${i}" ${isLocked ? 'style="cursor:not-allowed;"' : ''}>
                 <div>
                     <div class="chapter-title-text">第${i+1}章 · ${chapterNames[i]}</div>
-                    <div class="chapter-sub">${i === 0 ? '2022年 重庆' : i === 1 ? '2023年 重庆' : '（预留）'}</div>
+                    <div class="chapter-sub">${i === 0 ? '2022年 重庆' : i === 1 ? '2023年 重庆' : i === 3 ? '2023年 重庆' : '（预留）'}</div>
                     ${extraHint}
                 </div>
                 <div class="chapter-status ${statusClass}">${statusText}</div>
@@ -10406,6 +10411,12 @@ for (var i = 0; i < totalChapters; i++) {
     viewingChapter = index;
     document.getElementById("chapterSelectPage").style.display = "none";
     document.getElementById("storyDetailPage").style.display = "block";
+
+    // ========== 第四章 ==========
+    if (index === 3) {
+        openChapter4Story();
+        return;
+    }
 
     // ========== 第二章 ==========
 if (index === 1) {
@@ -11664,9 +11675,481 @@ setTimeout(() => {
     backToChapterList();
     }
     
+    // ================= 第四章剧情 =================
+    var chapter4PageIndex = 0;
+    var chapter4Pages = [];
+    var chapter4Scene = 1;
+    var chapter4TypingTimer = null;
+    var chapter4TypingText = "";
+    var chapter4TypingPos = 0;
+    var chapter4Transitioning = false;
+
+    function getChapter4Paragraphs() {
+        return `自从那场狼人杀结束以后，你和张桂源之间，好像有什么东西悄悄变得不太一样了。
+张桂源出现在手机里的次数，不知道从什么时候起，已经变得越来越频繁了。
+有时是你晚上九点多放学回家的路上，或者是你洗完澡，坐到书桌前准备写作业
+大多数时候，视频接通以后，你看到的都不是他一个人，而是一整间吵吵闹闹的练习室。
+某天晚上，张桂源刚把视频打过来，镜头里便忽然闯进了两道纠缠在一起的身影
+陈奕恒不知道怎么惹到了左奇函，被他从背后勾住肩膀，两个人以扭打的方式冲进训练室，一路从镜子旁边闹到地板上
+陈奕恒嘴里还在含糊不清地嚷着什么，左奇函却笑得一脸从容，顺势将他按在了身下。
+“来啊起来继续。”
+“刚刚不是挺能打的吗？”
+陈奕恒被压的双脚扑腾
+“我这样%￥#%怎么用力？”
+旁边的杨博文不知道从哪里拿来一只水瓶，一本正经地替两个人讲解
+“现在我们看到的是，陈奕恒选手正在尝试翻身”
+陈奕恒撑着地面挣扎了一下
+“oh陈奕恒以每秒1米的速度起来了，真是太棒了”
+杨博文继续说道：“很遗憾的第一次尝试失败，陈奕恒选手加油啊”
+左奇函低着头笑起来。
+“杨博文！！！”陈奕恒艰难地偏过脸，“help me。”
+“我不参与”杨博文语气平静，“陈奕恒选手请不要贿赂导播”
+张桂源坐在手机前，很认真地对你说：“你看吧，还是我比较成熟”
+你还没来得及说话，被压在地上的陈奕恒忽然停止挣扎，口齿不清地开口：“诶！！那！！拍视频啊有人”
+左奇函顺着他的目光回过头，下一秒，两个人像是突然找到了共同目标，左奇函松开手，陈奕恒也立刻从地上爬起来，一前一后朝镜头冲了过来。
+“张桂源，你在拍什么？”
+“给我看看。”
+张桂源脸上那点“成熟稳重”瞬间消失，抓起手机就要往后躲。
+“没拍什么。”
+“没拍什么你躲什么？”
+画面很快乱成一团。你只看见左奇函的手从镜头前晃过，紧接着是陈奕恒放大的半张脸，张桂源在旁边喊了一句“莫动我手机啊”，手机便不知道被谁碰翻在了地上。
+手机朝下，只剩一片黑暗，吵闹声持续了好一会儿
+“你还成熟吗？”你隔着屏幕问
+没有人回答
+大概过了半分钟，陈浚铭从旁边走过来，弯腰将倒在地上的手机捡起
+“你们手机都不要了？”
+他说着，顺手把镜头转向自己，直到你的脸重新出现在屏幕上，他才明显愣了一下。
+“诶？”
+他朝镜头凑近了一点，像是确认了两秒：“姐姐好啊”
+随后抬起头，冲着还在打闹的几个人喊道：
+“张桂源，你在跟姐姐打视频啊？”
+练习室里短暂地安静了一瞬。
+张桂源几乎立刻回过头，大步走来把手机从陈浚铭手里夺了回去。
+“还给我啊”
+陈浚铭已经笑了起来。
+“我又没干什么”
+“你不要乱碰”
+“我就帮你捡一”
+你还没听完，视频就被挂断了
+可没过多久，你又在另一次视频里亲眼看见，这个自称成熟的人蹲在练习室的角落，神神秘秘地从身后拿出了一个好丽友派。
+“我给你看个好东西。”
+他将手机靠在水瓶旁，后面摸出一个好丽友派
+他捧在手心里向你展示，脸上带着一种觅食成功的得意。
+“厉害吧我刚刚发现的。”
+“谁的？”
+“不知道。”张桂源回答得理直气壮，“放在化妆室又没写名字”
+“那你还吃？”
+“应该没人要了”
+他说着，已经低头撕开包装。巧克力味的派刚咬了一口，练习室的门便从外面被推开。
+陈思罕和陈浚铭一前一后走了进来。
+两个人显然刚上完课，气喘吁吁的进来，陈思罕第一眼便看见张桂源手里的东西，脚步立刻停了。
+“你吃什么？”
+张桂源下意识把好丽友派往身后藏，陈浚铭已经走到他旁边蹲下来。
+“给我看看”
+“没有”
+“我都看见了”
+“就一个”
+“一个也可以分”
+张桂源还没来得及拒绝，陈思罕已经在另一边坐下，伸手掰走了一小块。陈浚铭紧跟着也分走一点，原本就不大的好丽友派在三个人手里转了一圈，最后只给张桂源剩下不到一半。
+他低头看着手里那点可怜的残骸，明显有些不满。
+“不是，这是我找到的”
+三个人正小声争论，门外忽然传来脚步声。
+左奇函和王橹杰一边说话，一边从走廊走进来。
+“我明明放在衣服后面了”左奇函的声音先传进来，
+王橹杰跟在旁边，神情淡淡的。
+“我不行了吧肯定早就被瓜分了”
+左奇函走进来以后，看了看坐在地上的三个人，又看了看他们手里还没来得及藏起来的包装袋。
+沉默了两秒
+“好吃吗？”
+陈思罕反应最快，立刻伸手指向张桂源。
+“他拿的”
+陈浚铭也跟着点头：“张桂源先吃的”
+“又是我吃的了？？”张桂源不可置信地看着他们，“你们两个刚才没吃？”
+“吃了”陈浚铭承认得很坦然，“但是是你拿的”
+王橹杰站在旁边看了一会儿：“这次竟然不是陈浚铭拿的吗”
+左奇函朝三个人走过去。
+张桂源见情况不对，立刻拿起手机从地上站起来。画面随着他的动作剧烈晃动，你只来得及看见左奇函笑着伸手去抓他，视频便被匆匆挂断了。
+他真正回到学校的次数明明越来越少，可你却通过这些凌乱的、没有什么重要意义的视频，越来越熟悉他不在学校时的生活，熟悉练习室镜子反射出的灯光，熟悉那群少年吵闹时彼此叠在一起的声音。
+好像无论新认识了多少人，他总能记得，手机的另一边还有一个你。
+只是他在手机里出现得越来越频繁，学校里的位置却空得越来越久。
+最开始，他每天还会抽空回来上半天课；后来变成两三天一次，再后来，连他自己也说不清下一次究竟是什么时候。
+自从那场狼人杀结束，你已经整整一个星期没有见过他。
+下周就是运动会。
+班里的女子八百米始终凑不齐人数，班主任最后干脆让体育委员抽签，你原本以为自己不会那么倒霉，直到“八百米”三个字在你手中的纸条中出现
+你盯着看了好一会儿，心情一点一点低落下去。
+直到周日下午，他忽然打来视频。
+画面接通以后，张桂源没有像往常一样待在吵闹的练习室里，而是站在公司的楼道中。身后的安全门关得严严实实，他说话的声音也压得很低，隔一会儿便要回头看一眼，像是在防着谁突然出来。
+你看着他鬼鬼祟祟的模样，有些奇怪。
+“你怎么跑楼道里来了？”
+“里面不方便”
+“有什么不方便的？”
+张桂源没有回答，只是低头笑了一下。
+“明天是不是运动会？”
+你愣了一下。
+“怎么了”
+“你会回来吗？”
+“你猜”
+张桂源盯着你，眼睛亮亮的。
+“明天给你一个惊喜，开幕式的时候往前坐点”`.split("\n").filter(function(line) { return line.trim(); });
+    }
+
+    function getChapter4Scene2Paragraphs() {
+        return `运动会那天，学校从一大早就没有安静过。
+你刚走进校门，便看见教学楼前挂起了新做的横幅。两侧的树上系着彩旗，风一吹，红的、黄的、蓝的布料便在晨光里哗啦啦地响。操场入口被来来往往的学生堵得严严实实，有人抱着整箱矿泉水，有人扛着班牌，还有几个男生一人抓着一条桌腿，从人群里横冲直撞地抬过去，险些把旁边同学手里的零食撞翻。
+主席台上的音响已经开始试音。
+老师拿着话筒说了几声“喂”，巨大的回声从操场这一头荡到另一头，又和各班的说笑声混在一起。
+广播站的学生抱着一大摞加油稿来回跑，运动员们围在体育委员身边核对自己的项目，平时一到早读就趴在桌上补觉的人，今天也精神得不得了，隔着大半个操场喊同学的名字。
+每个人似乎都有事情做。
+有人在讨论班服，有人在分零食，有人已经提前约好了上午去看谁跑一百米，下午又要去哪个场地看球赛。
+整个学校都因为这场运动会醒得比平时更早，也比平时更热闹。
+可你走进操场以后，第一件事却不是去找自己班的位置。
+你站在人群边上，目光越过一块块高高举起的班牌，先看向主席台旁边临时搭出的候场区，又望向教学楼通往操场的那条路。
+到处都是人。
+就是没有张桂源。
+你跟着班里的队伍向前走了几步，仍旧忍不住回头。
+有时操场入口处刚好出现一道身形相似的身影，你的目光便会下意识停在那里。等那人走近，发现只是别班的学生，又若无其事地将视线移开。
+身边的同学正兴奋地商量着等会儿要拍多少照片，你一句也没有听清。
+昨天晚上，张桂源还笑着让你早点到，说要给你一个惊喜。
+他说得那么笃定，害得你从昨晚开始便忍不住去猜。
+可现在，开幕式都快开始了，他还是没有出现。
+其实他也没说惊喜一定是他本人。
+或许只是准备发给你一段视频，或许又是从练习室里找到了什么奇怪的东西，觉得你一定会喜欢。
+可你还是在这样热闹的早晨里，一遍又一遍地寻找他。
+仿佛周围所有喧闹都只是背景。
+你真正想看见的，从始至终只有一个人。
+“喂。”
+肩膀忽然被人从后面轻轻拍了一下。
+你转过身，看见W从两个班的队伍中间绕了过来。她手里捏着两根棒棒糖，一根已经拆开含在嘴里，另一根直接递到了你面前。
+“给你。”
+你接过那根葡萄味的棒棒糖。
+“你怎么过来了？”
+“我们班还乱着呢，少我一个也看不出来。”
+她说着站到你身边，顺着你的目光往操场入口看了一眼。
+只看了两秒，她便明白过来，声音也随之压低。
+“张呢？”
+你轻轻摇头。
+“不知道。”
+“他今天不来？”
+“我也不知道。”
+W转头看你：“你没问他？”
+“他昨天只说让我早点到，说有惊喜。”
+你顿了一下，又补充道：“但他没说是什么。”
+W含着糖，若有所思地“哦”了一声。
+“那他应该会来吧。”
+“为什么？”
+“不来还让你早点到干什么，总不能准备一大早给你发个表情包吧。”
+你被她说得有些想笑，却仍旧故意道：“他又不是做不出来这种事。”
+“也是。”
+W赞同地点点头，又朝操场周围看了一圈，确定没有找到张桂源以后，才把话题转到下午的比赛上。
+“你八百米别紧张。”
+她轻轻碰了一下你的胳膊。
+“到时候我陪你去检录，跑之前也陪着你。你跑你的，实在跑不动就慢慢来，反正我在终点等你。”
+你低头拆开棒棒糖的包装，小声说：“我肯定最后一名。”
+“最后一名怎么了？”
+W说得理所当然。
+“总有人要最后一名，凭什么不能是你。”
+你抬眼看她。
+“你这是在安慰我吗？”
+“是啊。”她忍着笑，“是不是特别有效？”
+你无语地把她往旁边推了一下。
+W笑着躲开，随后像是忽然想到什么，朝刚才你一直寻找的方向扬了扬下巴。
+“而且就算张桂源真来了，他也没什么用。”
+“为什么？”
+“他又不能陪你一起跑。”
+她说完，故意露出几分嫌弃。
+“八百米这种时候，还是得靠我。张桂源最多站在旁边给你喊两句，喊得还不一定有我大声。”
+你捏着刚拆开的糖纸，安静了一下。
+“我没跟他说。”
+W脸上的笑微微停住。
+“什么？”
+“八百米。”
+你将棒棒糖放进嘴里，含糊地重复：“我没告诉他我要跑。”
+“为什么不说？”
+“又不是什么大事。”
+你低着头，把皱起来的糖纸一点点抚平。
+其实你也说不清为什么没有告诉他。
+也许是觉得他每天练习已经够累了，没必要再听你为一次运动会抱怨；也许是害怕自己表现得太差，被他看见会觉得丢脸；又或许，只是因为你们最近明明每天都在说话，你却仍旧不知道，该用怎样的语气告诉他——
+我下午要跑八百米。
+我有一点害怕。
+你能不能来看看我。
+这些话太像是在期待什么。
+所以你什么都没有说。
+W看了你一会儿，没有追问，只伸手轻轻捏了一下你的脸。
+“行吧，没说就没说。”
+“反正我知道。”
+她说。
+“我陪你。”
+不远处传来班主任催集合的声音。W回头应了一声，又匆匆朝你摆手。
+“我先回去了，开幕式结束再找你。”
+她跑回自己班时，广播里恰好响起了集合通知。
+散落在操场四周的学生纷纷归队，一块块班牌重新被高高举起。你跟着人群站进十一班的方阵，周围的说话声渐渐低下去，却并没有彻底安静。
+阳光越过教学楼，落在鲜红的塑胶跑道上。
+升旗，奏国歌，校长致辞，运动员代表宣誓。
+开幕式按部就班地进行。
+台上的人认真念着稿子，台下却总有人趁老师不注意悄悄说话。前排有人被太阳晃得眯起眼睛，后排的男生借着蹲下来系鞋带的机会，和旁边的人笑成一团。
+你站在人群里，手中的棒棒糖已经只剩下一根白色塑料杆。
+张桂源仍旧没有出现。
+你渐渐开始觉得，或许真的是自己想多了。
+直到主持人的声音重新从音响里传出来。
+“接下来，请欣赏本届运动会开幕式的第一个节目。”
+原本有些松散的队伍稍稍安静下来。
+“由我校舞蹈团带来舞蹈表演——”
+音乐名称从广播中报出的一瞬间，你怔了一下。
+这个名字，你听过很多次。
+过去的这段时间里，张桂源隔三岔五便会把手机架在练习室的水瓶旁，给你看这支舞的新进度。有时只跳其中十几秒，有时从头到尾走一遍，跳完以后坐在地上喘气，还不忘追着问你刚才哪个动作最好看。
+你看过他反复练习同一个转身。
+看过他因为一处节拍没踩准，皱着眉重新放音乐。
+也看过他练到额前的头发全被汗水打湿，仍旧不肯承认自己累，硬要再来一遍。
+你原以为那只是公司最近安排给他的练习。
+直到现在才明白，原来他说的惊喜，早就藏在那些视频里。
+舞蹈团的成员从主席台侧面依次走了出来。
+统一的白衬衫，黑色长裤，干净得没有太多舞台装饰。没有夸张的妆容，也没有刺眼的灯光，只有清晨落在操场上的阳光，和一群站在台上的少年少女。
+张桂源站在队伍最前面。
+领舞的位置。
+你几乎一眼便看见了他。
+他的白衬衫袖口挽到手肘，露出清瘦的小臂。头发没有做复杂的造型，只是柔软地落在额前，脸上也没有化妆，连眉眼间那一点少年人的青涩都看得清清楚楚。
+他站在那里，不像视频中已经开始被许多人认识的练习生。
+更像十一班一个很久没有回学校的普通男生。
+只是恰好会跳舞。
+又恰好站在所有人目光汇聚的地方。
+周围很快传来窃窃私语。
+“领舞那个是不是十一班的？”
+“好像是，叫张桂源。”
+“就是那个练习生吧？”
+“对，我刷到过他。”
+“他平时是不是都不来学校了？”
+“白衬衫那个吗？本人还挺帅的。”
+你没有接话。
+音乐响起以后，张桂源脸上原本残留的那点羞涩很快消失了。
+第一个动作，你就认了出来。
+是他之前在视频里练过很多遍的开场。
+手臂抬起的角度，向后踩出的那一步，还有转身时短暂停留的节拍，都与你隔着屏幕看见过的一模一样。可又好像完全不同。
+视频里的他，总是在动作结束以后立刻跑到镜头前，弯下腰看你有没有说话。
+而现在，他站在舞蹈团的最前方，带着身后所有人的动作向前。白衬衫的衣摆随着转身扬起，阳光落在他的侧脸上，额前的碎发被风吹得轻轻晃动。
+你甚至记得其中某个动作，他曾经练错过很多次。
+那天他不服气，一连跳了五遍，直到你说最后一次已经很好了，才终于肯停下来。
+现在，那段动作干净地落在音乐里。
+没有迟疑，也没有错误。
+身后有人低声惊叹了一句。
+“领舞跳得好好。”
+你望着台上的他，心里忽然生出一种很奇怪的感觉。
+像是你偷偷看过一颗星星还没有升起来时的模样。
+你知道他是怎样一次次练习，怎样满头大汗地坐在地上，怎样因为你一句夸奖就忍不住笑起来。
+可如今，周围所有人都在看他。
+他们只会看见这支已经完成的舞。
+只有你知道，这些看起来轻松又漂亮的动作背后，藏着多少个深夜。
+音乐走到最后。
+张桂源站在队伍最前方，随着最后一个节拍定住动作。短暂的安静过后，掌声和欢呼声同时响起。
+舞蹈团的成员并排站好，一起朝台下鞠躬。
+他起身时，视线下意识扫过十一班的方向。
+操场上站着那么多人，你不知道他究竟能不能找到自己。
+可下一秒，他的目光似乎停顿了一瞬。
+很短。
+短到你甚至来不及确认，他便已经跟着其他人转身离场。
+可你还是忽然弯起了嘴角。
+他说的惊喜，原来不是一句随口的玩笑。
+他真的来了。
+开幕式结束以后，各班依次退到操场旁划分好的休息区域。整齐的方阵很快散开，周围重新变得嘈杂起来。有人抱着水往比赛场地跑，有人迫不及待地讨论刚才的节目，还有几个女生一边往回走，一边打听张桂源究竟在哪个班。
+你跟着同学回到十一班的位置。
+没过多久，身后便传来一阵热闹的声音。
+“张桂源回来了。”
+“刚才跳得可以啊。”
+“你今天还走不走？”
+你忍不住回过头。
+张桂源已经换上了校服外套，里面仍旧是刚才表演时穿的白衬衫。他被几个男生围着，脸上带着刚运动完的薄红，一边笑着回应他们，一边走向自己原来的位置。
+没有特意靠近你。
+也没有在这么多人面前表现出任何不同。
+他只是回到那张空了一个星期的椅子上坐下，接过同桌递来的水，低头拧开瓶盖。
+你们之间隔着几排同学。
+他仰头喝了两口水，放下瓶子时，才像是不经意般朝你的方向看过来。
+目光相撞的那一刻，他的眼睛很轻地弯了一下。
+随后立刻移开。
+几秒后，你放在手里的手机震动起来。`.split("\n").filter(function(line) { return line.trim(); });
+    }
+
+    function buildChapter4Pages() {
+        var story = getChapter4Paragraphs().join("\n");
+        var pages = [];
+        var cursor = 0;
+        var punctuation = /[。！？？””\n]/;
+        while (story.length - cursor > 92) {
+            var idealEnd = cursor + 82;
+            var end = idealEnd;
+            for (var i = idealEnd; i >= cursor + 64; i--) {
+                if (punctuation.test(story.charAt(i - 1))) {
+                    end = i;
+                    break;
+                }
+            }
+            pages.push(story.slice(cursor, end).trim());
+            cursor = end;
+        }
+        var tail = story.slice(cursor).trim();
+        if (tail) pages.push(tail);
+        // 尾页过短时重新均分最后两页，避免只剩一两行。
+        if (pages.length > 1 && pages[pages.length - 1].length < 58) {
+            var combined = pages.splice(pages.length - 2, 2).join("\n");
+            var middle = Math.ceil(combined.length / 2);
+            var split = middle;
+            for (var j = middle; j >= middle - 12; j--) {
+                if (punctuation.test(combined.charAt(j - 1))) {
+                    split = j;
+                    break;
+                }
+            }
+            pages.push(combined.slice(0, split).trim(), combined.slice(split).trim());
+        }
+        return pages;
+    }
+
+    function buildChapter4Scene2Pages() {
+        var paragraphs = getChapter4Scene2Paragraphs();
+        var pages = [];
+        var current = [];
+        var count = 0;
+        paragraphs.forEach(function(paragraph) {
+            var addition = paragraph.length + (current.length ? 1 : 0);
+            // 保持每个完整段落（尤其是单句对白）在同一页，不从句子中间切断。
+            if (current.length && count + addition > 92) {
+                pages.push(current.join("\n"));
+                current = [];
+                count = 0;
+            }
+            current.push(paragraph);
+            count += paragraph.length + (current.length > 1 ? 1 : 0);
+            if (count >= 72) {
+                pages.push(current.join("\n"));
+                current = [];
+                count = 0;
+            }
+        });
+        if (current.length) pages.push(current.join("\n"));
+        return pages;
+    }
+
+    function openChapter4Story() {
+        hideChapter4Story();
+        chapter4Pages = buildChapter4Pages();
+        chapter4PageIndex = 0;
+        chapter4Scene = 1;
+        chapter4Transitioning = false;
+        var overlay = document.createElement("div");
+        overlay.id = "chapter4StoryOverlay";
+        overlay.innerHTML = `
+            <button id="chapter4BackBtn" aria-label="返回章节列表">←</button>
+            <div id="chapter4TextBox">
+                <div id="chapter4Text"></div>
+                <div id="chapter4Continue">点击继续</div>
+            </div>`;
+        document.getElementById("gameScreen").appendChild(overlay);
+
+        if (!document.getElementById("chapter4StoryStyle")) {
+            var style = document.createElement("style");
+            style.id = "chapter4StoryStyle";
+            style.textContent = `
+                #chapter4StoryOverlay{position:fixed;top:0;bottom:70px;left:50%;transform:translateX(-50%);width:100%;max-width:500px;z-index:90;background:linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.16)),url('lxs.jpg') center/cover no-repeat;overflow:hidden}
+                #chapter4BackBtn{position:absolute;top:max(18px,env(safe-area-inset-top));left:18px;width:42px;height:42px;border:0;border-radius:50%;background:rgba(0,0,0,.58);color:#fff;font-size:25px;line-height:42px;z-index:2;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+                #chapter4TextBox{position:absolute;left:14px;right:14px;bottom:14px;min-height:150px;padding:22px 22px 30px;border:1px solid rgba(255,255,255,.24);border-radius:10px;background:rgba(5,5,8,.84);box-shadow:0 8px 28px rgba(0,0,0,.42);color:#fff;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+                #chapter4Text{font-size:15px;line-height:1.85;white-space:pre-wrap;text-align:left;text-shadow:0 1px 2px #000}
+                #chapter4Continue{position:absolute;right:18px;bottom:9px;color:rgba(255,255,255,.62);font-size:11px;letter-spacing:1px;animation:chapter4Hint 1.4s ease-in-out infinite}
+                #chapter4SceneCurtain{position:absolute;inset:0;background:#000;z-index:8;transform:translateX(100%);pointer-events:none}
+                #chapter4SceneCurtain.play{animation:chapter4CurtainLeft 1.35s cubic-bezier(.65,0,.35,1) forwards}
+                @keyframes chapter4Hint{0%,100%{opacity:.35}50%{opacity:1}}
+                @keyframes chapter4CurtainLeft{0%{transform:translateX(100%)}43%,57%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+                @media(max-width:380px){#chapter4TextBox{left:10px;right:10px;bottom:10px;padding:18px 18px 27px;min-height:142px}#chapter4Text{font-size:14px;line-height:1.75}}
+            `;
+            document.head.appendChild(style);
+        }
+        document.getElementById("chapter4BackBtn").addEventListener("click", function(event) {
+            event.stopPropagation();
+            closeChapter4Story();
+        });
+        document.getElementById("chapter4TextBox").addEventListener("click", advanceChapter4Story);
+        showChapter4Page(0);
+    }
+
+    function showChapter4Page(index) {
+        clearInterval(chapter4TypingTimer);
+        chapter4TypingTimer = null;
+        chapter4TypingText = chapter4Pages[index] || "";
+        chapter4TypingPos = 0;
+        var textElement = document.getElementById("chapter4Text");
+        var hint = document.getElementById("chapter4Continue");
+        if (!textElement) return;
+        textElement.textContent = "";
+        hint.textContent = "点击显示全文";
+        chapter4TypingTimer = setInterval(function() {
+            chapter4TypingPos++;
+            textElement.textContent = chapter4TypingText.slice(0, chapter4TypingPos);
+            if (chapter4TypingPos >= chapter4TypingText.length) {
+                clearInterval(chapter4TypingTimer);
+                chapter4TypingTimer = null;
+                hint.textContent = index === chapter4Pages.length - 1 ? (chapter4Scene === 1 ? "点击进入下一幕" : "本段剧情结束") : "点击继续";
+            }
+        }, 34);
+    }
+
+    function advanceChapter4Story() {
+        if (chapter4Transitioning) return;
+        var textElement = document.getElementById("chapter4Text");
+        var hint = document.getElementById("chapter4Continue");
+        if (chapter4TypingTimer) {
+            clearInterval(chapter4TypingTimer);
+            chapter4TypingTimer = null;
+            chapter4TypingPos = chapter4TypingText.length;
+            textElement.textContent = chapter4TypingText;
+            hint.textContent = chapter4PageIndex === chapter4Pages.length - 1 ? (chapter4Scene === 1 ? "点击进入下一幕" : "本段剧情结束") : "点击继续";
+            return;
+        }
+        if (chapter4PageIndex < chapter4Pages.length - 1) {
+            chapter4PageIndex++;
+            showChapter4Page(chapter4PageIndex);
+        } else if (chapter4Scene === 1) {
+            transitionChapter4ToScene2();
+        }
+    }
+
+    function transitionChapter4ToScene2() {
+        var overlay = document.getElementById("chapter4StoryOverlay");
+        if (!overlay || chapter4Transitioning) return;
+        chapter4Transitioning = true;
+        var curtain = document.createElement("div");
+        curtain.id = "chapter4SceneCurtain";
+        overlay.appendChild(curtain);
+        requestAnimationFrame(function() { curtain.classList.add("play"); });
+
+        setTimeout(function() {
+            overlay.style.backgroundImage = "linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.16)),url('cc.jpg')";
+            chapter4Scene = 2;
+            chapter4Pages = buildChapter4Scene2Pages();
+            chapter4PageIndex = 0;
+            showChapter4Page(0);
+        }, 675);
+
+        setTimeout(function() {
+            curtain.remove();
+            chapter4Transitioning = false;
+        }, 1400);
+    }
+
+    function hideChapter4Story() {
+        clearInterval(chapter4TypingTimer);
+        chapter4TypingTimer = null;
+        var overlay = document.getElementById("chapter4StoryOverlay");
+        if (overlay) overlay.remove();
+    }
+
+    function closeChapter4Story() {
+        hideChapter4Story();
+        document.getElementById("storyDetailPage").style.display = "none";
+        document.getElementById("chapterSelectPage").style.display = "block";
+        renderChapterList();
+    }
+
     // ================= 页面切换 =================
 function switchPage(pageId) {
     console.log('switchPage 被调用:', pageId);
+    hideChapter4Story();
     
     // 切换页面时关闭选项弹窗
     if (typeof closeOptionModal === 'function') {
