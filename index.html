@@ -1144,7 +1144,7 @@
 
    <div id="gameScreen">
     <div class="bottom-nav">
-        <button class="nav-item" data-nav="story">📖<span>日程</span></button>
+        <button class="nav-item" data-nav="story">📖<span>剧情</span></button>
         <button class="nav-item" data-nav="chat">💬<span>微信</span></button>
         <button class="nav-item" data-nav="moments">🌄<span>朋友圈</span></button>
         <button class="nav-item" data-nav="weibo">🐦<span>微博</span></button>
@@ -4576,6 +4576,9 @@ function renderChatList() {
     var container = document.getElementById("chatList");
     if (!container) return;
     ensureEnding2SocialUpdates();
+    if (localStorage.getItem("chapter4_forced_contacts_deleted") === "true") {
+        chapter4EnforceForcedContactDeletion();
+    }
 
     var html = "";
     for (var i = 0; i < friends.length; i++) {
@@ -4714,6 +4717,11 @@ function renderChatList() {
     var chenYihengRow = container.querySelector('.chat-contact[data-contact="陈奕恒"]');
     if (groupChatRow && chenYihengRow) {
         container.insertBefore(groupChatRow, chenYihengRow);
+    }
+    // 第四章群聊固定紧跟在狼人杀群聊下方。
+    var chapter4GroupRow = container.querySelector('.chat-contact[data-contact="everybody 棒棒"]');
+    if (groupChatRow && chapter4GroupRow) {
+        container.insertBefore(chapter4GroupRow, groupChatRow.nextSibling);
     }
 
     document.querySelectorAll(".chat-contact").forEach(function(el) {
@@ -10366,8 +10374,8 @@ function initMomentsData() {
     const chapterNames = [
         "重庆的夏天永远不会结束",
         "他和他的朋友",
-        "第三章（预留）",
-        "原来不只你一个人脸红"
+        "恋人体验卡",
+        "升温"
     ];
 
     var html = "";
@@ -10474,7 +10482,7 @@ if (index === 1) {
 
    // ========== 第三章 ==========
 if (index === 2) {
-    document.getElementById("chapterTitle").innerText = "第3章 · 狼人杀之夜";
+    document.getElementById("chapterTitle").innerText = "第3章 · 恋人体验卡";
     
     // 直接触发弹窗和消息
     triggerChapter3Message();
@@ -12263,6 +12271,7 @@ b“因为我……”
 好在同学并没有注意你们，只是自己低头往前面走
 你松了一口气，回头看了一下
 张桂源一手撑着下巴，往窗外看去
+尽管他的手遮住了大半张脸，可是红红的耳尖还是出卖了他
 原来脸红的不只是你啊
 第三章结束`.split("\n").filter(function(line) { return line.trim(); });
     }
@@ -12283,6 +12292,7 @@ b“不想要这个吗？那你想要什么？”
 好在同学并没有注意你们，只是自己低头往前面走
 你回头看了一下
 张桂源一手撑着下巴，往窗外看去
+尽管他的手遮住了大半张脸，可是红红的耳尖还是出卖了他
 原来脸红的不只是你啊
 第三章结束`.split("\n").filter(function(line) { return line.trim(); });
     }
@@ -12318,6 +12328,26 @@ b“不想要这个吗？那你想要什么？”
     function getChapter4AbandonGroupMessages() {
         return [{"from":"张桂源","text":"[图片]","image":"jp.jpg"},{"from":"张桂源","text":"实力"},{"from":"左奇函","text":"啥时候回来"},{"from":"左奇函","text":"上午发了新的舞蹈demo"},{"from":"陈浚铭","text":"你这啥对手啊太拉了吧"},{"from":"陈奕恒","text":"cool"},{"from":"陈奕恒","text":"强"},{"from":"张函瑞","text":"你们这奖牌还挺好看的"},{"from":"张桂源","text":"引用左奇函啥时候回来：下午"},{"from":"张桂源","text":"陈浚铭你来来来"},{"from":"张桂源","text":"给你嚣张完了"},{"from":"张桂源","text":"就你还在这叫"},{"from":"陈浚铭","text":"你让我来就来啊"},{"from":"张桂源","text":"引用陈奕恒太强了：啥时候约上"},{"from":"陈浚铭","text":"我不信除非你把奖牌带过来看看"},{"from":"张桂源","text":"不给"},{"from":"陈浚铭","text":"引用啥时候约上：我也要来"},{"from":"张桂源","text":"其实冠军不只有奖牌还有其他奖励"},{"from":"张桂源","text":"你们不懂"},{"from":"左奇函","text":"老铁"},{"from":"左奇函","text":"0个人问了"},{"from":"王橹杰","text":"习惯了"},{"from":"陈浚铭","text":"啥奖励啊发了零食吗"},{"from":"左奇函","text":"@陈浚铭 你好的坏的"},{"from":"陈浚铭","text":"我不管"},{"from":"陈浚铭","text":"我也要奖励@张桂源"},{"from":"左奇函","text":"哦哦"},{"from":"左奇函","text":"我也要奖励@xxx（此处读取玩家微信名）"},{"from":"张桂源","text":"？"},{"from":"陈奕恒","text":"？？"},{"from":"杨博文","text":"这几天是我错过了什么吗"},{"from":"陈奕恒","text":"哥们你……"},{"from":"王橹杰","text":"张桂源防盗意识有待加强"},{"from":"陈奕恒","text":"来真的啊"},{"from":"张桂源","text":"引用来真的啊：什么真的？"},{"from":"张桂源","text":"说话啊"},{"from":"陈浚铭","text":"那姐姐我也要@xxx（此处读取玩家微信名）"},{"from":"聂玮辰","text":"你们都要我也要@xxx（此处读取玩家微信名）"},{"from":"张函瑞","text":"陈浚铭你们继续添乱吧"},{"from":"左奇函","text":"你猜啊？"}];
     }
+
+    function chapter4StampDocumentTimes(messages, initialTime, changes) {
+        var currentTime = initialTime;
+        return messages.map(function(message, index) {
+            if (changes && changes[index]) currentTime = changes[index];
+            return Object.assign({}, message, { time: currentTime });
+        });
+    }
+    function getChapter4TimedGroupCommonMessages() {
+        return chapter4StampDocumentTimes(getChapter4GroupCommonMessages(), "11:06", { 5:"11:07", 12:"11:08", 18:"11:09", 26:"11:10", 29:"11:11" });
+    }
+    function getChapter4TimedGroupBranch1Messages() {
+        return chapter4StampDocumentTimes(getChapter4GroupBranch1Messages(), "11:11", { 5:"11:12", 14:"11:13", 21:"11:14", 26:"11:16" });
+    }
+    function getChapter4TimedGroupBranch2Messages() {
+        return chapter4StampDocumentTimes(getChapter4GroupBranch2Messages(), "11:11", { 9:"11:12", 13:"11:13" });
+    }
+    function getChapter4TimedAbandonGroupMessages() {
+        return chapter4StampDocumentTimes(getChapter4AbandonGroupMessages(), "11:15", { 2:"11:20", 11:"11:21", 18:"11:22", 25:"11:23", 35:"11:24" });
+    }
     function getChapter4AbandonAfterGroup() {
         return ["你刚想回复，手机就被张桂源抽走","a“你干嘛？”","b“不干嘛啊”","b“你很想回吗？”","你刚想反驳，就看到他的手指在你手机屏幕上滑动起来","b“哦，原来私下还有联系啊”","张桂源低着头，手指慢慢往上滑着聊天记录。","b“聊得还挺多。”","你忍着笑，没有接话。","张桂源退回聊天列表，目光又落在一个又一个聊天框上，左奇函、陈浚铭、王橹杰、陈奕恒……","b“加的人也挺多啊”","他说着，把手机举起来晃了晃，终于转过头看你。","b“每天回复得过来吗？”","你看着他，忽然就起了逗他的心思。","a“还好吧。”","a“反正他们都挺有意思的。”","b“好好好他们有意思，我没意思呗”","你能很明显地感觉到，他嘴角那点笑意已经慢慢消失了。","a“怎么了？”","你故意凑过去一点，歪着头看他。","a“吃醋了？”","张桂源像是听见了什么很好笑的话，抬起头看了你一眼，轻轻笑了一声。","b“我？”","b“吃醋？”","b“没有啊。”","他忽然抬起头，看着你笑了一下。","b“难怪”","b“之前给你打视频”","b“你还问我”","他学着你的语气。","b“你怎么跑楼道里来了？”","b“原来是碍着你和他们视频了是吗？”","你不语，只是一味憋笑","b“删了啊”","a“删谁？删你啊？”","b“他们”","a“为什么？明明之前在桌游店你看着我们加的”","b“之前是之前现在是现在”","a“那我以后有什么事呢？”","b“？不是，你有什么事不应该找我吗”","b“而且有群聊啊”","他说着，又把手机往你面前递了一点。","b“所以。”","b“删不删？”"];
     }
@@ -12328,7 +12358,7 @@ b“不想要这个吗？那你想要什么？”
         return ["你一把把手机抱进怀里。","a“不删。”","张桂源挑了挑眉。","b“真的？”","a“真的。”","你故意笑着补了一句。","a“删、不、了”","张桂源安静了两秒。","忽然点点头。","b“行”","b“我懂了”","你还没反应过来。","下一秒。","他动作快得离谱。","趁你一个不注意，又把手机抽了过去。","不管你在旁边如何扑腾，他拿着手机一个一个把你的之前加的好友全删了","接着飞快点开了群聊。","按住语音。","b“奖励只有今天冠军才有。”","b“你们想去吧。”","你瞪大眼睛。","a“张桂源！！！”","你整个人扑过去抢手机。","张桂源笑着举高。","b“诶诶诶。”","b“别抢。”","b“已经发出去了。”","a“你撤回！”","b“不行”","你气得追着他绕了一圈。","最后还是把手机抢了回来。","群里已经炸了。","你正准备撤回。","张桂源却忽然站住了。","他看着你。","笑意慢慢淡下来。","b“你是不是……”","他停了一下。","b“喜欢左奇函啊？”","你整个人愣住。","a“啊？？？？”","你看着他，忍不住笑了。","a“张桂源”","b“嗯？”","a“我的心意。”","你往前走了一步。","看着他的眼睛。","a“你还不知道吗？”","a“还是说你根本就没那意思”","你说完，脸还是止不住红起来，他抬头满脸的震惊","b“我……”"];
     }
     function getChapter4AbandonEnding() {
-        return ["话还没说完，教室门口出现响声","紧接着一道人影出现在门口，有同学回来拿东西","几乎是同时，你和张桂源拉开距离","好在同学并没有注意你们，只是自己低头往前面走","你总觉得自己再待下去会有什么不可挽回的结果","赶紧逃离教室","你回头看了一下","张桂源一手撑着下巴，往窗外看去","原来脸红的不只是你啊"];
+        return ["话还没说完，教室门口出现响声","紧接着一道人影出现在门口，有同学回来拿东西","几乎是同时，你和张桂源拉开距离","好在同学并没有注意你们，只是自己低头往前面走","你总觉得自己再待下去会有什么不可挽回的结果","赶紧逃离教室","你回头看了一下","张桂源一手撑着下巴，往窗外看去","尽管他的手遮住了大半张脸，可是红红的耳尖还是出卖了他","原来脸红的不只是你啊"];
     }
 
     function buildChapter4AbandonMainPages() {
@@ -12381,7 +12411,10 @@ b“不想要这个吗？那你想要什么？”
                 }
                 text = text.replace(marker[0], "").trim();
             }
-            if (/^a(?=[“"])/.test(text)) {
+            if (/^a你[：:]?/.test(text)) {
+                speakerHint = "你";
+                text = text.replace(/^a你[：:]?\s*/, "").trim();
+            } else if (/^a(?=[“"])/.test(text)) {
                 speakerHint = "你";
                 text = text.slice(1).trim();
             } else if (/^b(?=[“"])/.test(text)) {
@@ -12390,7 +12423,7 @@ b“不想要这个吗？那你想要什么？”
                 var wMarkedLines = [
                     "我靠你太牛了", "加油！", "快到了！", "再坚持一下！", "先走两步。", "我去给你拿点葡……",
                     "你不会……", "想去看张桂源吧？", "那还站着干嘛？", "快跑啊！", "今天肯定好多人来看张桂源。",
-                    "借过一下——", "麻烦让让。", "我就不去了", "没看到有帅哥", "唯一帅的好像有主了", "你好好看", "我先溜了"
+                    "你等会儿。", "借过一下——", "麻烦让让。", "我就不去了", "没看到有帅哥", "唯一帅的好像有主了", "你好好看", "我先溜了"
                 ];
                 speakerHint = wMarkedLines.indexOf(cleanBText) !== -1 || /你是我女神/.test(cleanBText) ? "W" : (currentOther || "张桂源");
                 text = text.slice(1).trim();
@@ -12483,8 +12516,11 @@ b“不想要这个吗？那你想要什么？”
                 #chapter4Continue{position:absolute;right:18px;bottom:9px;color:rgba(255,255,255,.62);font-size:11px;letter-spacing:1px;animation:chapter4Hint 1.4s ease-in-out infinite}
                 #chapter4SceneCurtain{position:absolute;inset:0;background:#000;z-index:8;transform:translateX(100%);pointer-events:none}
                 #chapter4SceneCurtain.play{animation:chapter4CurtainLeft 1.35s cubic-bezier(.65,0,.35,1) forwards}
+                #chapter4CompleteLayer{position:absolute;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;background:#050505;color:#fff;font-size:25px;font-weight:600;letter-spacing:5px;opacity:0;pointer-events:none}
+                #chapter4CompleteLayer.play{animation:chapter4CompleteFade 2.4s ease forwards}
                 @keyframes chapter4Hint{0%,100%{opacity:.35}50%{opacity:1}}
                 @keyframes chapter4CurtainLeft{0%{transform:translateX(100%)}43%,57%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+                @keyframes chapter4CompleteFade{0%{opacity:0}25%,72%{opacity:1}100%{opacity:0}}
                 @media(max-width:380px){#chapter4TextBox{left:10px;right:10px;bottom:10px;padding:18px 18px 27px;min-height:142px}#chapter4Text{font-size:14px;line-height:1.75}}
             `;
             document.head.appendChild(style);
@@ -12604,6 +12640,8 @@ b“不想要这个吗？那你想要什么？”
             if (chapter4AbandonRoute) {
                 if (!chapter4AbandonChatTriggered) triggerChapter4AbandonChat();
                 if (chapter4AbandonChatComplete) startChapter4AbandonClassroom();
+            } else {
+                completeChapter4Story();
             }
         } else if (chapter4Scene === 11) {
             showChapter4AbandonRewardChoice();
@@ -12616,7 +12654,31 @@ b“不想要这个吗？那你想要什么？”
             showChapter4AbandonDeleteChoice();
         } else if (chapter4Scene === 16 || chapter4Scene === 17) {
             startChapter4AbandonEnding();
+        } else if (chapter4Scene === 18) {
+            completeChapter4Story();
         }
+    }
+
+    function completeChapter4Story() {
+        var overlay = document.getElementById("chapter4StoryOverlay");
+        if (!overlay || chapter4Transitioning) return;
+        chapter4Transitioning = true;
+        var layer = document.createElement("div");
+        layer.id = "chapter4CompleteLayer";
+        layer.textContent = "第四章完成";
+        overlay.appendChild(layer);
+        requestAnimationFrame(function() { layer.classList.add("play"); });
+        setTimeout(function() {
+            completedChapters[3] = true;
+            unlockedChapters[3] = true;
+            chapter4SessionActive = false;
+            hideChapter4Story();
+            document.getElementById("storyDetailPage").style.display = "none";
+            document.getElementById("chapterSelectPage").style.display = "block";
+            renderChapterList();
+            chapter4Transitioning = false;
+            if (typeof autoSaveGame === "function") autoSaveGame();
+        }, 2400);
     }
 
     function updateChapter4Hint() {
@@ -12652,6 +12714,12 @@ b“不想要这个吗？那你想要什么？”
     }
 
     function onChapter4PageFullyShown() {
+        var currentPage = chapter4Pages[chapter4PageIndex] || {};
+        var currentText = typeof currentPage === "string" ? currentPage : String(currentPage.text || "");
+        if ((chapter4Scene === 16 && currentText.indexOf("你把手机拿回来，当着他的面，一个一个点下删除。") !== -1) ||
+            (chapter4Scene === 17 && currentText.indexOf("不管你在旁边如何扑腾，他拿着手机一个一个把你的之前加的好友全删了") !== -1)) {
+            chapter4RemoveForcedContacts();
+        }
         if (chapter4Scene === 2 && chapter4PageIndex === chapter4Pages.length - 1) {
             triggerChapter4StoryChat();
         } else if (chapter4Scene === 3 && chapter4PageIndex === chapter4Pages.length - 1) {
@@ -12692,8 +12760,9 @@ b“不想要这个吗？那你想要什么？”
             var button = document.createElement("button");
             button.type = "button";
             button.textContent = option;
+            button.style.whiteSpace = "pre-line";
             button.dataset.choice = index;
-            button.style.cssText = "width:100%;min-height:48px;padding:12px 18px;background:rgba(0,0,0,.86);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:2px;font-size:15px;letter-spacing:.5px;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;text-align:center;";
+            button.style.cssText = "width:100%;min-height:48px;padding:12px 18px;background:rgba(0,0,0,.86);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:2px;font-size:15px;line-height:1.5;letter-spacing:.5px;white-space:pre-line;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;text-align:center;";
             button.onclick = function(event) {
                 event.stopPropagation();
                 panel.remove();
@@ -12712,7 +12781,7 @@ b“不想要这个吗？那你想要什么？”
         if (skip) skip.style.display = "none";
         createChapter4StoryChoicePanel("chapter4StoryChoiceModal", [
             "留下来参加女子800米比赛",
-            "选择放弃这场比赛"
+            "选择放弃这场比赛\n（此线有强制删其他好友剧情介意勿选）"
         ], function(choice) {
                 chapter4StoryChoiceShown = false;
                 if (choice === 0) {
@@ -12738,7 +12807,8 @@ b“不想要这个吗？那你想要什么？”
         if (!chatData["张桂源"]) chatData["张桂源"] = { messages: [], newMsg: false };
         var data = chatData["张桂源"];
         data.chapter4StoryChat = { active: true, abandon: true, stage: "abandon_then", running: false, complete: false };
-        chapter4AddChatMessage("other", "我回教室歇会", false);
+        data.chapter4PrivateTime = "10:45";
+        chapter4AddChatMessage("other", "我回教室歇会", false, "10:45");
         data.newMsg = true;
         showMessageNotification("张桂源", '<img src="zgyx.jpg" style="width:48px;height:48px;border-radius:12px;object-fit:cover;">', "张桂源", "我回教室歇会", function() {
             switchPage("chat"); openChat("张桂源");
@@ -12754,7 +12824,7 @@ b“不想要这个吗？那你想要什么？”
             });
         } else if (state.stage === "abandon_why") {
             chapter4AskReply(["我来干嘛？"], function() {
-                chapter4QueueOtherMessages(["不许", "快点", "我在教室等你"], function() {
+                chapter4QueueOtherMessages([{ text:"不许", time:"10:46" }, "快点", "我在教室等你"], function() {
                     state.complete = true; state.stage = "complete"; chapter4AbandonChatComplete = true;
                     chapter4LockChatInput("聊天已完成，请返回剧情页面继续"); updateChapter4Hint();
                     showMessageNotification("第四章剧情", "📖", "第四章剧情", "聊天完成，返回剧情页面继续", function() { switchPage("story"); });
@@ -12798,10 +12868,10 @@ b“不想要这个吗？那你想要什么？”
     function triggerChapter4AbandonGroupChat() {
         if (chapter4GroupTriggered) return;
         chapter4GroupTriggered = true;
-        var list = getChapter4AbandonGroupMessages();
+        var list = getChapter4TimedAbandonGroupMessages();
         chatData["everybody 棒棒"] = { messages: [], newMsg: true, chapter4Flow: { active: true, stage: "abandon_common", running: false, complete: false } };
         chapter4AddGroupMessage(list[0], true);
-        showMessageNotification("everybody 棒棒", '<img src="zgyx.jpg" style="width:48px;height:48px;border-radius:10px;object-fit:cover;">', "everybody 棒棒", "张桂源：[图片]", function() { switchPage("chat"); openChapter4GroupChat(); });
+        showMessageNotification("everybody 棒棒", chapter4GroupGridAvatarHtml(48), "everybody 棒棒", "张桂源：[图片]", function() { switchPage("chat"); openChapter4GroupChat(); });
         updateChapter4Hint();
     }
     function startChapter4AbandonAfterGroup() {
@@ -12814,6 +12884,24 @@ b“不想要这个吗？那你想要什么？”
             chapter4StoryChoiceShown = false; chapter4Scene = choice === 0 ? 16 : 17;
             chapter4Pages = chapter4CreateParagraphPages(choice === 0 ? getChapter4AbandonDelete() : getChapter4AbandonKeep()); chapter4PageIndex = 0; showChapter4Page(0);
         });
+    }
+    function chapter4EnforceForcedContactDeletion() {
+        var keep = { "张桂源": true, "WXYz": true, "我玩狼人杀不骗人": true, "everybody 棒棒": true };
+        Object.keys(chatData || {}).forEach(function(key) {
+            if (!keep[key]) delete chatData[key];
+        });
+        if (Array.isArray(friends)) {
+            friends = friends.filter(function(name) { return !!keep[name]; });
+            ["张桂源", "WXYz"].forEach(function(name) {
+                if (friends.indexOf(name) === -1) friends.push(name);
+            });
+        }
+    }
+    function chapter4RemoveForcedContacts() {
+        localStorage.setItem("chapter4_forced_contacts_deleted", "true");
+        chapter4EnforceForcedContactDeletion();
+        currentChatContact = "";
+        renderChatList();
     }
     function startChapter4AbandonEnding() {
         var source = getChapter4AbandonEnding().slice();
@@ -12915,8 +13003,9 @@ b“不想要这个吗？那你想要什么？”
         data.chapter4StoryChat = { active: true, stage: "opening", running: false, complete: false };
         data.messages.push({
             from: "other", text: "帅不帅", time: getCurrentTime(), avatar: "zgyx.jpg",
-            date: new Date().toLocaleDateString(), read: false, chapter4Story: true
+            date: "2023年10月22日", read: false, chapter4Story: true
         });
+        data.chapter4PrivateTime = data.messages[data.messages.length - 1].time;
         data.newMsg = true;
         renderChatList();
         showMessageNotification(
@@ -12932,14 +13021,16 @@ b“不想要这个吗？那你想要什么？”
         updateChapter4Hint();
     }
 
-    function chapter4AddChatMessage(from, text, isImage) {
+    function chapter4AddChatMessage(from, text, isImage, explicitTime) {
         var data = chatData["张桂源"];
+        if (explicitTime) data.chapter4PrivateTime = explicitTime;
+        if (!data.chapter4PrivateTime) data.chapter4PrivateTime = getCurrentTime();
         data.messages.push({
             from: from,
             text: isImage ? '<img src="' + text + '" style="width:160px;border-radius:10px;max-width:100%;display:block;">' : text,
-            time: getCurrentTime(),
+            time: data.chapter4PrivateTime,
             avatar: from === "other" ? "zgyx.jpg" : "",
-            date: new Date().toLocaleDateString(),
+            date: "2023年10月22日",
             read: true,
             isImage: !!isImage,
             chapter4Story: true
@@ -12985,7 +13076,8 @@ b“不想要这个吗？那你想要什么？”
             setTimeout(function() {
                 var typing = document.getElementById("chapter4ChatTyping");
                 if (typing) typing.remove();
-                if (typeof item === "object" && item.image) chapter4AddChatMessage("other", item.image, true);
+                if (typeof item === "object" && item.image) chapter4AddChatMessage("other", item.image, true, item.time);
+                else if (typeof item === "object") chapter4AddChatMessage("other", item.text || "\u200b", false, item.time);
                 else chapter4AddChatMessage("other", item || "\u200b", false);
                 // 当前正文先显示一会儿，再为下一条单独显示“正在输入中”。
                 setTimeout(sendNext, Math.max(850, Math.min(1650, 650 + length * 45)));
@@ -13158,6 +13250,13 @@ b“不想要这个吗？那你想要什么？”
         return map[name] || "zgyx.jpg";
     }
 
+    function chapter4GroupGridAvatarHtml(size) {
+        var px = Number(size) || 48;
+        var sources = ['zgyx.jpg','zhrwx.jpg','zqhwx.jpg','cjmwx.jpg','cyhwx.jpg','ybwwx.jpg','wljwx.jpg','cshwx.jpg','gjc.jpg'];
+        return '<div style="width:' + px + 'px;height:' + px + 'px;border-radius:10px;overflow:hidden;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:1px;background:#ddd;">' +
+            sources.map(function(src) { return '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;display:block;">'; }).join('') + '</div>';
+    }
+
     function chapter4FormatGroupMessage(message) {
         var text = String(message.text || "");
         var playerWechatName = player.wechatName || player.nickname || player.name || "你";
@@ -13181,16 +13280,10 @@ b“不想要这个吗？那你想要什么？”
         return text;
     }
 
-    function chapter4NextGroupTime(data) {
-        if (!Number.isFinite(data.chapter4ClockSeconds)) {
-            var now = new Date();
-            data.chapter4ClockSeconds = now.getHours() * 3600 + now.getMinutes() * 60;
-        } else {
-            data.chapter4ClockSeconds += 22 + Math.floor(Math.random() * 24);
-        }
-        var hour = Math.floor(data.chapter4ClockSeconds / 3600) % 24;
-        var minute = Math.floor((data.chapter4ClockSeconds % 3600) / 60);
-        return String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0");
+    function chapter4NextGroupTime(data, explicitTime) {
+        if (explicitTime) data.chapter4DisplayTime = explicitTime;
+        if (!data.chapter4DisplayTime) data.chapter4DisplayTime = "11:06";
+        return data.chapter4DisplayTime;
     }
 
     function chapter4AddGroupMessage(message, unread) {
@@ -13200,9 +13293,9 @@ b“不想要这个吗？那你想要什么？”
         data.messages.push({
             from: isMe ? "me" : message.from,
             text: text,
-            time: chapter4NextGroupTime(data),
+            time: chapter4NextGroupTime(data, message.time),
             avatar: isMe ? "" : chapter4GroupAvatarPath(message.from),
-            date: new Date().toLocaleDateString(),
+            date: "2023年10月22日",
             read: unread ? false : true,
             isImage: !!message.image,
             chapter4Group: true
@@ -13258,7 +13351,7 @@ b“不想要这个吗？那你想要什么？”
     function triggerChapter4GroupChat() {
         if (chapter4GroupTriggered) return;
         chapter4GroupTriggered = true;
-        var common = getChapter4GroupCommonMessages();
+        var common = getChapter4TimedGroupCommonMessages();
         chatData["everybody 棒棒"] = {
             messages: [], newMsg: true,
             chapter4Flow: { active: true, stage: "common", running: false, complete: false }
@@ -13266,7 +13359,7 @@ b“不想要这个吗？那你想要什么？”
         chapter4AddGroupMessage(common[0], true);
         showMessageNotification(
             "everybody 棒棒",
-            '<div style="width:48px;height:48px;border-radius:10px;overflow:hidden;"><img src="zgyx.jpg" style="width:100%;height:100%;object-fit:cover;"></div>',
+            chapter4GroupGridAvatarHtml(48),
             "everybody 棒棒", "张桂源：[图片]",
             function() { switchPage("chat"); openChapter4GroupChat(); }
         );
@@ -13329,9 +13422,9 @@ b“不想要这个吗？那你想要什么？”
         var state = data && data.chapter4Flow;
         if (!state || state.complete || state.running) return;
         if (state.stage === "abandon_common") {
-            chapter4QueueGroupMessages(getChapter4AbandonGroupMessages().slice(1), function() { completeChapter4GroupChat(0); });
+            chapter4QueueGroupMessages(getChapter4TimedAbandonGroupMessages().slice(1), function() { completeChapter4GroupChat(0); });
         } else if (state.stage === "common") {
-            chapter4QueueGroupMessages(getChapter4GroupCommonMessages().slice(1), function() {
+            chapter4QueueGroupMessages(getChapter4TimedGroupCommonMessages().slice(1), function() {
                 state.stage = "choice";
                 chapter4ShowGroupChoice();
             });
@@ -13339,7 +13432,7 @@ b“不想要这个吗？那你想要什么？”
             chapter4ShowGroupChoice();
         } else if (state.stage === "branch1" || state.stage === "branch2") {
             var branch = state.stage === "branch1" ? 1 : 2;
-            var messages = branch === 1 ? getChapter4GroupBranch1Messages() : getChapter4GroupBranch2Messages();
+            var messages = branch === 1 ? getChapter4TimedGroupBranch1Messages() : getChapter4TimedGroupBranch2Messages();
             state.stage = "playing_branch";
             chapter4QueueGroupMessages(messages, function() { completeChapter4GroupChat(branch); });
         }
@@ -22305,8 +22398,93 @@ var werewolfFollowupPosts = [
     }
 ];
 
+// ================= 第四章完成后论坛（2023年10月22日 - 10月23日） =================
+var chapter4ForumPosts = [
+    {
+        id: 'chapter4_post1',
+        title: '【讨论贴】有人看张桂源学校运动会开幕式了吗',
+        author: '匿名用户',
+        content: '刷到ny初中运动会开幕式的视频了，张桂源站C位的时候真的挺亮眼的，动作利落不拖沓，而且表情管理在线，跟周围同学完全不是一个画风。<br><br>[视频链接]',
+        type: 'discuss', likes: 126, time: '2023年10月22日 12:34',
+        replies: [
+            { author: '进击的老爹汉堡', text: '看了看了！！我反复拉了五六遍进度条！！虽然就是学校那种很简单的编舞但他做出来就是不一样啊啊啊！！' },
+            { author: '小哭包TT', text: '确实，其实编舞挺简单的，但他做动作就是比别人干净，一看就是练过的，旁边同学动作明显松垮很多。' },
+            { author: '素萌萌的我呀', text: '我说话比较直……' },
+            { author: '桂源什么时候发自拍', text: '他穿那个白T恤好好看啊，好青春好干净啊' },
+            { author: '萌兔兔', text: '站c太有气势了吧！龙队！' },
+            { author: '小哭包TT', text: '怎么做到的跳舞那么用力结束那一秒立刻切回腼腆模式，他好反差我好爱。' }
+        ]
+    },
+    {
+        id: 'chapter4_post2',
+        title: '【交易贴】收张桂源篮球赛fo 有没有姐妹拍了！！！',
+        author: '匿名用户',
+        content: '有没有人拍了今天上午张桂源打篮球那场的fo！！求求了我想看完整版！！短视频不够看！！谁有全场的跪求发我！！可以用别的东西换或者直接出都行！！好急好想看！！',
+        type: 'discuss', likes: 94, time: '2023年10月22日 15:42',
+        replies: [
+            { author: '桂源的篮球鞋', text: '我也要！！同求！！刷到的全是十几秒的切片根本不够看！！我需要完整版反复品味！！' },
+            { author: '进击的老爹汉堡', text: '我有！！我朋友帮我拍的！！全场录完的那种！！但是画质一般手机拍的有点抖不嫌弃的话可以私我！！' },
+            { author: '桂源家的小羽毛', text: '楼上能不能也私我一份！！我可以用之前的fo换！！' },
+            { author: '小哭包TT', text: '可出，私' },
+            { author: '桂源什么时候发自拍', text: '我可以收！！价钱好商量！！有资源的姐妹看看我！！我真的很需要！！' },
+            { author: '四代永远在一起', text: '免，让宝宝们花钱的事情我做不到！！' },
+            { author: '进击的老爹汉堡', text: '求求了可花米，，，真的好想看' }
+        ]
+    },
+    {
+        id: 'chapter4_post3',
+        title: '【讨论贴】张桂源打篮球也太帅了吧 直接变主场了',
+        author: '匿名用户',
+        content: '刷到几个张桂源打篮球的片段，运球突破上篮那几下真的太帅了，动作特别利落，一点都不拖泥带水，而且感觉他在球场上很放松很自信，跟舞台上完全是两种感觉。底下一堆人围着他喊他名字，运动会直接变他个人主场了。<br><br>[视频片段]',
+        type: 'discuss', likes: 173, time: '2023年10月22日 16:28',
+        replies: [
+            { author: '进击的老爹汉堡', text: '平时肯定没少打' },
+            { author: '桂源的篮球鞋', text: '你们看到他进完球之后那个笑了吗，一边往回跑一边跟队友击掌' },
+            { author: '小哭包TT', text: '我朋友在现场跟我说，他每次拿球全场就开始喊他名字，不知道的还以为是明星来了，不过他在学校应该确实算半个明星了。' },
+            { author: '篮球爱好者老李', text: '这水平也就一般吧？运球重心太高了，突破的时候护球手也没做好，对面防守明显放水了。你们粉丝吹得也太过了。' },
+            { author: '最懂球的老王', text: '我也看了，投篮姿势还可以但脚步太乱了，遇到稍微强一点的防守根本过不去。学校比赛强度低而已，别吹什么篮球水平了。' },
+            { author: '进击的老爹汉堡', text: '？？？人家一个高中生打学校运动会比赛 你们一群中年大叔跑来指点什么江山啊？谁问他水平了？' },
+            { author: '桂源家的小羽毛', text: '笑死了，我们是夸他帅夸他打球好看，谁吹他职业水平了？懂王来了' },
+            { author: '小哭包TT', text: '这个帖子好像涌入了一些莫名其妙的人' },
+            { author: '桂源的睫毛精', text: '想聊战术去虎扑行吗' },
+            { author: '篮球爱好者老李', text: '我就客观评价一下，你们粉丝也太玻璃心了吧。' },
+            { author: '进击的老爹汉堡', text: '男的' }
+        ]
+    },
+    {
+        id: 'chapter4_post4',
+        title: '【讨论贴】有没有11班的同学能告诉我一下张桂源的联系方式啊……',
+        author: '匿名用户',
+        content: '问一下有没有ny初中11班的同学或者认识张桂源的人，能不能给个联系方式什么的？可以私聊我谢谢！！价格可议！！！骂我的一律视为嫉妒我有钱',
+        type: 'toxic', likes: 31, time: '2023年10月22日 21:05',
+        replies: [
+            { author: '桂源家的小羽毛', text: '做梦吧你' },
+            { author: '进击的老爹汉堡', text: '到底多大啊……' },
+            { author: '小哭包TT', text: '你有这功夫不如努力考去他们学校当学妹' },
+            { author: '草莓味的桂源', text: '我qq还有时代少年团的联系方式，你要不要？？' },
+            { author: '眼角痣', text: '就算知道也不会随便给别人啊，你有事吗。' },
+            { author: '素萌萌的我呀', text: '才几岁啊就想当嫂子了？？' }
+        ]
+    },
+    {
+        id: 'chapter4_post5',
+        title: '【讨论贴】张桂源运动会帅晕我…… 四代其他人最近没有回学校吗？',
+        author: '匿名用户',
+        content: '张桂源今天学校运动会好热闹，话说四代其他几个是不是也应该有学校活动？陈奕恒陈浚铭他们学校最近有没有什么动静？王橹杰杨博文张函瑞那些上学的不也快校庆了？有人有消息吗？',
+        type: 'discuss', likes: 88, time: '2023年10月23日 00:47',
+        replies: [
+            { author: '四代团粉头子', text: '我也想知道！！有没有其他人在其他学校校庆或者运动会也表演的！！一个张桂源不够吃啊！！' },
+            { author: '陈奕恒的睫毛', text: '陈奕恒和我一个学校！！好像下个月校庆，不知道他会不会上台，好期待啊啊啊。' },
+            { author: '进击的老爹汉堡', text: '我救命吧王橹杰只有看着一脸虚弱的校园fo' },
+            { author: '素萌萌的我呀', text: '除了张桂源其他人根本没热度吧，还问什么问，有fo早就出来了。' },
+            { author: '桂源家的小羽毛', text: '楼上有病吧，你数据看了吗就在这放屁。' },
+            { author: '眼角痣', text: '物料也不更，fo也没有要寡死了啊啊啊' }
+        ]
+    }
+];
+
 // ================= 合并所有帖子 =================
-var allForumPosts = chapter1Posts.concat(chapter2Posts, werewolfFollowupPosts);
+var allForumPosts = chapter1Posts.concat(chapter2Posts, werewolfFollowupPosts, chapter4ForumPosts);
 
 // ================= 论坛渲染 =================
 var forumIndex = 0;
@@ -22325,8 +22503,11 @@ function renderForum(showMore) {
     }
 
     var displayData = [];
-    if (completedChapters[1]) {
+    if (completedChapters[3]) {
         displayData = allForumPosts.slice();
+    } else if (completedChapters[1]) {
+        displayData = allForumPosts.slice();
+        displayData = displayData.filter(function(post) { return post.id.indexOf('chapter4_post') !== 0; });
     } else {
         displayData = chapter1Posts.slice();
     }
@@ -22349,7 +22530,7 @@ function renderForum(showMore) {
     for (var i = 0; i < displayData.length; i++) {
         var item = displayData[i];
         var randomTime = item._randomTime;
-        var isUnreadFollowup = item.id.indexOf('werewolf_post') === 0 &&
+        var isUnreadFollowup = (item.id.indexOf('werewolf_post') === 0 || item.id.indexOf('chapter4_post') === 0) &&
             localStorage.getItem('forum_read_' + item.id) !== 'true';
         
         html += '<div style="padding:14px 0;border-bottom:1px solid #EFEFEF;cursor:pointer;" onclick="showForumDetail(\'' + item.id + '\')">';
@@ -22370,7 +22551,7 @@ function renderForum(showMore) {
 }
 // ================= 显示论坛帖子详情 =================
 function showForumDetail(postId) {
-    if (postId && postId.indexOf('werewolf_post') === 0) {
+    if (postId && (postId.indexOf('werewolf_post') === 0 || postId.indexOf('chapter4_post') === 0)) {
         localStorage.setItem('forum_read_' + postId, 'true');
         var newBadge = document.getElementById('forumNewBadge_' + postId);
         if (newBadge) newBadge.remove();
