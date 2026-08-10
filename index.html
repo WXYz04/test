@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>4Ta模拟器</title>
+    <!-- Google Analytics：统计页面访问量与用户数 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-M2V3G7FQJJ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-M2V3G7FQJJ');
+    </script>
    
    <style>
     @keyframes popIn {
@@ -3681,6 +3689,7 @@ function getAllSavesFromIndexedDB() {
         completedChapters: completedChapters || [false, false, false, false],
         chatData: chatData || {},
         chapter4State: chapter4GetSaveState(),
+        chapter5State: chapter5GetSaveState(),
         allMoments: (allMoments || []).slice(0, 20),
         myMoments: (myMoments || []).slice(0, 20),
         momentsData: (momentsData || []).slice(0, 20),
@@ -4164,9 +4173,9 @@ function buildSaveManagerUI(modal, saves) {
     let currentChapter = 1;
     let chapterCompleted = false;
      // 章节数据
-    const totalChapters = 4;
-    let unlockedChapters = [true, false, false, false];
-    let completedChapters = [false, false, false, false];
+    const totalChapters = 5;
+    let unlockedChapters = [true, false, false, false, false];
+    let completedChapters = [false, false, false, false, false];
     let viewingChapter = 0;
     let meetCount = 0;
     let maxMeet = 3;
@@ -4590,7 +4599,7 @@ function renderChatList() {
         if (data.messages && data.messages.length > 0) {
             for (var j = data.messages.length - 1; j >= 0; j--) {
                 if (data.messages[j].from === "other") {
-                    lastMsg = data.messages[j].text;
+                    lastMsg = data.messages[j].isImage ? "[图片]" : String(data.messages[j].text || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
                     break;
                 }
             }
@@ -6238,6 +6247,10 @@ function openChat(contact) {
      console.log('openChat 被调用了, contact:', contact);
     currentChatContact = contact;
     let data = chatData[contact];
+    if (chapter5SessionActive && data && data.chapter5Flow && !data.chapter5Flow.complete) {
+        openChapter5Chat(contact);
+        return;
+    }
 
     // 进入聊天时，标记所有对方消息为已读
     if (data && data.messages) {
@@ -10358,6 +10371,8 @@ function initMomentsData() {
        function renderChapterList() {
     var container = document.getElementById("chapterList");
     if (!container) return;
+    while (unlockedChapters.length < totalChapters) unlockedChapters.push(false);
+    while (completedChapters.length < totalChapters) completedChapters.push(false);
 
     // ✅ 检查所有任务是否完成，动态解锁第二章
     var chatDone = localStorage.getItem('zhang_dialogue_done') === 'true';
@@ -10375,7 +10390,8 @@ function initMomentsData() {
         "重庆的夏天永远不会结束",
         "他和他的朋友",
         "恋人体验卡",
-        "升温"
+        "升温",
+        "烟花落下之前"
     ];
 
     var html = "";
@@ -10405,6 +10421,11 @@ for (var i = 0; i < totalChapters; i++) {
             isLocked = false;
             unlockedChapters[3] = true;
         }
+        // 第五章无需前置条件，默认开放
+        if (i === 4) {
+            isLocked = false;
+            unlockedChapters[4] = true;
+        }
     }
 
     if (isLocked) {
@@ -10428,7 +10449,7 @@ for (var i = 0; i < totalChapters; i++) {
             <div class="chapter-card ${isLocked ? 'locked' : ''}" data-index="${i}" ${isLocked ? 'style="cursor:not-allowed;"' : ''}>
                 <div>
                     <div class="chapter-title-text">第${i+1}章 · ${chapterNames[i]}</div>
-                    <div class="chapter-sub">${i === 0 ? '2022年 重庆' : i === 1 ? '2023年 重庆' : i === 3 ? '2023年 重庆' : '（预留）'}</div>
+                    <div class="chapter-sub">${i === 0 ? '2022年 重庆' : i === 1 ? '2023年 重庆' : i === 3 ? '2023年 重庆' : i === 4 ? '2024年 重庆' : '（预留）'}</div>
                     ${extraHint}
                 </div>
                 <div class="chapter-status ${statusClass}">${statusText}</div>
@@ -10456,6 +10477,10 @@ for (var i = 0; i < totalChapters; i++) {
     // ========== 第四章 ==========
     if (index === 3) {
         openChapter4Story();
+        return;
+    }
+    if (index === 4) {
+        openChapter5Story();
         return;
     }
 
@@ -12671,6 +12696,7 @@ b“不想要这个吗？那你想要什么？”
         setTimeout(function() {
             completedChapters[3] = true;
             unlockedChapters[3] = true;
+            unlockedChapters[4] = true;
             chapter4SessionActive = false;
             hideChapter4Story();
             document.getElementById("storyDetailPage").style.display = "none";
@@ -13601,9 +13627,295 @@ b“不想要这个吗？那你想要什么？”
         renderChapterList();
     }
 
+    // ================= 第五章：烟花落下之前 =================
+    var chapter5SessionActive = false;
+    var chapter5Pages = [];
+    var chapter5PageIndex = 0;
+    var chapter5Phase = 0;
+    var chapter5TypingTimer = null;
+    var chapter5TypingText = "";
+    var chapter5TypingPos = 0;
+    var chapter5GroupDone = false;
+    var chapter5Private1Done = false;
+    var chapter5Private2Done = false;
+    var chapter5ChatRunning = false;
+
+    function chapter5Page(text, speaker, side, bg) {
+        return { text: text, speaker: speaker || "", side: side || (speaker === "你" ? "right" : "left"), bg: bg || "" };
+    }
+    function chapter5IntroPages() {
+        return [
+            chapter5Page("除夕这天，一大早一家人就开始忙碌起来。"),
+            chapter5Page("自从上次运动会后，张桂源他们的行程越来越忙，虽然他每天还是会和你发信息，但视频的次数越来越少。"),
+            chapter5Page("他们的讨论度越来越高，你会在各大视频平台上刷到他，会在社交平台看到他更新照片，甚至会在同校同学的书包上看见他的名字。"),
+            chapter5Page("而且他把你其他好友删了之后，也没有再次加上。"),
+            chapter5Page("玻璃窗上蒙着一层淡淡的雾，你伸手擦开一点，能看见对面楼挂着的红灯笼随着风轻轻晃动。"),
+            chapter5Page("“吃饭了啦！！”", "妈妈"),
+            chapter5Page("妈妈把最后一道菜放到桌上，一家人围着桌子坐下来。"),
+            chapter5Page("桌上的菜比平时多了很多，酸萝卜老鸭汤、凉拌折耳根、豌豆尖尖，几乎成了每年的标配。"),
+            chapter5Page("爸爸夹了一块鱼肉放到你碗里。"),
+            chapter5Page("“多吃一点，聪明。”", "爸爸"),
+            chapter5Page("你低头应了一声。"),
+            chapter5Page("吃饭吃到一半，屏幕亮了起来。")
+        ];
+    }
+    function chapter5AfterGroupPages() {
+        return [
+            chapter5Page("吃完饭以后，你帮妈妈一起收拾桌子，等厨房重新安静下来，一家人又回到客厅。"),
+            chapter5Page("春晚正式开始。"),
+            chapter5Page("你拿起果盘里的砂糖橘，每年过年家里就会刷新出一大筐砂糖橘。"),
+            chapter5Page("手机忽然亮了一下。"),
+            chapter5Page("你低头。"),
+            chapter5Page("是张桂源。")
+        ];
+    }
+    function chapter5WindowPages() {
+        return [
+            chapter5Page("你放下手里的砂糖橘，走到窗边。", "", "left", "jl.jpg"),
+            chapter5Page("外面的夜色比想象中更深，你伸手推开窗户，一阵带着寒意的风立刻钻了进来，将屋里的暖气吹散了一些。", "", "left", "ch.jpg"),
+            chapter5Page("你低头看去，楼下路灯旁站着两个人。", "", "left", "ch.jpg"),
+            chapter5Page("张桂源穿着黑色外套，手里拿着一根已经点好的仙女棒。", "", "left", "ch.jpg"),
+            chapter5Page("橘黄色的火星在他手里一点点燃烧。", "", "left", "ch.jpg"),
+            chapter5Page("另一个手提着一大袋烟花，看样子买了不少。", "", "left", "ch.jpg"),
+            chapter5Page("而他旁边的陈浚铭……", "", "left", "ch.jpg"),
+            chapter5Page("你差点没忍住笑。", "", "left", "ch.jpg"),
+            chapter5Page("他不知道从哪里买了三个糖葫芦，手里一边拿着，一边还戴着厚厚的耳罩，围巾几乎把半张脸都遮住了，像一只裹得严严实实的小熊。", "", "left", "ch.jpg"),
+            chapter5Page("看到窗户打开，他第一个发现你。", "", "left", "ch.jpg"),
+            chapter5Page("陈浚铭眼睛一下亮起来。", "", "left", "ch.jpg"),
+            chapter5Page("他赶紧抬手朝你挥，整个人往前蹦了两下。", "", "left", "ch.jpg"),
+            chapter5Page("下一秒。", "", "left", "ch.jpg"),
+            chapter5Page("张桂源顺着他的动作抬头，手里的仙女棒被他举高了一点，朝你晃了晃。", "", "left", "ch.jpg"),
+            chapter5Page("像小时候无数次站在楼下等你一样。", "", "left", "ch.jpg"),
+            chapter5Page("每次他都站在楼下，喊你下去玩，你之前觉得太尴尬了，整个街道都能听见。久而久之也习惯了，后面跟着张桂源也在楼下喊其他小伙伴。", "", "left", "ch.jpg"),
+            chapter5Page("手机又震了一下。", "", "left", "ch.jpg")
+        ];
+    }
+    function chapter5ParentPages() {
+        return [
+            chapter5Page("你刚拿起外套，爸爸的声音从身后传来。", "", "left", "ch.jpg"),
+            chapter5Page("“你要出去？”", "爸爸", "left", "jl.jpg"),
+            chapter5Page("你停了一下。"), chapter5Page("“嗯。”", "你", "right"),
+            chapter5Page("“找桂源？”", "爸爸"),
+            chapter5Page("妈妈听见以后，笑了一声。"),
+            chapter5Page("“还能有谁。”", "妈妈"),
+            chapter5Page("“这两个孩子从小就这样，他一喊，你就下去。”", "妈妈"),
+            chapter5Page("她低头整理桌上的果盘，语气里带着一点打趣。"),
+            chapter5Page("“小时候还天天一起玩，现在长大了，反而还不怎么一起玩了。”", "妈妈"),
+            chapter5Page("爸爸却没有笑。"), chapter5Page("“现在还下去？”", "爸爸"),
+            chapter5Page("你动作慢了一下。"), chapter5Page("“嗯。”", "你", "right"),
+            chapter5Page("爸爸看着你。"), chapter5Page("“他现在是什么身份，你不知道吗？”", "爸爸"),
+            chapter5Page("客厅里的春晚声音还在继续。"),
+            chapter5Page("电视里有人在笑，可爸爸的语气很认真。"),
+            chapter5Page("“以前他喊你出去玩，没什么。”", "爸爸"),
+            chapter5Page("“现在不一样。”", "爸爸"), chapter5Page("“别人看到，会怎么想？”", "爸爸"),
+            chapter5Page("妈妈看了爸爸一眼。"), chapter5Page("“你想太多了吧。”", "妈妈"),
+            chapter5Page("你爸爸没有反驳，只是说："),
+            chapter5Page("“你现在也大了，有些影响对你对他都不好。”", "爸爸"),
+            chapter5Page("“你自己要想清楚。”", "爸爸"),
+            chapter5Page("爸爸的话说完以后，你没有再回应。"),
+            chapter5Page("你不想在这个时候听别人告诉你“现在不一样了”。"),
+            chapter5Page("你也不想承认，那些曾经理所当然的事情，好像真的变得需要考虑了。")
+        ];
+    }
+
+    function openChapter5Story() {
+        if (chapter5SessionActive && document.getElementById("chapter5StoryOverlay")) {
+            restoreChapter5Story();
+            return;
+        }
+        chapter5SessionActive = true; chapter5Phase = 0; chapter5PageIndex = 0;
+        chapter5GroupDone = false; chapter5Private1Done = false; chapter5Private2Done = false;
+        chapter5Pages = chapter5IntroPages();
+        var old = document.getElementById("chapter5StoryOverlay"); if (old) old.remove();
+        var overlay = document.createElement("div"); overlay.id = "chapter5StoryOverlay";
+        overlay.innerHTML = '<button id="chapter5BackBtn">←</button><div id="chapter5TextBox"><div id="chapter5NamePlate"></div><div id="chapter5Text"></div><div id="chapter5Continue">点击继续</div></div>';
+        document.getElementById("gameScreen").appendChild(overlay);
+        if (!document.getElementById("chapter5StoryStyle")) {
+            var style = document.createElement("style"); style.id = "chapter5StoryStyle";
+            style.textContent = '#chapter5StoryOverlay{position:fixed;top:0;bottom:70px;left:50%;transform:translateX(-50%);width:100%;max-width:500px;z-index:91;background:linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.18)),url(\"jl.jpg\") center/cover no-repeat;overflow:hidden}#chapter5BackBtn{position:absolute;top:max(18px,env(safe-area-inset-top));left:18px;width:42px;height:42px;border:0;border-radius:50%;background:rgba(0,0,0,.58);color:#fff;font-size:25px;z-index:5}#chapter5TextBox{position:absolute;left:14px;right:14px;bottom:14px;min-height:150px;padding:22px 22px 30px;border:1px solid rgba(255,255,255,.24);border-radius:10px;background:rgba(5,5,8,.84);box-shadow:0 8px 28px rgba(0,0,0,.42);color:#fff;cursor:pointer;user-select:none}#chapter5NamePlate{display:none;position:absolute;top:-34px;min-width:92px;height:35px;padding:0 20px;background:rgba(5,5,8,.92);border:1px solid rgba(255,255,255,.24);border-bottom:0;font-size:14px;font-weight:600;align-items:center;justify-content:center}#chapter5NamePlate.left{display:flex;left:-1px;border-radius:8px 8px 0 0}#chapter5NamePlate.right{display:flex;right:-1px;border-radius:8px 8px 0 0}#chapter5Text{font-size:15px;line-height:1.85;white-space:pre-wrap;text-shadow:0 1px 2px #000}#chapter5Continue{position:absolute;right:18px;bottom:9px;color:rgba(255,255,255,.62);font-size:11px}#chapter5Choice,#chapter5FireworkChoice{position:absolute;left:24px;right:24px;bottom:205px;z-index:8;display:grid;gap:12px}#chapter5Choice button,#chapter5FireworkChoice button{padding:14px;border:1px solid rgba(255,255,255,.55);background:rgba(5,5,8,.88);color:#fff;font-size:15px;border-radius:3px}';
+            document.head.appendChild(style);
+        }
+        document.getElementById("chapter5BackBtn").onclick = function(e){ e.stopPropagation(); closeChapter5Story(); };
+        document.getElementById("chapter5TextBox").onclick = advanceChapter5Story;
+        showChapter5Page(0);
+    }
+    function chapter5SetBackground(bg) {
+        if (!bg) return; var overlay = document.getElementById("chapter5StoryOverlay");
+        if (overlay) overlay.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.18)),url("' + bg + '")';
+    }
+    function showChapter5Page(index) {
+        clearInterval(chapter5TypingTimer); chapter5TypingTimer = null;
+        var page = chapter5Pages[index] || chapter5Page(""); chapter5SetBackground(page.bg);
+        chapter5TypingText = page.text; chapter5TypingPos = 0;
+        var textEl = document.getElementById("chapter5Text"), plate = document.getElementById("chapter5NamePlate"), hint = document.getElementById("chapter5Continue");
+        if (!textEl) return; textEl.textContent = ""; plate.className = ""; plate.style.display = "none";
+        if (page.speaker) { plate.textContent = page.speaker; plate.className = page.side === "right" ? "right" : "left"; plate.style.display = "flex"; }
+        hint.textContent = "点击显示全文";
+        chapter5TypingTimer = setInterval(function(){ chapter5TypingPos++; textEl.textContent = chapter5TypingText.slice(0, chapter5TypingPos); if (chapter5TypingPos >= chapter5TypingText.length) { clearInterval(chapter5TypingTimer); chapter5TypingTimer = null; chapter5UpdateHint(); } }, 34);
+    }
+    function chapter5UpdateHint() {
+        var hint = document.getElementById("chapter5Continue"); if (!hint) return;
+        if (chapter5PageIndex < chapter5Pages.length - 1) hint.textContent = "点击继续";
+        else if (chapter5Phase === 1) hint.textContent = chapter5GroupDone ? "点击继续剧情" : "请查看群聊消息";
+        else if (chapter5Phase === 3) hint.textContent = chapter5Private1Done ? "点击继续剧情" : "请查看微信消息";
+        else if (chapter5Phase === 5) hint.textContent = chapter5Private2Done ? "点击继续剧情" : "请查看微信消息";
+        else if (chapter5Phase === 7) hint.textContent = "请选择";
+        else if (chapter5Phase === 8 && chapter5PageIndex === chapter5Pages.length - 1) hint.textContent = "点击选择";
+        else if (chapter5Phase === 10 && chapter5PageIndex === chapter5Pages.length - 1) hint.textContent = "本段剧情结束";
+        else hint.textContent = "点击继续";
+    }
+    function advanceChapter5Story() {
+        if (chapter5TypingTimer) { clearInterval(chapter5TypingTimer); chapter5TypingTimer = null; chapter5TypingPos = chapter5TypingText.length; document.getElementById("chapter5Text").textContent = chapter5TypingText; chapter5UpdateHint(); return; }
+        if (chapter5PageIndex < chapter5Pages.length - 1) { chapter5PageIndex++; showChapter5Page(chapter5PageIndex); return; }
+        if (chapter5Phase === 0) { chapter5Phase = 1; triggerChapter5GroupChat(); chapter5UpdateHint(); }
+        else if (chapter5Phase === 1 && chapter5GroupDone) { chapter5Phase = 2; chapter5Pages = chapter5AfterGroupPages(); chapter5PageIndex = 0; showChapter5Page(0); }
+        else if (chapter5Phase === 2) { chapter5Phase = 3; triggerChapter5PrivateChat(1); chapter5UpdateHint(); }
+        else if (chapter5Phase === 3 && chapter5Private1Done) { chapter5Phase = 4; chapter5Pages = chapter5WindowPages(); chapter5PageIndex = 0; showChapter5Page(0); }
+        else if (chapter5Phase === 4) { chapter5Phase = 5; triggerChapter5PrivateChat(2); chapter5UpdateHint(); }
+        else if (chapter5Phase === 5 && chapter5Private2Done) { chapter5Phase = 6; chapter5Pages = chapter5ParentPages(); chapter5PageIndex = 0; showChapter5Page(0); }
+        else if (chapter5Phase === 6) { chapter5Phase = 7; showChapter5Choice(); chapter5UpdateHint(); }
+        else if (chapter5Phase === 8) { showChapter5FireworkChoice(); }
+    }
+    function showChapter5Choice() {
+        if (document.getElementById("chapter5Choice")) return;
+        var box = document.createElement("div"); box.id = "chapter5Choice";
+        box.innerHTML = '<div style="text-align:center;color:#fff;font-size:12px;text-shadow:0 1px 3px #000;">（对分线无影响，随意就好）</div><button>出去</button><button>不出去</button>';
+        box.querySelectorAll("button").forEach(function(btn, choice){ btn.onclick = function(e){
+            e.stopPropagation(); box.remove();
+            if (choice === 0) startChapter5GoOutStory();
+            else alert("该选项的后续剧情待更新");
+        }; });
+        document.getElementById("chapter5StoryOverlay").appendChild(box);
+    }
+    function startChapter5GoOutStory() {
+        chapter5Phase = 8;
+        var nickname = player.nickname || player.name || "你";
+        chapter5Pages = (window.chapter5GoOutPages || []).map(function(page) {
+            return chapter5Page(String(page.text || "").replace(/\{\{PLAYER_NAME\}\}/g, nickname), page.speaker || "", page.side || "left", "jl.jpg");
+        });
+        chapter5PageIndex = 0;
+        if (chapter5Pages.length) showChapter5Page(0);
+    }
+    function showChapter5FireworkChoice() {
+        if (document.getElementById("chapter5FireworkChoice")) return;
+        chapter5Phase = 9;
+        var box = document.createElement("div"); box.id = "chapter5FireworkChoice";
+        box.innerHTML = '<button>真的把耳朵凑过去</button><button>不凑，让他自己说</button>';
+        box.querySelectorAll("button").forEach(function(btn, choice){ btn.onclick = function(e){
+            e.stopPropagation(); box.remove();
+            if (choice === 0) startChapter5FireworkChoiceA();
+            else alert("该选项的后续剧情待更新");
+        }; });
+        document.getElementById("chapter5StoryOverlay").appendChild(box);
+    }
+    function startChapter5FireworkChoiceA() {
+        chapter5Phase = 10;
+        chapter5Pages = (window.chapter5FireworkChoiceA || []).map(function(page){ return chapter5Page(page.text, page.speaker, page.side, "jl.jpg"); });
+        chapter5PageIndex = 0;
+        if (chapter5Pages.length) showChapter5Page(0);
+    }
+    function closeChapter5Story() { suspendChapter5Story(); document.getElementById("storyDetailPage").style.display = "none"; document.getElementById("chapterSelectPage").style.display = "block"; renderChapterList(); }
+    function suspendChapter5Story() { var o = document.getElementById("chapter5StoryOverlay"); if (o) o.style.display = "none"; }
+    function restoreChapter5Story() { var o = document.getElementById("chapter5StoryOverlay"); if (o) { o.style.display = "block"; chapter5UpdateHint(); } }
+    function chapter5GetSaveState() {
+        if (!chapter5SessionActive) return null;
+        return {active:true,phase:chapter5Phase,pageIndex:chapter5PageIndex,groupDone:chapter5GroupDone,private1Done:chapter5Private1Done,private2Done:chapter5Private2Done};
+    }
+    function restoreChapter5FromSave(state) {
+        if (!state || !state.active) return;
+        chapter5SessionActive = false;
+        openChapter5Story();
+        chapter5Phase = Number(state.phase) || 0;
+        chapter5GroupDone = !!state.groupDone; chapter5Private1Done = !!state.private1Done; chapter5Private2Done = !!state.private2Done;
+        if (chapter5Phase <= 1) chapter5Pages = chapter5IntroPages();
+        else if (chapter5Phase <= 3) chapter5Pages = chapter5AfterGroupPages();
+        else if (chapter5Phase <= 5) chapter5Pages = chapter5WindowPages();
+        else if (chapter5Phase <= 7) chapter5Pages = chapter5ParentPages();
+        else if (chapter5Phase <= 9) chapter5Pages = (window.chapter5GoOutPages || []).map(function(page){ return chapter5Page(page.text, page.speaker, page.side, "jl.jpg"); });
+        else chapter5Pages = (window.chapter5FireworkChoiceA || []).map(function(page){ return chapter5Page(page.text, page.speaker, page.side, "jl.jpg"); });
+        chapter5PageIndex = Math.max(0, Math.min(Number(state.pageIndex)||0, chapter5Pages.length-1));
+        showChapter5Page(chapter5PageIndex);
+        if (chapter5Phase === 7) showChapter5Choice();
+        if (chapter5Phase === 9) showChapter5FireworkChoice();
+        suspendChapter5Story();
+    }
+
+    function chapter5GroupMessages() {
+        var raw = [
+            ["张函瑞","咳咳"],["张函瑞","欢迎来到2025届年夜饭大赛"],["左奇函","？"],["张函瑞","本届大赛由肉好胀主持"],["王橹杰","这是在……"],["杨涵博","新年快乐啊大家"],["张函瑞","朋友们吃年夜饭了吗"],["张桂源","吃了"],["陈浚铭","我也在吃"],["陈浚铭","[图片]","cjmf.jpg"],["陈浚铭","馋不馋嘿嘿"],["张函瑞","哇"],["张函瑞","是烤全羊吗"],["陈浚铭","对"],["陈浚铭","不说了我要开动啦"],["张桂源","[图片]","zgyf.jpg"],["张桂源","我的"],["官俊臣","你家也好多"],["张函瑞","折耳根"],["张函瑞","我家也有"],["张函瑞","[图片]","zhrf.jpg"],["张桂源","哈哈哈哈哈哈哈哈哈"],["张桂源","你也有"],["张函瑞","肯定有啊"],["陈奕恒","哪个"],["左奇函","之前吃那个折耳根千层啊你不认识？？"],["杨博文","陈奕恒没去吧"],["左奇函","不是23年下浩里那次吗"],["陈奕恒","……"],["陈奕恒","你完了左奇函"],["左奇函","？？我又怎么完了"],["左奇函","下次带你去吃嘛"],["张奕然","[图片]","zyrf.jpg"],["张奕然","巧了"],["张桂源","？？？"],["张函瑞","哈哈哈哈哈哈哈哈哈哈"],["陈浚铭","怎么又有"],["王橹杰","可能是老张家的统一年夜饭"],["陈奕恒","姓张的都要吃这个吗"],["张奕然","家族传统"],["杨博文","[图片]","ybwf.jpg"],["杨博文","我也展示一下吧"],["张函瑞","你家火锅看起来好好吃"],["杨博文","我问问我妈妈秘诀"],["聂玮辰","[图片]","nwcf.jpg"],["陈浚铭","？"],["左奇函","？"],["张函瑞","？"],["王橹杰","天呐"],["陈思罕","不是"],["陈思罕","等一下"],["陈浚铭","你家几个人啊"],["聂玮辰","？"],["聂玮辰","过年啊"],["左奇函","你这是年夜饭还是宴席"],["王橹杰","感觉进去吃一顿能三天不用吃饭"],["杨博文","确实有点夸张"],["聂玮辰","这不是很正常吗"],["陈思罕","？"],["陈浚铭","？"],["左奇函","？"],["张函瑞","你对正常是不是有什么误解"],["聂玮辰","每年差不多都这样"],["张函瑞","你们等会都干嘛"],["陈浚铭","我等下去找张桂源打篮球"],["左奇函","？"],["左奇函","好啊"],["左奇函","背着我们一起出去玩"],["左奇函","之前给张桂源发信息都不回"],["陈奕恒","？"],["陈奕恒","为什么要背你们"],["左奇函","？"],["陈奕恒","背人还打得动？"],["张函瑞","我不行了吧"],["左奇函","我跟你说不清楚"],["陈奕恒","你本来就没说清楚"],["左奇函","行"],["左奇函","那晚上我来找你"],["陈奕恒","？？？"],["陈奕恒","干嘛？？"],["左奇函","你这个问号是什么意思"],["陈奕恒","你来找我干嘛"],["陈奕恒","很奇怪"],["左奇函","我找你放烟花"],["陈奕恒","那可以"],["左奇函","我真服了，不然你以为？"],["杨博文","我在家陪家里看春晚",null,"张函瑞：你们等会都干嘛"],["王橹杰","我也是"],["李煜东","打游戏"],["陈思罕","我等下出去放烟花"],["杨博文","注意安全"],["张函瑞","我应该也是先在家"],["张函瑞","等会可能出去一会儿"],["张奕然","我家里待着"]
+        ];
+        return raw.map(function(x,i){ return {from:x[0],text:x[1],image:x[2]||"",quoteText:x[3]||"",time:chapter5Time(18*60+28+Math.floor(i/5))}; });
+    }
+    function chapter5Time(minutes) { var h=Math.floor(minutes/60)%24,m=minutes%60; return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0"); }
+    function triggerChapter5GroupChat() {
+        var messages = chapter5GroupMessages();
+        chapter5PrepareChat("everybody 棒棒", messages, function(){ chapter5GroupDone = true; chapter5UpdateHint(); chapter5NotifyReturn("群聊完成，返回第五章继续"); });
+    }
+    function chapter5PrivateMessages(part) {
+        var raw = part === 1 ? [["other","[图片]","xnb.jpg"],["other","好看吗"],["me","好看"],["me","你在哪拍的"],["other","楼下"],["me","？"],["other","来窗边"],["me","干嘛"],["other","来嘛"],["me","神神秘秘的"],["other","快点我等你"]] : [["other","下来"],["other","我们买了好多烟花"],["me","好"],["other","多穿点，外面冷"],["me","那你穿那么少？"],["other","我的身体还用说？"],["me","好好好等下别冷的跺脚"]];
+        return raw.map(function(x,i){ return {from:x[0],text:x[1],image:x[2]||"",time:chapter5Time(20*60+42+(part-1)*5+Math.floor(i/3))}; });
+    }
+    function triggerChapter5PrivateChat(part) {
+        chapter5PrepareChat("张桂源", chapter5PrivateMessages(part), function(){ if(part===1) chapter5Private1Done=true; else chapter5Private2Done=true; chapter5UpdateHint(); chapter5NotifyReturn("聊天完成，返回第五章继续"); });
+    }
+    function chapter5PrepareChat(contact, messages, done) {
+        if (!chatData[contact]) chatData[contact] = {messages:[],newMsg:false};
+        var data = chatData[contact]; data.chapter5Flow = {messages:messages,index:0,running:false,complete:false,done:done}; data.newMsg=true;
+        chapter5AppendChat(contact,messages[0]); data.chapter5Flow.index=1;
+        var preview = messages[0].image ? "[图片]" : messages[0].text;
+        showMessageNotification(contact, contact === "everybody 棒棒" ? chapter4GroupGridAvatarHtml(48) : "zgyx.jpg", contact, (contact === "everybody 棒棒" ? messages[0].from+"：" : "")+preview, function(){ switchPage("chat"); openChapter5Chat(contact); });
+        renderChatList();
+    }
+    function chapter5AppendChat(contact, msg) {
+        var data=chatData[contact], isGroup=contact==="everybody 棒棒", isMe=msg.from==="me";
+        var text=msg.image?'<img src="'+msg.image+'" style="width:170px;border-radius:10px;max-width:100%;display:block;">':String(msg.text||"");
+        if(msg.quoteText) text += '<div style="margin-top:5px;padding-top:5px;border-top:1px solid #e8e8e8;font-size:12px;color:#999;">'+msg.quoteText+'</div>';
+        data.messages.push({from:isMe?"me":(isGroup?msg.from:"other"),text:text,time:msg.time,avatar:isMe?"":(isGroup?chapter4GroupAvatarPath(msg.from):"zgyx.jpg"),date:"2024年12月31日",read:true,isImage:!!msg.image,chapter5:true});
+        if(currentChatContact===contact && document.getElementById("chatDetailScreen").style.display!=="none") renderChatMessages(); renderChatList();
+    }
+    function openChapter5Chat(contact) {
+        currentChatContact=contact; var data=chatData[contact]; data.newMsg=false;
+        document.getElementById("chatListScreen").style.display="none"; document.getElementById("chatDetailScreen").style.display="flex"; document.getElementById("chatContactName").innerText=contact;
+        document.getElementById("chatBackBtn").onclick=function(){document.getElementById("chatDetailScreen").style.display="none";document.getElementById("chatListScreen").style.display="block";renderChatList();};
+        chapter4LockChatInput(data.chapter5Flow.complete?"聊天已完成，请返回剧情页面继续":"请等待消息"); renderChatMessages(); renderChatList(); setTimeout(function(){chapter5RunChat(contact);},450);
+    }
+    function chapter5RunChat(contact) {
+        var data=chatData[contact], state=data&&data.chapter5Flow; if(!state||state.complete)return;
+        if(state.pendingChoice){chapter5ShowSendChoice(contact,state.pendingChoice);return;}
+        if(state.running)return; state.running=true;
+        function next(){ if(state.index>=state.messages.length){state.running=false;state.complete=true;chapter4LockChatInput("聊天已完成，请返回剧情页面继续");if(state.done)state.done();return;}
+            var msg=state.messages[state.index++], len=String(msg.text||"").length;
+            if(msg.from==="me"){state.running=false;state.pendingChoice=msg;chapter5ShowSendChoice(contact,msg);return;}
+            chapter5ShowTyping(contact,msg.from); setTimeout(function(){var t=document.getElementById("chapter5ChatTyping");if(t)t.remove();chapter5AppendChat(contact,msg);setTimeout(next,Math.max(800,550+len*35));},Math.max(1400,1050+len*75));
+        } next();
+    }
+    function chapter5ShowSendChoice(contact, msg) {
+        chapter4LockChatInput("请点击选项发送");
+        showOptionsModal([msg.text], "选择回复", function() {
+            var state = chatData[contact].chapter5Flow;
+            state.pendingChoice = null;
+            chapter5AppendChat(contact, msg);
+            chapter4LockChatInput("请等待消息");
+            setTimeout(function(){ chapter5RunChat(contact); }, 650);
+        });
+        var modal = document.querySelector(".option-modal");
+        if (modal) {
+            modal.style.maxHeight = "24vh";
+            modal.style.padding = "10px 12px";
+            var messages = document.getElementById("chatMessages");
+            if (messages) { messages.style.paddingBottom = Math.min(modal.offsetHeight + 12, 170) + "px"; messages.scrollTop = messages.scrollHeight; }
+        }
+    }
+    function chapter5ShowTyping(contact,sender){if(currentChatContact!==contact||document.getElementById("chatDetailScreen").style.display==="none")return;var c=document.getElementById("chatMessages"),r=document.createElement("div");r.id="chapter5ChatTyping";r.className="message-row";r.innerHTML='<div class="message-avatar"><img src="'+(contact==="everybody 棒棒"?chapter4GroupAvatarPath(sender):"zgyx.jpg")+'" style="width:40px;height:40px;border-radius:12px;object-fit:cover"></div><div class="typing-indicator">'+(contact==="everybody 棒棒"?sender:"")+'正在输入...</div>';c.appendChild(r);c.scrollTop=c.scrollHeight;}
+    function chapter5NotifyReturn(text){showMessageNotification("第五章剧情","<div style='font-size:34px'>📖</div>","第五章剧情",text,function(){switchPage("story");});}
+
     // ================= 页面切换 =================
 function switchPage(pageId) {
     console.log('switchPage 被调用:', pageId);
+    if (chapter5SessionActive) {
+        if (pageId === "story") restoreChapter5Story();
+        else suspendChapter5Story();
+    }
     if (chapter4SessionActive) {
         if (pageId === "story") restoreChapter4Story();
         else suspendChapter4Story();
@@ -19189,8 +19501,8 @@ localStorage.removeItem('zhang_dialogue_done');
 localStorage.removeItem('chapter1_all_tasks_triggered');
         
         chapterCompleted = false;
-        completedChapters = [false, false, false, false];
-        unlockedChapters = [true, false, false, false];
+        completedChapters = [false, false, false, false, false];
+        unlockedChapters = [true, false, false, false, false];
         // 清空成就数据
 localStorage.removeItem('achievements');
 achievements = [
@@ -24720,6 +25032,7 @@ function autoSaveGame() {
         // 聊天数据
         chatData: chatData,
         chapter4State: chapter4GetSaveState(),
+        chapter5State: chapter5GetSaveState(),
         // 朋友圈
         allMoments: allMoments || [],
         myMoments: myMoments || [],
@@ -24860,6 +25173,9 @@ function restoreAutoSave(data) {
     if (data.chatData) chatData = data.chatData;
     if (data.chapter4State && data.chapter4State.active) {
         setTimeout(function() { restoreChapter4FromSave(data.chapter4State); }, 0);
+    }
+    if (data.chapter5State && data.chapter5State.active) {
+        setTimeout(function() { restoreChapter5FromSave(data.chapter5State); }, 0);
     }
     
     // 恢复朋友圈
@@ -27887,6 +28203,7 @@ function autoSaveToSlot4() {
         completedChapters: completedChapters,
         chatData: chatData,
         chapter4State: chapter4GetSaveState(),
+        chapter5State: chapter5GetSaveState(),
         
         // ===== 朋友圈 =====
         allMoments: allMoments || [],
@@ -28008,6 +28325,9 @@ function restoreGameData(data) {
     if (data.chatData) chatData = data.chatData;
     if (data.chapter4State && data.chapter4State.active) {
         setTimeout(function() { restoreChapter4FromSave(data.chapter4State); }, 0);
+    }
+    if (data.chapter5State && data.chapter5State.active) {
+        setTimeout(function() { restoreChapter5FromSave(data.chapter5State); }, 0);
     }
     if (data.allMoments) allMoments = data.allMoments;
     if (data.myMoments) myMoments = data.myMoments;
@@ -30531,5 +30851,6 @@ function exitWerewolf() {
     switchPage('story');
 }
 </script>
+<script src="chapter5-data.js"></script>
 </body>
 </html>
