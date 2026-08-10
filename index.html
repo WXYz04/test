@@ -13638,6 +13638,7 @@ b“不想要这个吗？那你想要什么？”
     var chapter5GroupDone = false;
     var chapter5Private1Done = false;
     var chapter5Private2Done = false;
+    var chapter5NewYearGroupDone = false;
     var chapter5ChatRunning = false;
 
     function chapter5Page(text, speaker, side, bg) {
@@ -13724,7 +13725,7 @@ b“不想要这个吗？那你想要什么？”
             return;
         }
         chapter5SessionActive = true; chapter5Phase = 0; chapter5PageIndex = 0;
-        chapter5GroupDone = false; chapter5Private1Done = false; chapter5Private2Done = false;
+        chapter5GroupDone = false; chapter5Private1Done = false; chapter5Private2Done = false; chapter5NewYearGroupDone = false;
         chapter5Pages = chapter5IntroPages();
         var old = document.getElementById("chapter5StoryOverlay"); if (old) old.remove();
         var overlay = document.createElement("div"); overlay.id = "chapter5StoryOverlay";
@@ -13761,7 +13762,8 @@ b“不想要这个吗？那你想要什么？”
         else if (chapter5Phase === 5) hint.textContent = chapter5Private2Done ? "点击继续剧情" : "请查看微信消息";
         else if (chapter5Phase === 7) hint.textContent = "请选择";
         else if (chapter5Phase === 8 && chapter5PageIndex === chapter5Pages.length - 1) hint.textContent = "点击选择";
-        else if (chapter5Phase === 10 && chapter5PageIndex === chapter5Pages.length - 1) hint.textContent = "本段剧情结束";
+        else if (chapter5Phase === 10 && chapter5PageIndex === chapter5Pages.length - 1) hint.textContent = "点击查看群聊";
+        else if (chapter5Phase === 11) hint.textContent = chapter5NewYearGroupDone ? "本段剧情结束" : "请查看群聊消息";
         else hint.textContent = "点击继续";
     }
     function advanceChapter5Story() {
@@ -13775,6 +13777,7 @@ b“不想要这个吗？那你想要什么？”
         else if (chapter5Phase === 5 && chapter5Private2Done) { chapter5Phase = 6; chapter5Pages = chapter5ParentPages(); chapter5PageIndex = 0; showChapter5Page(0); }
         else if (chapter5Phase === 6) { chapter5Phase = 7; showChapter5Choice(); chapter5UpdateHint(); }
         else if (chapter5Phase === 8) { showChapter5FireworkChoice(); }
+        else if (chapter5Phase === 10) { chapter5Phase = 11; triggerChapter5NewYearGroup(); chapter5UpdateHint(); }
     }
     function showChapter5Choice() {
         if (document.getElementById("chapter5Choice")) return;
@@ -13819,14 +13822,14 @@ b“不想要这个吗？那你想要什么？”
     function restoreChapter5Story() { var o = document.getElementById("chapter5StoryOverlay"); if (o) { o.style.display = "block"; chapter5UpdateHint(); } }
     function chapter5GetSaveState() {
         if (!chapter5SessionActive) return null;
-        return {active:true,phase:chapter5Phase,pageIndex:chapter5PageIndex,groupDone:chapter5GroupDone,private1Done:chapter5Private1Done,private2Done:chapter5Private2Done};
+        return {active:true,phase:chapter5Phase,pageIndex:chapter5PageIndex,groupDone:chapter5GroupDone,private1Done:chapter5Private1Done,private2Done:chapter5Private2Done,newYearGroupDone:chapter5NewYearGroupDone};
     }
     function restoreChapter5FromSave(state) {
         if (!state || !state.active) return;
         chapter5SessionActive = false;
         openChapter5Story();
         chapter5Phase = Number(state.phase) || 0;
-        chapter5GroupDone = !!state.groupDone; chapter5Private1Done = !!state.private1Done; chapter5Private2Done = !!state.private2Done;
+        chapter5GroupDone = !!state.groupDone; chapter5Private1Done = !!state.private1Done; chapter5Private2Done = !!state.private2Done; chapter5NewYearGroupDone = !!state.newYearGroupDone;
         if (chapter5Phase <= 1) chapter5Pages = chapter5IntroPages();
         else if (chapter5Phase <= 3) chapter5Pages = chapter5AfterGroupPages();
         else if (chapter5Phase <= 5) chapter5Pages = chapter5WindowPages();
@@ -13851,6 +13854,20 @@ b“不想要这个吗？那你想要什么？”
         var messages = chapter5GroupMessages();
         chapter5PrepareChat("everybody 棒棒", messages, function(){ chapter5GroupDone = true; chapter5UpdateHint(); chapter5NotifyReturn("群聊完成，返回第五章继续"); });
     }
+    function chapter5NewYearGroupMessages() {
+        var nickname = player.nickname || player.name || "你";
+        return (window.chapter5NewYearGroup || []).map(function(message, index) {
+            return {from:message.from,text:String(message.text || "").replace(/\{\{PLAYER_NAME\}\}/g,nickname),image:message.image || "",time:chapter5Time(24*60 + Math.floor(index/5)),date:"2025年1月1日"};
+        });
+    }
+    function triggerChapter5NewYearGroup() {
+        var messages = chapter5NewYearGroupMessages();
+        chapter5PrepareChat("everybody 棒棒", messages, function(){
+            chapter5NewYearGroupDone = true;
+            chapter5UpdateHint();
+            chapter5NotifyReturn("新年群聊已完成，本段剧情结束");
+        });
+    }
     function chapter5PrivateMessages(part) {
         var raw = part === 1 ? [["other","[图片]","xnb.jpg"],["other","好看吗"],["me","好看"],["me","你在哪拍的"],["other","楼下"],["me","？"],["other","来窗边"],["me","干嘛"],["other","来嘛"],["me","神神秘秘的"],["other","快点我等你"]] : [["other","下来"],["other","我们买了好多烟花"],["me","好"],["other","多穿点，外面冷"],["me","那你穿那么少？"],["other","我的身体还用说？"],["me","好好好等下别冷的跺脚"]];
         return raw.map(function(x,i){ return {from:x[0],text:x[1],image:x[2]||"",time:chapter5Time(20*60+42+(part-1)*5+Math.floor(i/3))}; });
@@ -13870,7 +13887,7 @@ b“不想要这个吗？那你想要什么？”
         var data=chatData[contact], isGroup=contact==="everybody 棒棒", isMe=msg.from==="me";
         var text=msg.image?'<img src="'+msg.image+'" style="width:170px;border-radius:10px;max-width:100%;display:block;">':String(msg.text||"");
         if(msg.quoteText) text += '<div style="margin-top:5px;padding-top:5px;border-top:1px solid #e8e8e8;font-size:12px;color:#999;">'+msg.quoteText+'</div>';
-        data.messages.push({from:isMe?"me":(isGroup?msg.from:"other"),text:text,time:msg.time,avatar:isMe?"":(isGroup?chapter4GroupAvatarPath(msg.from):"zgyx.jpg"),date:"2024年12月31日",read:true,isImage:!!msg.image,chapter5:true});
+        data.messages.push({from:isMe?"me":(isGroup?msg.from:"other"),text:text,time:msg.time,avatar:isMe?"":(isGroup?chapter4GroupAvatarPath(msg.from):"zgyx.jpg"),date:msg.date||"2024年12月31日",read:true,isImage:!!msg.image,chapter5:true});
         if(currentChatContact===contact && document.getElementById("chatDetailScreen").style.display!=="none") renderChatMessages(); renderChatList();
     }
     function openChapter5Chat(contact) {
