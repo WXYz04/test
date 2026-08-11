@@ -13803,7 +13803,7 @@ b“不想要这个吗？那你想要什么？”
         }
         var chapter5Skip=document.getElementById("chapter5SkipBtn");if(chapter5Skip){chapter5Skip.style.left="50%";chapter5Skip.style.transform="translateX(-50%)";}
         document.getElementById("chapter5BackBtn").onclick = function(e){ e.stopPropagation(); closeChapter5Story(); };
-        document.getElementById("chapter5SkipBtn").onclick = function(e){ e.stopPropagation(); skipChapter5ToFirstChoice(); };
+        document.getElementById("chapter5SkipBtn").onclick = function(e){ e.stopPropagation(); skipChapter5ToNextChoice(); };
         document.getElementById("chapter5TextBox").onclick = advanceChapter5Story;
         chapter5PlayBgm("gxfc.mp3");
         showChapter5Page(0);
@@ -13816,6 +13816,14 @@ b“不想要这个吗？那你想要什么？”
         chapter5Phase = 7; chapter5Pages = [chapter5Page("请做出你的选择：", "", "left", "jl.jpg")]; chapter5PageIndex = 0;
         var skip = document.getElementById("chapter5SkipBtn"); if (skip) skip.style.display = "none";
         showChapter5Page(0); showChapter5Choice();
+    }
+    function skipChapter5ToNextChoice() {
+        if (chapter5Phase < 8) { skipChapter5ToFirstChoice(); return; }
+        if (chapter5Phase === 8) {
+            clearInterval(chapter5TypingTimer); chapter5TypingTimer = null;
+            chapter5PageIndex = Math.max(0, chapter5Pages.length - 1);
+            showChapter5FireworkChoice();
+        }
     }
     function chapter5SetBackground(bg) {
         if (!bg) return; var overlay = document.getElementById("chapter5StoryOverlay");
@@ -13865,7 +13873,6 @@ b“不想要这个吗？那你想要什么？”
         box.querySelectorAll("button").forEach(function(btn, choice){ btn.onclick = function(e){
             e.stopPropagation(); box.remove();
             chapter5SkippedToFirstChoice = false;
-            var skip=document.getElementById("chapter5SkipBtn");if(skip)skip.style.display="none";
             if (choice === 0) startChapter5GoOutStory();
             else startChapter5StayInStory();
         }; });
@@ -13879,6 +13886,7 @@ b“不想要这个吗？那你想要什么？”
             return chapter5Page(String(page.text || "").replace(/\{\{PLAYER_NAME\}\}/g, nickname), page.speaker || "", page.side || "left", page.bg || "jl.jpg");
         });
         chapter5PageIndex = 0;
+        var skip=document.getElementById("chapter5SkipBtn");if(skip)skip.style.display="block";
         if (chapter5Pages.length) showChapter5Page(0);
     }
     function startChapter5StayInStory() {
@@ -13889,11 +13897,13 @@ b“不想要这个吗？那你想要什么？”
             return chapter5Page(String(page.text || "").replace(/xx（读取玩家昵称）/g, nickname).replace(/\{\{PLAYER_NAME\}\}/g, nickname), page.speaker || "", page.side || "left", page.bg || "jl.jpg");
         });
         chapter5PageIndex = 0;
+        var skip=document.getElementById("chapter5SkipBtn");if(skip)skip.style.display="block";
         if (chapter5Pages.length) showChapter5Page(0);
     }
     function showChapter5FireworkChoice() {
         if (document.getElementById("chapter5FireworkChoice")) return;
         chapter5Phase = 9;
+        var skip=document.getElementById("chapter5SkipBtn");if(skip)skip.style.display="none";
         var box = document.createElement("div"); box.id = "chapter5FireworkChoice";
         box.innerHTML = '<button>真的把耳朵凑过去</button><button>不凑，让他自己说</button>';
         box.querySelectorAll("button").forEach(function(btn, choice){ btn.onclick = function(e){
@@ -31090,6 +31100,6 @@ function exitWerewolf() {
     switchPage('story');
 }
 </script>
-<script src="chapter5-data.js"></script>
+<script src="chapter5-data.js?v=20260811b"></script>
 </body>
 </html>
