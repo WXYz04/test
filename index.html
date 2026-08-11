@@ -13690,6 +13690,17 @@ b“不想要这个吗？那你想要什么？”
     var chapter5ChatRunning = false;
     var chapter5SkippedToFirstChoice = false;
     var chapter5FirstChoiceRoute = "";
+    var chapter5Bgm = null;
+    var chapter5BgmName = "";
+    var chapter5FinalPrivateActive = false;
+    var chapter5AimeiStarted = false;
+
+    function chapter5PlayBgm(src){
+        if(chapter5BgmName===src&&chapter5Bgm&&!chapter5Bgm.ended)return;
+        chapter5StopBgm();chapter5BgmName=src;chapter5Bgm=new Audio(src);chapter5Bgm.loop=false;chapter5Bgm.volume=.72;
+        chapter5Bgm.play().catch(function(){chapter5BgmName="";});
+    }
+    function chapter5StopBgm(){if(chapter5Bgm){chapter5Bgm.pause();chapter5Bgm.currentTime=0;}chapter5Bgm=null;chapter5BgmName="";}
 
     function chapter5Page(text, speaker, side, bg) {
         return { text: text, speaker: speaker || "", side: side || (speaker === "你" ? "right" : "left"), bg: bg || "" };
@@ -13778,7 +13789,7 @@ b“不想要这个吗？那你想要什么？”
             restoreChapter5Story();
             return;
         }
-        chapter5SessionActive = true; chapter5Phase = 0; chapter5PageIndex = 0; chapter5SkippedToFirstChoice = false; chapter5FirstChoiceRoute = "";
+        chapter5SessionActive = true; chapter5Phase = 0; chapter5PageIndex = 0; chapter5SkippedToFirstChoice = false; chapter5FirstChoiceRoute = ""; chapter5FinalPrivateActive=false; chapter5AimeiStarted=false;
         chapter5GroupDone = false; chapter5Private1Done = false; chapter5Private2Done = false; chapter5NewYearGroupDone = false;
         chapter5Pages = chapter5IntroPages();
         var old = document.getElementById("chapter5StoryOverlay"); if (old) old.remove();
@@ -13790,9 +13801,11 @@ b“不想要这个吗？那你想要什么？”
             style.textContent = '#chapter5StoryOverlay{position:fixed;top:0;bottom:70px;left:50%;transform:translateX(-50%);width:100%;max-width:500px;z-index:91;background:linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.18)),url(\"jl.jpg\") center/cover no-repeat;overflow:hidden}#chapter5BackBtn{position:absolute;top:max(18px,env(safe-area-inset-top));left:18px;width:42px;height:42px;border:0;border-radius:50%;background:rgba(0,0,0,.58);color:#fff;font-size:25px;z-index:5}#chapter5TextBox{position:absolute;left:14px;right:14px;bottom:14px;min-height:150px;padding:22px 22px 30px;border:1px solid rgba(255,255,255,.24);border-radius:10px;background:rgba(5,5,8,.84);box-shadow:0 8px 28px rgba(0,0,0,.42);color:#fff;cursor:pointer;user-select:none}#chapter5SkipBtn{position:absolute;left:10px;top:-30px;height:27px;padding:0 11px;border:1px solid rgba(255,255,255,.5);border-radius:3px;background:rgba(0,0,0,.78);color:#fff;font-size:11px;cursor:pointer}#chapter5NamePlate{display:none;position:absolute;top:-34px;min-width:92px;height:35px;padding:0 20px;background:rgba(5,5,8,.92);border:1px solid rgba(255,255,255,.24);border-bottom:0;font-size:14px;font-weight:600;align-items:center;justify-content:center}#chapter5NamePlate.left{display:flex;left:-1px;border-radius:8px 8px 0 0}#chapter5NamePlate.right{display:flex;right:-1px;border-radius:8px 8px 0 0}#chapter5Text{font-size:15px;line-height:1.85;white-space:pre-wrap;text-shadow:0 1px 2px #000}#chapter5Continue{position:absolute;right:18px;bottom:9px;color:rgba(255,255,255,.62);font-size:11px}#chapter5Choice,#chapter5FireworkChoice{position:absolute;left:24px;right:24px;bottom:205px;z-index:8;display:grid;gap:12px}#chapter5Choice button,#chapter5FireworkChoice button{padding:14px;border:1px solid rgba(255,255,255,.55);background:rgba(5,5,8,.88);color:#fff;font-size:15px;border-radius:3px}';
             document.head.appendChild(style);
         }
+        var chapter5Skip=document.getElementById("chapter5SkipBtn");if(chapter5Skip){chapter5Skip.style.left="50%";chapter5Skip.style.transform="translateX(-50%)";}
         document.getElementById("chapter5BackBtn").onclick = function(e){ e.stopPropagation(); closeChapter5Story(); };
         document.getElementById("chapter5SkipBtn").onclick = function(e){ e.stopPropagation(); skipChapter5ToFirstChoice(); };
         document.getElementById("chapter5TextBox").onclick = advanceChapter5Story;
+        chapter5PlayBgm("gxfc.mp3");
         showChapter5Page(0);
     }
     function chapter5MapPages(source, bg) { return (source || []).map(function(page){ return chapter5Page(page.text,page.speaker,page.side,bg); }); }
@@ -13806,7 +13819,7 @@ b“不想要这个吗？那你想要什么？”
     }
     function chapter5SetBackground(bg) {
         if (!bg) return; var overlay = document.getElementById("chapter5StoryOverlay");
-        if (overlay) overlay.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.18)),url("' + bg + '")';
+        if (overlay) {overlay.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.18)),url("' + bg + '")';overlay.style.backgroundSize="cover";overlay.style.backgroundPosition="center";overlay.style.backgroundRepeat="no-repeat";}
     }
     function showChapter5Page(index) {
         clearInterval(chapter5TypingTimer); chapter5TypingTimer = null;
@@ -13828,6 +13841,7 @@ b“不想要这个吗？那你想要什么？”
         else if (chapter5Phase === 8 && chapter5PageIndex === chapter5Pages.length - 1) hint.textContent = "点击选择";
         else if ((chapter5Phase === 10 || chapter5Phase === 12) && chapter5PageIndex === chapter5Pages.length - 1) hint.textContent = "点击查看群聊";
         else if (chapter5Phase === 11) hint.textContent = chapter5NewYearGroupDone ? "本段剧情结束" : "请查看群聊消息";
+        else if (chapter5Phase === 13) hint.textContent = "点击结束本章";
         else hint.textContent = "点击继续";
     }
     function advanceChapter5Story() {
@@ -13842,6 +13856,7 @@ b“不想要这个吗？那你想要什么？”
         else if (chapter5Phase === 6) { chapter5SkippedToFirstChoice = false; chapter5Phase = 7; showChapter5Choice(); chapter5UpdateHint(); }
         else if (chapter5Phase === 8) { showChapter5FireworkChoice(); }
         else if (chapter5Phase === 10 || chapter5Phase === 12) { chapter5Phase = 11; triggerChapter5NewYearGroup(); chapter5UpdateHint(); }
+        else if (chapter5Phase === 13) { completeChapter5Story(); }
     }
     function showChapter5Choice() {
         if (document.getElementById("chapter5Choice")) return;
@@ -13861,7 +13876,7 @@ b“不想要这个吗？那你想要什么？”
         chapter5Phase = 8;
         var nickname = player.name || "你";
         chapter5Pages = (window.chapter5GoOutPages || []).map(function(page) {
-            return chapter5Page(String(page.text || "").replace(/\{\{PLAYER_NAME\}\}/g, nickname), page.speaker || "", page.side || "left", "jl.jpg");
+            return chapter5Page(String(page.text || "").replace(/\{\{PLAYER_NAME\}\}/g, nickname), page.speaker || "", page.side || "left", page.bg || "jl.jpg");
         });
         chapter5PageIndex = 0;
         if (chapter5Pages.length) showChapter5Page(0);
@@ -13871,7 +13886,7 @@ b“不想要这个吗？那你想要什么？”
         chapter5Phase = 8;
         var nickname = player.nickname || player.name || "你";
         chapter5Pages = (window.chapter5StayInPages || []).map(function(page) {
-            return chapter5Page(String(page.text || "").replace(/xx（读取玩家昵称）/g, nickname).replace(/\{\{PLAYER_NAME\}\}/g, nickname), page.speaker || "", page.side || "left", "jl.jpg");
+            return chapter5Page(String(page.text || "").replace(/xx（读取玩家昵称）/g, nickname).replace(/\{\{PLAYER_NAME\}\}/g, nickname), page.speaker || "", page.side || "left", page.bg || "jl.jpg");
         });
         chapter5PageIndex = 0;
         if (chapter5Pages.length) showChapter5Page(0);
@@ -13890,13 +13905,13 @@ b“不想要这个吗？那你想要什么？”
     }
     function startChapter5FireworkChoiceA() {
         chapter5Phase = 10;
-        chapter5Pages = (window.chapter5FireworkChoiceA || []).map(function(page){ return chapter5Page(page.text, page.speaker, page.side, "jl.jpg"); });
+        chapter5Pages = (window.chapter5FireworkChoiceA || []).map(function(page){ return chapter5Page(page.text, page.speaker, page.side, page.bg || "jl.jpg"); });
         chapter5PageIndex = 0;
         if (chapter5Pages.length) showChapter5Page(0);
     }
     function startChapter5FireworkChoiceB() {
         chapter5Phase = 12;
-        chapter5Pages = chapter5MapPages(window.chapter5FireworkChoiceB || [], "jl.jpg");
+        chapter5Pages = (window.chapter5FireworkChoiceB || []).map(function(page){ return chapter5Page(page.text, page.speaker, page.side, page.bg || "jl.jpg"); });
         chapter5PageIndex = 0;
         if (chapter5Pages.length) showChapter5Page(0);
     }
@@ -13921,9 +13936,10 @@ b“不想要这个吗？那你想要什么？”
         else if (chapter5Phase < 7) chapter5Pages = chapter5ParentPages();
         else if (chapter5Phase === 7 && chapter5SkippedToFirstChoice) chapter5Pages = [chapter5Page("请做出你的选择：", "", "left", "jl.jpg")];
         else if (chapter5Phase === 7) chapter5Pages = chapter5ParentPages();
-        else if (chapter5Phase <= 9) chapter5Pages = ((chapter5FirstChoiceRoute === "stay" ? window.chapter5StayInPages : window.chapter5GoOutPages) || []).map(function(page){ return chapter5Page(page.text, page.speaker, page.side, "jl.jpg"); });
-        else if (chapter5Phase === 12) chapter5Pages = chapter5MapPages(window.chapter5FireworkChoiceB || [], "jl.jpg");
-        else chapter5Pages = chapter5MapPages(window.chapter5FireworkChoiceA || [], "jl.jpg");
+        else if (chapter5Phase <= 9) chapter5Pages = ((chapter5FirstChoiceRoute === "stay" ? window.chapter5StayInPages : window.chapter5GoOutPages) || []).map(function(page){ return chapter5Page(page.text, page.speaker, page.side, page.bg || "jl.jpg"); });
+        else if (chapter5Phase === 12) chapter5Pages = (window.chapter5FireworkChoiceB || []).map(function(page){ return chapter5Page(page.text, page.speaker, page.side, page.bg || "jl.jpg"); });
+        else if (chapter5Phase === 13) chapter5Pages = chapter5EndingNoticePages();
+        else chapter5Pages = (window.chapter5FireworkChoiceA || []).map(function(page){ return chapter5Page(page.text, page.speaker, page.side, page.bg || "jl.jpg"); });
         chapter5PageIndex = Math.max(0, Math.min(Number(state.pageIndex)||0, chapter5Pages.length-1));
         showChapter5Page(chapter5PageIndex);
         if (chapter5Phase === 7) showChapter5Choice();
@@ -13932,25 +13948,27 @@ b“不想要这个吗？那你想要什么？”
     }
 
     function chapter5GroupMessages() {
-        if (window.chapter5InitialGroup) return window.chapter5InitialGroup.map(function(message,index){ return Object.assign({},message,{time:chapter5Time(18*60+28+Math.floor(index/5))}); });
+        if (window.chapter5InitialGroup) return window.chapter5InitialGroup.map(function(message,index){ return Object.assign({},message,{time:chapter5Time(19*60+10+Math.floor(index/5)),date:"2024年1月18日"}); });
         var raw = [
             ["张函瑞","咳咳"],["张函瑞","欢迎来到2025届年夜饭大赛"],["左奇函","？"],["张函瑞","本届大赛由肉好胀主持"],["王橹杰","这是在……"],["杨涵博","新年快乐啊大家"],["张函瑞","朋友们吃年夜饭了吗"],["张桂源","吃了"],["陈浚铭","我也在吃"],["陈浚铭","[图片]","cjmf.jpg"],["陈浚铭","馋不馋嘿嘿"],["张函瑞","哇"],["张函瑞","是烤全羊吗"],["陈浚铭","对"],["陈浚铭","不说了我要开动啦"],["张桂源","[图片]","zgyf.jpg"],["张桂源","我的"],["官俊臣","你家也好多"],["张函瑞","折耳根"],["张函瑞","我家也有"],["张函瑞","[图片]","zhrf.jpg"],["张桂源","哈哈哈哈哈哈哈哈哈"],["张桂源","你也有"],["张函瑞","肯定有啊"],["陈奕恒","哪个"],["左奇函","之前吃那个折耳根千层啊你不认识？？"],["杨博文","陈奕恒没去吧"],["左奇函","不是23年下浩里那次吗"],["陈奕恒","……"],["陈奕恒","你完了左奇函"],["左奇函","？？我又怎么完了"],["左奇函","下次带你去吃嘛"],["张奕然","[图片]","zyrf.jpg"],["张奕然","巧了"],["张桂源","？？？"],["张函瑞","哈哈哈哈哈哈哈哈哈哈"],["陈浚铭","怎么又有"],["王橹杰","可能是老张家的统一年夜饭"],["陈奕恒","姓张的都要吃这个吗"],["张奕然","家族传统"],["杨博文","[图片]","ybwf.jpg"],["杨博文","我也展示一下吧"],["张函瑞","你家火锅看起来好好吃"],["杨博文","我问问我妈妈秘诀"],["聂玮辰","[图片]","nwcf.jpg"],["陈浚铭","？"],["左奇函","？"],["张函瑞","？"],["王橹杰","天呐"],["陈思罕","不是"],["陈思罕","等一下"],["陈浚铭","你家几个人啊"],["聂玮辰","？"],["聂玮辰","过年啊"],["左奇函","你这是年夜饭还是宴席"],["王橹杰","感觉进去吃一顿能三天不用吃饭"],["杨博文","确实有点夸张"],["聂玮辰","这不是很正常吗"],["陈思罕","？"],["陈浚铭","？"],["左奇函","？"],["张函瑞","你对正常是不是有什么误解"],["聂玮辰","每年差不多都这样"],["张函瑞","你们等会都干嘛"],["陈浚铭","我等下去找张桂源打篮球"],["左奇函","？"],["左奇函","好啊"],["左奇函","背着我们一起出去玩"],["左奇函","之前给张桂源发信息都不回"],["陈奕恒","？"],["陈奕恒","为什么要背你们"],["左奇函","？"],["陈奕恒","背人还打得动？"],["张函瑞","我不行了吧"],["左奇函","我跟你说不清楚"],["陈奕恒","你本来就没说清楚"],["左奇函","行"],["左奇函","那晚上我来找你"],["陈奕恒","？？？"],["陈奕恒","干嘛？？"],["左奇函","你这个问号是什么意思"],["陈奕恒","你来找我干嘛"],["陈奕恒","很奇怪"],["左奇函","我找你放烟花"],["陈奕恒","那可以"],["左奇函","我真服了，不然你以为？"],["杨博文","我在家陪家里看春晚",null,"张函瑞：你们等会都干嘛"],["王橹杰","我也是"],["李煜东","打游戏"],["陈思罕","我等下出去放烟花"],["杨博文","注意安全"],["张函瑞","我应该也是先在家"],["张函瑞","等会可能出去一会儿"],["张奕然","我家里待着"]
         ];
-        return raw.map(function(x,i){ return {from:x[0],text:x[1],image:x[2]||"",quoteText:x[3]||"",time:chapter5Time(18*60+28+Math.floor(i/5))}; });
+        return raw.map(function(x,i){ return {from:x[0],text:x[1],image:x[2]||"",quoteText:x[3]||"",time:chapter5Time(19*60+10+Math.floor(i/5)),date:"2024年1月18日"}; });
     }
     function chapter5Time(minutes) { var h=Math.floor(minutes/60)%24,m=minutes%60; return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0"); }
     function triggerChapter5GroupChat() {
+        chapter5StopBgm();
         var messages = chapter5GroupMessages();
         chapter5PrepareChat("everybody 棒棒", messages, function(){ chapter5GroupDone = true; chapter5UpdateHint(); chapter5NotifyReturn("群聊完成，返回第五章继续"); });
     }
     function chapter5NewYearGroupMessages() {
         var nickname = player.name || "你";
         var wechatName = player.wechatName || player.name || "你";
+        var lastPacketTime = "";
         return (window.chapter5NewYearGroup || []).map(function(message, index) {
             var copy = JSON.parse(JSON.stringify(message));
             copy.text=String(copy.text || "").replace(/\{\{PLAYER_NAME\}\}/g,nickname).replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,wechatName); copy.time=chapter5Time(21 + Math.floor(index/5)); copy.date="2024年1月19日";
-            if(copy.isSystem) copy.text += " · " + copy.time;
-            if(copy.redPacket){ copy.redPacket.title=String(copy.redPacket.title||"恭喜发财").replace(/\{\{PLAYER_NAME\}\}/g,nickname).replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,wechatName); }
+            if(copy.redPacket){ lastPacketTime=copy.time; copy.redPacket.claimTime=copy.time; copy.redPacket.title=String(copy.redPacket.title||"恭喜发财").replace(/\{\{PLAYER_NAME\}\}/g,nickname).replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,wechatName); }
+            if(copy.isSystem){ if(lastPacketTime)copy.time=lastPacketTime; copy.text += " · " + copy.time; }
             return copy;
         });
     }
@@ -13967,7 +13985,8 @@ b“不想要这个吗？那你想要什么？”
             var playerLines=choice===0?["我还真需要……","聂少"]:["@张桂源","恭喜发财","红包拿来"];
             playerLines.forEach(function(text,index){chapter5AppendChat("everybody 棒棒",{from:"me",text:text,time:chapter5Time(35+index),date:"2024年1月19日"});});
             var source=choice===0?(window.chapter5RedBranch1||[]):(window.chapter5RedBranch2||[]);
-            var branch=source.map(function(message,index){var copy=JSON.parse(JSON.stringify(message));copy.text=String(copy.text||"").replace(/\{\{PLAYER_NAME\}\}/g,nickname).replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,wechatName);copy.time=chapter5Time(36+Math.floor(index/5));copy.date="2024年1月19日";if(copy.redPacket)copy.redPacket.title=String(copy.redPacket.title||"").replace(/\{\{PLAYER_NAME\}\}/g,nickname).replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,wechatName);return copy;});
+            var lastPacketTime="";
+            var branch=source.map(function(message,index){var copy=JSON.parse(JSON.stringify(message));copy.text=String(copy.text||"").replace(/\{\{PLAYER_NAME\}\}/g,nickname).replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,wechatName);copy.time=chapter5Time(36+Math.floor(index/5));copy.date="2024年1月19日";if(copy.redPacket){lastPacketTime=copy.time;copy.redPacket.claimTime=copy.time;copy.redPacket.title=String(copy.redPacket.title||"").replace(/\{\{PLAYER_NAME\}\}/g,nickname).replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,wechatName);}if(copy.isSystem&&lastPacketTime){copy.time=lastPacketTime;copy.text=String(copy.text||"").replace(/ · \d{2}:\d{2}$/,'')+' · '+copy.time;}return copy;});
             chapter5ContinueChat("everybody 棒棒",branch,function(){chapter5NewYearGroupDone=true;chapter5UpdateHint();triggerChapter5FinalPrivateChat();});
         });
     }
@@ -13981,6 +14000,7 @@ b“不想要这个吗？那你想要什么？”
         });
     }
     function triggerChapter5FinalPrivateChat() {
+        chapter5FinalPrivateActive=true;
         var messages=chapter5FinalPrivateMessages(window.chapter5FinalPrivateCommon || []);
         chapter5PrepareChat("张桂源",messages,function(){chapter5ShowFinalPrivateChoice();});
     }
@@ -13989,11 +14009,19 @@ b“不想要这个吗？那你想要什么？”
         showOptionsModal(["张龙眼。","群里任何一个人都可以啊。"],"选择回复",function(choice){
             chapter5AppendChat("张桂源",{from:"me",text:choice===0?"张龙眼":"群里任何一个人都可以啊",time:chapter5Time(24*60+52),date:"2025年1月1日"});
             var source=choice===0?(window.chapter5FinalPrivateBranch1||[]):(window.chapter5FinalPrivateBranch2||[]);
-            chapter5ContinueChat("张桂源",chapter5FinalPrivateMessages(source),function(){setTimeout(completeChapter5Story,700);});
+            chapter5ContinueChat("张桂源",chapter5FinalPrivateMessages(source),function(){setTimeout(startChapter5EndingNotice,700);});
         });
+    }
+    function chapter5EndingNoticePages(){
+        return [chapter5Page("修改了一下之前的框架，第六章会写25年表明心意后的一些日常和毕业合照，第六章结束后，第七章就会有三个完全不一样的大分线，会有虐的剧情，所以不喜欢虐的宝宝还能再看两章。","","left","wj.jpg")];
+    }
+    function startChapter5EndingNotice(){
+        chapter5Phase=13; chapter5Pages=chapter5EndingNoticePages(); chapter5PageIndex=0; showChapter5Page(0);
+        chapter5NotifyReturn("聊天完成，请前往剧情页面");
     }
     function completeChapter5Story() {
         if (!chapter5SessionActive || document.getElementById("chapter5CompleteLayer")) return;
+        chapter5StopBgm();
         switchPage("story"); restoreChapter5Story();
         var overlay=document.getElementById("chapter5StoryOverlay"); if(!overlay)return;
         var layer=document.createElement("div"); layer.id="chapter5CompleteLayer"; layer.textContent="第五章完成";
@@ -14056,7 +14084,9 @@ b“不想要这个吗？那你想要什么？”
         document.getElementById("chatListScreen").style.display="none"; document.getElementById("chatDetailScreen").style.display="flex"; document.getElementById("chatContactName").innerText=contact;
         var header=document.querySelector("#chatDetailScreen .chat-detail-header");if(header)header.classList.toggle("chapter5-group-header",contact==="everybody 棒棒");
         document.getElementById("chatBackBtn").onclick=function(){if(header)header.classList.remove("chapter5-group-header");document.getElementById("chatDetailScreen").style.display="none";document.getElementById("chatListScreen").style.display="block";renderChatList();};
-        chapter4LockChatInput(data.chapter5Flow.complete?"聊天已完成，请返回剧情页面继续":"请等待消息"); renderChatMessages(); renderChatList(); setTimeout(function(){chapter5RunChat(contact);},450);
+        chapter4LockChatInput(data.chapter5Flow.complete?"聊天已完成，请返回剧情页面继续":"请等待消息"); renderChatMessages(); renderChatList();
+        if(contact==="张桂源"&&chapter5FinalPrivateActive&&!chapter5AimeiStarted){chapter5AimeiStarted=true;chapter5PlayBgm("aimei.mp3");}
+        setTimeout(function(){chapter5RunChat(contact);},450);
     }
     function chapter5RunChat(contact) {
         var data=chatData[contact], state=data&&data.chapter5Flow; if(!state||state.complete)return;
@@ -14129,7 +14159,7 @@ b“不想要这个吗？那你想要什么？”
     }
     function chapter5ShowPacketDetail(modal,packet) {
         var nickname=player.wechatName||player.name||"你";
-        var rows=(packet.recipients||[]).map(function(entry,index){var who=entry[0]==="me"?nickname:entry[0],avatar=chapter5AvatarFor(entry[0]);return '<div style="display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #eee;text-align:left;"><div style="width:40px;height:40px;border-radius:8px;background:#ddd;overflow:hidden;margin-right:10px;">'+(avatar?'<img src="'+avatar+'" style="width:100%;height:100%;object-fit:cover;">':'<div style="font-size:24px;text-align:center;line-height:40px;">🐰</div>')+'</div><div style="flex:1;"><div style="font-size:14px;color:#222;">'+who+'</div><div style="font-size:11px;color:#999;margin-top:3px;">00:'+(21+index).toString().padStart(2,"0")+'</div></div><div style="font-size:14px;color:#222;">'+Number(entry[1]).toFixed(2)+'元</div></div>';}).join("");
+        var rows=(packet.recipients||[]).map(function(entry){var who=entry[0]==="me"?nickname:entry[0],avatar=chapter5AvatarFor(entry[0]);return '<div style="display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #eee;text-align:left;"><div style="width:40px;height:40px;border-radius:8px;background:#ddd;overflow:hidden;margin-right:10px;">'+(avatar?'<img src="'+avatar+'" style="width:100%;height:100%;object-fit:cover;">':'<div style="font-size:24px;text-align:center;line-height:40px;">🐰</div>')+'</div><div style="flex:1;"><div style="font-size:14px;color:#222;">'+who+'</div><div style="font-size:11px;color:#999;margin-top:3px;">'+(packet.claimTime||"00:21")+'</div></div><div style="font-size:14px;color:#222;">'+Number(entry[1]).toFixed(2)+'元</div></div>';}).join("");
         modal.innerHTML='<div style="width:min(360px,94vw);height:min(650px,90vh);background:#fff;border-radius:16px;overflow:auto;position:relative;"><div style="height:120px;background:#ef6864;border-radius:0 0 50% 50%;position:relative;"><button id="chapter5PacketDetailBack" style="position:absolute;left:10px;top:8px;border:0;background:none;color:#fff;font-size:28px;">‹</button></div><div style="margin-top:-4px;text-align:center;"><img src="'+chapter5AvatarFor(packet.sender)+'" style="width:58px;height:58px;border-radius:12px;object-fit:cover;background:#ddd;"><div style="font-size:18px;margin-top:10px;color:#111;">'+packet.sender+'发出的红包</div><div style="font-size:42px;color:#c99a00;margin:22px 0;">'+Number(packet.amount).toFixed(2)+'<span style="font-size:14px;margin-left:6px;">元</span></div><div style="font-size:12px;color:#999;text-align:left;padding:0 14px 8px;">'+(packet.recipients||[]).length+'个红包，1秒被抢完</div>'+rows+'</div></div>';
         document.getElementById("chapter5PacketDetailBack").onclick=function(){modal.remove();};
     }
@@ -25718,26 +25748,8 @@ if (remindList.length > 0) {
 // 在 renderMoments 函数中，渲染评论和点赞时检查 hideList
 // 找到评论渲染的部分，添加过滤逻辑
 
-// 修改 renderMoments 函数中点赞和评论的显示
-// 在渲染点赞列表时：
-if (m.hideList && m.hideList.length > 0) {
-    // 过滤掉隐藏用户的点赞
-    m.likes = m.likes.filter(function(name) {
-        return m.hideList.indexOf(name) === -1;
-    });
-}
+// 点赞隐藏名单由 renderMoments 内部按当前朋友圈数据处理。
 
-// 在渲染评论列表时：
-if (m.hideList && m.hideList.length > 0) {
-    // 过滤掉隐藏用户的评论
-    m.comments = m.comments.filter(function(c) {
-        var authorName = c.author || '';
-        if (c.text && c.text.indexOf('：') !== -1) {
-            authorName = c.text.split('：')[0];
-        }
-        return m.hideList.indexOf(authorName) === -1;
-    });
-}
 // ================= 朋友圈图片存储 =================
 var momentImages = [];
 
