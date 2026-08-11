@@ -137,6 +137,21 @@
     -ms-overflow-style: none;
     min-height: 0;
     background: #E8E8E8;
+    overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
+}
+#chatMessages .message-row { min-width: 0; max-width: 100%; }
+#chatMessages .message-bubble,
+#chatMessages .bubble-other,
+#chatMessages .bubble-me { min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
+.chat-detail-header.chapter5-group-header { position: relative; }
+.chat-detail-header.chapter5-group-header #chatContactName {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 112px);
+    padding: 0;
 }
 #chatMessages::-webkit-scrollbar {
     display: none;
@@ -6059,7 +6074,7 @@ if (currentChatContact === "我玩狼人杀不骗人" || currentChatContact === 
     html += '<div style="display:flex;flex-direction:column;align-items:flex-start;max-width:80%;flex-shrink:0;">';
     html += '<span style="font-size:11px;color:#999;margin-bottom:2px;padding-left:4px;">' + nickname + '</span>';
     html += '<div class="message-bubble" style="margin-top:0;max-width:100%;width:auto;display:inline-block;">';
-    html += '<div class="bubble-other" ' + longPressAttr + ' style="background:white;white-space:nowrap;word-break:normal;display:inline-block;width:auto;max-width:none;">' + msg.text + '</div>';
+    html += '<div class="bubble-other" ' + longPressAttr + ' style="background:white;white-space:normal;overflow-wrap:anywhere;word-break:break-word;display:inline-block;width:auto;max-width:100%;">' + msg.text + '</div>';
     html += '<div class="message-time">' + msg.time + '</div>';
     html += '</div></div>';
 }else {
@@ -12415,7 +12430,7 @@ b“不想要这个吗？那你想要什么？”
     }
 
     function buildChapter4RouteAPages(source) {
-        var nickname = player.nickname || player.name || "你";
+        var nickname = player.name || "你";
         var paragraphs = source.map(function(line) {
             return line.replace("xx（此处读取玩家的昵称）", nickname);
         });
@@ -13280,7 +13295,7 @@ b“不想要这个吗？那你想要什么？”
         var map = {
             "张桂源":"zgyx.jpg","张函瑞":"zhrwx.jpg","左奇函":"zqhwx.jpg","陈浚铭":"cjmwx.jpg",
             "陈奕恒":"cyhwx.jpg","杨博文":"ybwwx.jpg","王橹杰":"wljwx.jpg","陈思罕":"cshwx.jpg",
-            "官俊臣":"gjc.jpg","张奕然":"zyrwx.jpg","聂玮辰":"nwcwx.jpg","魏子宸":"wzcwx.jpg","杨涵博":"yhb.jpg"
+            "官俊臣":"gjc.jpg","张奕然":"zyrwx.jpg","聂玮辰":"nwcwx.jpg","魏子宸":"wzcwx.jpg","李煜东":"lydwx.jpg","杨涵博":"yhb.jpg"
         };
         return map[name] || "zgyx.jpg";
     }
@@ -13815,7 +13830,7 @@ b“不想要这个吗？那你想要什么？”
     }
     function startChapter5GoOutStory() {
         chapter5Phase = 8;
-        var nickname = player.nickname || player.name || "你";
+        var nickname = player.name || "你";
         chapter5Pages = (window.chapter5GoOutPages || []).map(function(page) {
             return chapter5Page(String(page.text || "").replace(/\{\{PLAYER_NAME\}\}/g, nickname), page.speaker || "", page.side || "left", "jl.jpg");
         });
@@ -13886,12 +13901,13 @@ b“不想要这个吗？那你想要什么？”
         chapter5PrepareChat("everybody 棒棒", messages, function(){ chapter5GroupDone = true; chapter5UpdateHint(); chapter5NotifyReturn("群聊完成，返回第五章继续"); });
     }
     function chapter5NewYearGroupMessages() {
-        var nickname = player.nickname || player.name || "你";
+        var nickname = player.name || "你";
+        var wechatName = player.wechatName || player.name || "你";
         return (window.chapter5NewYearGroup || []).map(function(message, index) {
             var copy = JSON.parse(JSON.stringify(message));
-            copy.text=String(copy.text || "").replace(/\{\{PLAYER_NAME\}\}/g,nickname); copy.time=chapter5Time(21 + Math.floor(index/5)); copy.date="2024年1月19日";
+            copy.text=String(copy.text || "").replace(/\{\{PLAYER_NAME\}\}/g,nickname).replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,wechatName); copy.time=chapter5Time(21 + Math.floor(index/5)); copy.date="2024年1月19日";
             if(copy.isSystem) copy.text += " · " + copy.time;
-            if(copy.redPacket){ copy.redPacket.title=String(copy.redPacket.title||"恭喜发财").replace(/\{\{PLAYER_NAME\}\}/g,nickname); }
+            if(copy.redPacket){ copy.redPacket.title=String(copy.redPacket.title||"恭喜发财").replace(/\{\{PLAYER_NAME\}\}/g,nickname).replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,wechatName); }
             return copy;
         });
     }
@@ -13904,11 +13920,11 @@ b“不想要这个吗？那你想要什么？”
     function chapter5ShowRedPacketBranchChoice() {
         chapter4LockChatInput("请选择回复");
         showOptionsModal(["我还真需要……聂少。", "@张桂源 恭喜发财，红包拿来。"], "选择回复", function(choice){
-            var nickname=player.nickname||player.name||"你";
+            var nickname=player.name||"你", wechatName=player.wechatName||player.name||"你";
             var playerLines=choice===0?["我还真需要……","聂少"]:["@张桂源","恭喜发财","红包拿来"];
             playerLines.forEach(function(text,index){chapter5AppendChat("everybody 棒棒",{from:"me",text:text,time:chapter5Time(35+index),date:"2024年1月19日"});});
             var source=choice===0?(window.chapter5RedBranch1||[]):(window.chapter5RedBranch2||[]);
-            var branch=source.map(function(message,index){var copy=JSON.parse(JSON.stringify(message));copy.text=String(copy.text||"").replace(/\{\{PLAYER_NAME\}\}/g,nickname);copy.time=chapter5Time(36+Math.floor(index/5));copy.date="2024年1月19日";if(copy.redPacket)copy.redPacket.title=String(copy.redPacket.title||"").replace(/\{\{PLAYER_NAME\}\}/g,nickname);return copy;});
+            var branch=source.map(function(message,index){var copy=JSON.parse(JSON.stringify(message));copy.text=String(copy.text||"").replace(/\{\{PLAYER_NAME\}\}/g,nickname).replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,wechatName);copy.time=chapter5Time(36+Math.floor(index/5));copy.date="2024年1月19日";if(copy.redPacket)copy.redPacket.title=String(copy.redPacket.title||"").replace(/\{\{PLAYER_NAME\}\}/g,nickname).replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,wechatName);return copy;});
             chapter5ContinueChat("everybody 棒棒",branch,function(){chapter5NewYearGroupDone=true;chapter5UpdateHint();chapter5NotifyReturn("群聊已更新至本次截止位置");});
         });
     }
@@ -13959,7 +13975,8 @@ b“不想要这个吗？那你想要什么？”
     function openChapter5Chat(contact) {
         currentChatContact=contact; var data=chatData[contact]; data.newMsg=false;
         document.getElementById("chatListScreen").style.display="none"; document.getElementById("chatDetailScreen").style.display="flex"; document.getElementById("chatContactName").innerText=contact;
-        document.getElementById("chatBackBtn").onclick=function(){document.getElementById("chatDetailScreen").style.display="none";document.getElementById("chatListScreen").style.display="block";renderChatList();};
+        var header=document.querySelector("#chatDetailScreen .chat-detail-header");if(header)header.classList.toggle("chapter5-group-header",contact==="everybody 棒棒");
+        document.getElementById("chatBackBtn").onclick=function(){if(header)header.classList.remove("chapter5-group-header");document.getElementById("chatDetailScreen").style.display="none";document.getElementById("chatListScreen").style.display="block";renderChatList();};
         chapter4LockChatInput(data.chapter5Flow.complete?"聊天已完成，请返回剧情页面继续":"请等待消息"); renderChatMessages(); renderChatList(); setTimeout(function(){chapter5RunChat(contact);},450);
     }
     function chapter5RunChat(contact) {
@@ -13972,7 +13989,7 @@ b“不想要这个吗？那你想要什么？”
             if(msg.isSystem){
                 var claims=[msg];
                 while(state.index<state.messages.length && state.messages[state.index].isSystem) claims.push(state.messages[state.index++]);
-                setTimeout(function(){claims.forEach(function(claim){chapter5AppendChat(contact,claim);});setTimeout(next,260);},1000);
+                state.pendingClaims=claims; state.running=false;
                 return;
             }
             chapter5ShowTyping(contact,msg.from); setTimeout(function(){var t=document.getElementById("chapter5ChatTyping");if(t)t.remove();chapter5AppendChat(contact,msg);setTimeout(next,Math.max(800,550+len*35));},Math.max(1400,1050+len*75));
@@ -14014,11 +14031,19 @@ b“不想要这个吗？那你想要什么？”
         var senderAvatar=chapter5AvatarFor(packet.sender);
         modal.innerHTML='<div style="width:min(360px,94vw);height:min(620px,86vh);background:#ef6864;border-radius:18px;overflow:hidden;position:relative;color:#f7d36c;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.35);"><button id="chapter5PacketClose" style="position:absolute;left:12px;top:10px;border:0;background:none;color:#fff;font-size:28px;z-index:2;">‹</button><div style="padding-top:78px;"><img src="'+senderAvatar+'" style="width:58px;height:58px;border-radius:12px;object-fit:cover;background:#ddd;"><div style="font-size:15px;color:#ffe4bd;margin-top:12px;">'+packet.sender+'发出的红包</div><div style="font-size:23px;margin-top:20px;">'+(packet.title||"恭喜发财")+'</div><button id="chapter5PacketOpen" style="margin-top:115px;width:78px;height:78px;border-radius:50%;border:0;background:#f4c45e;color:#bc554c;font-size:37px;box-shadow:0 3px 8px rgba(0,0,0,.18);">開</button></div></div>';
         document.body.appendChild(modal);document.getElementById("chapter5PacketClose").onclick=function(){modal.remove();};
-        document.getElementById("chapter5PacketOpen").onclick=function(){var btn=this;btn.style.animation="chapter5PacketSpin .25s linear 4";setTimeout(function(){chapter5ShowPacketDetail(modal,packet);},1000);};
+        document.getElementById("chapter5PacketOpen").onclick=function(){var btn=this;btn.disabled=true;btn.style.animation="chapter5PacketSpin .25s linear 4";setTimeout(function(){chapter5RevealPacketClaims(packetId);chapter5ShowPacketDetail(modal,packet);},1000);};
         if(!document.getElementById("chapter5PacketStyle")){var s=document.createElement("style");s.id="chapter5PacketStyle";s.textContent="@keyframes chapter5PacketSpin{to{transform:rotateY(180deg)}}";document.head.appendChild(s);}
     }
+    function chapter5RevealPacketClaims(packetId) {
+        var contact="everybody 棒棒", data=chatData[contact], state=data&&data.chapter5Flow;
+        if(!state || !state.pendingClaims || !state.pendingClaims.length) return;
+        var packetMessage=(data.messages||[]).slice().reverse().find(function(message){return message.redPacket&&message.redPacket.id===packetId;});
+        if(!packetMessage) return;
+        var claims=state.pendingClaims; state.pendingClaims=null;
+        claims.forEach(function(claim,index){setTimeout(function(){chapter5AppendChat(contact,claim);if(index===claims.length-1){setTimeout(function(){chapter5RunChat(contact);},350);}},index*180);});
+    }
     function chapter5ShowPacketDetail(modal,packet) {
-        var nickname=player.wechatName||player.nickname||player.name||"你";
+        var nickname=player.wechatName||player.name||"你";
         var rows=(packet.recipients||[]).map(function(entry,index){var who=entry[0]==="me"?nickname:entry[0],avatar=chapter5AvatarFor(entry[0]);return '<div style="display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #eee;text-align:left;"><div style="width:40px;height:40px;border-radius:8px;background:#ddd;overflow:hidden;margin-right:10px;">'+(avatar?'<img src="'+avatar+'" style="width:100%;height:100%;object-fit:cover;">':'<div style="font-size:24px;text-align:center;line-height:40px;">🐰</div>')+'</div><div style="flex:1;"><div style="font-size:14px;color:#222;">'+who+'</div><div style="font-size:11px;color:#999;margin-top:3px;">00:'+(21+index).toString().padStart(2,"0")+'</div></div><div style="font-size:14px;color:#222;">'+Number(entry[1]).toFixed(2)+'元</div></div>';}).join("");
         modal.innerHTML='<div style="width:min(360px,94vw);height:min(650px,90vh);background:#fff;border-radius:16px;overflow:auto;position:relative;"><div style="height:120px;background:#ef6864;border-radius:0 0 50% 50%;position:relative;"><button id="chapter5PacketDetailBack" style="position:absolute;left:10px;top:8px;border:0;background:none;color:#fff;font-size:28px;">‹</button></div><div style="margin-top:-4px;text-align:center;"><img src="'+chapter5AvatarFor(packet.sender)+'" style="width:58px;height:58px;border-radius:12px;object-fit:cover;background:#ddd;"><div style="font-size:18px;margin-top:10px;color:#111;">'+packet.sender+'发出的红包</div><div style="font-size:42px;color:#c99a00;margin:22px 0;">'+Number(packet.amount).toFixed(2)+'<span style="font-size:14px;margin-left:6px;">元</span></div><div style="font-size:12px;color:#999;text-align:left;padding:0 14px 8px;">'+(packet.recipients||[]).length+'个红包，1秒被抢完</div>'+rows+'</div></div>';
         document.getElementById("chapter5PacketDetailBack").onclick=function(){modal.remove();};
