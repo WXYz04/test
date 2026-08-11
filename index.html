@@ -13966,7 +13966,6 @@ b“不想要这个吗？那你想要什么？”
     }
     function chapter5Time(minutes) { var h=Math.floor(minutes/60)%24,m=minutes%60; return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0"); }
     function triggerChapter5GroupChat() {
-        chapter5StopBgm();
         var messages = chapter5GroupMessages();
         chapter5PrepareChat("everybody 棒棒", messages, function(){ chapter5GroupDone = true; chapter5UpdateHint(); chapter5NotifyReturn("群聊完成，返回第五章继续"); });
     }
