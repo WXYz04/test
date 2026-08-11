@@ -6048,7 +6048,19 @@ function blockContact(contact) {
         var isImage = msg.text && msg.text.includes('<img');
 
         // ===== 渲染消息 =====
-        if (msg.isRedPacket && msg.redPacket) {
+        if (msg.isTransfer && msg.transfer) {
+            var transferAmount = Number(msg.transfer.amount || 0).toFixed(2).replace(/\.00$/, "");
+            var transferSubtitle = isMe ? "你发起了一笔转账" : "请收款";
+            html += '<div class="message-row" style="justify-content:' + (isMe ? 'flex-end' : 'flex-start') + ';margin-top:4px;">';
+            if (!isMe) html += '<div class="message-avatar">' + avatar + '</div>';
+            html += '<div style="display:flex;flex-direction:column;align-items:' + (isMe ? 'flex-end' : 'flex-start') + ';max-width:74%;">';
+            html += '<div style="width:230px;max-width:100%;background:#ff9417;border-radius:7px;overflow:hidden;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12);">';
+            html += '<div style="padding:14px 13px 12px;display:flex;align-items:center;gap:11px;"><div style="width:43px;height:43px;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">⇄</div><div><div style="font-size:18px;line-height:1.25;">¥' + transferAmount + '</div><div style="font-size:13px;line-height:1.4;opacity:.95;">' + transferSubtitle + '</div></div></div>';
+            html += '<div style="border-top:1px solid rgba(255,255,255,.28);padding:6px 13px;font-size:11px;color:rgba(255,255,255,.92);">转账' + (msg.transfer.note ? ' · ' + msg.transfer.note : '') + '</div></div>';
+            html += '<div class="message-time">' + (msg.time || '') + '</div></div>';
+            if (isMe) html += '<div class="message-avatar">' + avatar + '</div>';
+            html += '</div>';
+        } else if (msg.isRedPacket && msg.redPacket) {
             var packetTitle = msg.redPacket.title || "恭喜发财";
             html += '<div class="message-row" style="justify-content:flex-start;margin-top:4px;">';
             html += '<div class="message-avatar">' + avatar + '</div>';
@@ -13941,8 +13953,42 @@ b“不想要这个吗？那你想要什么？”
             playerLines.forEach(function(text,index){chapter5AppendChat("everybody 棒棒",{from:"me",text:text,time:chapter5Time(35+index),date:"2024年1月19日"});});
             var source=choice===0?(window.chapter5RedBranch1||[]):(window.chapter5RedBranch2||[]);
             var branch=source.map(function(message,index){var copy=JSON.parse(JSON.stringify(message));copy.text=String(copy.text||"").replace(/\{\{PLAYER_NAME\}\}/g,nickname).replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,wechatName);copy.time=chapter5Time(36+Math.floor(index/5));copy.date="2024年1月19日";if(copy.redPacket)copy.redPacket.title=String(copy.redPacket.title||"").replace(/\{\{PLAYER_NAME\}\}/g,nickname).replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,wechatName);return copy;});
-            chapter5ContinueChat("everybody 棒棒",branch,function(){chapter5NewYearGroupDone=true;chapter5UpdateHint();chapter5NotifyReturn("群聊已更新至本次截止位置");});
+            chapter5ContinueChat("everybody 棒棒",branch,function(){chapter5NewYearGroupDone=true;chapter5UpdateHint();triggerChapter5FinalPrivateChat();});
         });
+    }
+    function chapter5FinalPrivateMessages(source) {
+        return (source || []).map(function(message,index){
+            var copy=JSON.parse(JSON.stringify(message));
+            copy.from=copy.from === "me" ? "me" : "other";
+            copy.time=chapter5Time(24*60+23+Math.floor(index/3));
+            copy.date="2025年1月1日";
+            return copy;
+        });
+    }
+    function triggerChapter5FinalPrivateChat() {
+        var messages=chapter5FinalPrivateMessages(window.chapter5FinalPrivateCommon || []);
+        chapter5PrepareChat("张桂源",messages,function(){chapter5ShowFinalPrivateChoice();});
+    }
+    function chapter5ShowFinalPrivateChoice() {
+        chapter4LockChatInput("请选择回复");
+        showOptionsModal(["张龙眼。","群里任何一个人都可以啊。"],"选择回复",function(choice){
+            chapter5AppendChat("张桂源",{from:"me",text:choice===0?"张龙眼":"群里任何一个人都可以啊",time:chapter5Time(24*60+52),date:"2025年1月1日"});
+            var source=choice===0?(window.chapter5FinalPrivateBranch1||[]):(window.chapter5FinalPrivateBranch2||[]);
+            chapter5ContinueChat("张桂源",chapter5FinalPrivateMessages(source),function(){setTimeout(completeChapter5Story,700);});
+        });
+    }
+    function completeChapter5Story() {
+        if (!chapter5SessionActive || document.getElementById("chapter5CompleteLayer")) return;
+        switchPage("story"); restoreChapter5Story();
+        var overlay=document.getElementById("chapter5StoryOverlay"); if(!overlay)return;
+        var layer=document.createElement("div"); layer.id="chapter5CompleteLayer"; layer.textContent="第五章完成";
+        layer.style.cssText="position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:#050505;color:#fff;font-size:25px;font-weight:600;letter-spacing:5px;opacity:0;pointer-events:none;animation:chapter4CompleteFade 2.4s ease forwards";
+        overlay.appendChild(layer);
+        setTimeout(function(){
+            completedChapters[4]=true; unlockedChapters[4]=true; unlockedChapters[5]=true; chapter5SessionActive=false;
+            suspendChapter5Story(); document.getElementById("storyDetailPage").style.display="none"; document.getElementById("chapterSelectPage").style.display="block";
+            renderChapterList(); if(typeof autoSaveGame==="function")autoSaveGame();
+        },2400);
     }
     function chapter5PrivateMessages(part) {
         if (part === 1 && window.chapter5PrivateCommon) return chapter5NormalizePrivate(window.chapter5PrivateCommon, part);
@@ -13977,7 +14023,7 @@ b“不想要这个吗？那你想要什么？”
         if (!chatData[contact]) chatData[contact] = {messages:[],newMsg:false};
         var data = chatData[contact]; data.chapter5Flow = {messages:messages,index:0,running:false,complete:false,done:done}; data.newMsg=true;
         chapter5AppendChat(contact,messages[0]); data.chapter5Flow.index=1;
-        var preview = messages[0].image ? "[图片]" : messages[0].text;
+        var preview = messages[0].image ? "[图片]" : (messages[0].transfer ? "[转账]" : messages[0].text);
         showMessageNotification(contact, contact === "everybody 棒棒" ? chapter4GroupGridAvatarHtml(48) : '<img src="zgyx.jpg" style="width:48px;height:48px;border-radius:12px;object-fit:cover;display:block;">', contact, (contact === "everybody 棒棒" ? messages[0].from+"：" : "")+preview, function(){ switchPage("chat"); openChapter5Chat(contact); });
         renderChatList();
     }
@@ -13985,7 +14031,7 @@ b“不想要这个吗？那你想要什么？”
         var data=chatData[contact], isGroup=contact==="everybody 棒棒", isMe=msg.from==="me";
         var text=msg.image?'<img src="'+msg.image+'" style="width:170px;border-radius:10px;max-width:100%;display:block;">':String(msg.text||"");
         if(msg.quoteText) text += '<div style="margin-top:5px;padding-top:5px;border-top:1px solid #e8e8e8;font-size:12px;color:#999;">'+msg.quoteText+'</div>';
-        data.messages.push({from:isMe?"me":(isGroup?msg.from:"other"),text:text,time:msg.time,avatar:isMe?"":(isGroup?chapter4GroupAvatarPath(msg.from):"zgyx.jpg"),date:msg.date||"2024年12月31日",read:true,isImage:!!msg.image,isSystem:!!msg.isSystem,isRedPacket:!!msg.redPacket,redPacket:msg.redPacket||null,chapter5:true});
+        data.messages.push({from:isMe?"me":(isGroup?msg.from:"other"),text:text,time:msg.time,avatar:isMe?"":(isGroup?chapter4GroupAvatarPath(msg.from):"zgyx.jpg"),date:msg.date||"2024年12月31日",read:true,isImage:!!msg.image,isSystem:!!msg.isSystem,isRedPacket:!!msg.redPacket,redPacket:msg.redPacket||null,isTransfer:!!msg.transfer,transfer:msg.transfer||null,chapter5:true});
         if(currentChatContact===contact && document.getElementById("chatDetailScreen").style.display!=="none") renderChatMessages(); renderChatList();
     }
     function openChapter5Chat(contact) {
