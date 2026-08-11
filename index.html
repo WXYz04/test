@@ -13687,6 +13687,7 @@ b“不想要这个吗？那你想要什么？”
     var chapter5NewYearGroupDone = false;
     var chapter5ChatRunning = false;
     var chapter5SkippedToFirstChoice = false;
+    var chapter5FirstChoiceRoute = "";
 
     function chapter5Page(text, speaker, side, bg) {
         return { text: text, speaker: speaker || "", side: side || (speaker === "你" ? "right" : "left"), bg: bg || "" };
@@ -13775,7 +13776,7 @@ b“不想要这个吗？那你想要什么？”
             restoreChapter5Story();
             return;
         }
-        chapter5SessionActive = true; chapter5Phase = 0; chapter5PageIndex = 0; chapter5SkippedToFirstChoice = false;
+        chapter5SessionActive = true; chapter5Phase = 0; chapter5PageIndex = 0; chapter5SkippedToFirstChoice = false; chapter5FirstChoiceRoute = "";
         chapter5GroupDone = false; chapter5Private1Done = false; chapter5Private2Done = false; chapter5NewYearGroupDone = false;
         chapter5Pages = chapter5IntroPages();
         var old = document.getElementById("chapter5StoryOverlay"); if (old) old.remove();
@@ -13849,15 +13850,26 @@ b“不想要这个吗？那你想要什么？”
             chapter5SkippedToFirstChoice = false;
             var skip=document.getElementById("chapter5SkipBtn");if(skip)skip.style.display="none";
             if (choice === 0) startChapter5GoOutStory();
-            else alert("该选项的后续剧情待更新");
+            else startChapter5StayInStory();
         }; });
         document.getElementById("chapter5StoryOverlay").appendChild(box);
     }
     function startChapter5GoOutStory() {
+        chapter5FirstChoiceRoute = "out";
         chapter5Phase = 8;
         var nickname = player.name || "你";
         chapter5Pages = (window.chapter5GoOutPages || []).map(function(page) {
             return chapter5Page(String(page.text || "").replace(/\{\{PLAYER_NAME\}\}/g, nickname), page.speaker || "", page.side || "left", "jl.jpg");
+        });
+        chapter5PageIndex = 0;
+        if (chapter5Pages.length) showChapter5Page(0);
+    }
+    function startChapter5StayInStory() {
+        chapter5FirstChoiceRoute = "stay";
+        chapter5Phase = 8;
+        var nickname = player.nickname || player.name || "你";
+        chapter5Pages = (window.chapter5StayInPages || []).map(function(page) {
+            return chapter5Page(String(page.text || "").replace(/xx（读取玩家昵称）/g, nickname).replace(/\{\{PLAYER_NAME\}\}/g, nickname), page.speaker || "", page.side || "left", "jl.jpg");
         });
         chapter5PageIndex = 0;
         if (chapter5Pages.length) showChapter5Page(0);
@@ -13891,13 +13903,14 @@ b“不想要这个吗？那你想要什么？”
     function restoreChapter5Story() { var o = document.getElementById("chapter5StoryOverlay"); if (o) { document.getElementById("chapterSelectPage").style.display="none"; document.getElementById("storyDetailPage").style.display="block"; o.style.display = "block"; document.getElementById("chapter5TextBox").onclick=advanceChapter5Story; chapter5UpdateHint(); } }
     function chapter5GetSaveState() {
         if (!chapter5SessionActive) return null;
-        return {active:true,phase:chapter5Phase,pageIndex:chapter5PageIndex,skippedToFirstChoice:chapter5SkippedToFirstChoice,groupDone:chapter5GroupDone,private1Done:chapter5Private1Done,private2Done:chapter5Private2Done,newYearGroupDone:chapter5NewYearGroupDone};
+        return {active:true,phase:chapter5Phase,pageIndex:chapter5PageIndex,firstChoiceRoute:chapter5FirstChoiceRoute,skippedToFirstChoice:chapter5SkippedToFirstChoice,groupDone:chapter5GroupDone,private1Done:chapter5Private1Done,private2Done:chapter5Private2Done,newYearGroupDone:chapter5NewYearGroupDone};
     }
     function restoreChapter5FromSave(state) {
         if (!state || !state.active) return;
         chapter5SessionActive = false;
         openChapter5Story();
         chapter5Phase = Number(state.phase) || 0;
+        chapter5FirstChoiceRoute = state.firstChoiceRoute || "out";
         chapter5SkippedToFirstChoice = !!state.skippedToFirstChoice || (chapter5Phase === 7 && Number(state.pageIndex) === 0);
         chapter5GroupDone = !!state.groupDone; chapter5Private1Done = !!state.private1Done; chapter5Private2Done = !!state.private2Done; chapter5NewYearGroupDone = !!state.newYearGroupDone;
         if (chapter5Phase <= 1) chapter5Pages = chapter5IntroPages();
@@ -13906,7 +13919,7 @@ b“不想要这个吗？那你想要什么？”
         else if (chapter5Phase < 7) chapter5Pages = chapter5ParentPages();
         else if (chapter5Phase === 7 && chapter5SkippedToFirstChoice) chapter5Pages = [chapter5Page("请做出你的选择：", "", "left", "jl.jpg")];
         else if (chapter5Phase === 7) chapter5Pages = chapter5ParentPages();
-        else if (chapter5Phase <= 9) chapter5Pages = (window.chapter5GoOutPages || []).map(function(page){ return chapter5Page(page.text, page.speaker, page.side, "jl.jpg"); });
+        else if (chapter5Phase <= 9) chapter5Pages = ((chapter5FirstChoiceRoute === "stay" ? window.chapter5StayInPages : window.chapter5GoOutPages) || []).map(function(page){ return chapter5Page(page.text, page.speaker, page.side, "jl.jpg"); });
         else if (chapter5Phase === 12) chapter5Pages = chapter5MapPages(window.chapter5FireworkChoiceB || [], "jl.jpg");
         else chapter5Pages = chapter5MapPages(window.chapter5FireworkChoiceA || [], "jl.jpg");
         chapter5PageIndex = Math.max(0, Math.min(Number(state.pageIndex)||0, chapter5Pages.length-1));
