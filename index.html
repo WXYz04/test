@@ -899,7 +899,7 @@
         position: fixed;
         inset: 0;
         z-index: 1000000;
-        display: flex;
+        display: none !important;
         align-items: center;
         justify-content: center;
         padding: 24px;
@@ -1014,6 +1014,7 @@
 <div id="passwordGate" role="dialog" aria-modal="true" aria-label="密码验证">
     <div class="password-gate-panel">
         <div class="password-gate-title">请输入访问密码</div>
+        <div style="margin:-10px 2px 13px;color:#8a8790;font-size:11px;line-height:1.55;text-align:center;">（密码在每个群的置顶，不关注会拒，取关的宝宝请自行退群我会定时清理，如果遇到问题请先自行翻阅百度网盘文件中每章的注意事项哦）</div>
         <input id="passwordGateInput" type="password" inputmode="numeric" maxlength="6" placeholder="输入密码" readonly aria-label="输入密码">
         <div class="password-number-grid" aria-label="数字键盘">
             <button class="password-number-btn" type="button" data-password-digit="1">1</button>
@@ -1044,13 +1045,17 @@
     var passwordInput = document.getElementById('passwordGateInput');
     var passwordStatus = document.getElementById('passwordGateStatus');
     var allowedPasswordHashes = [
-        '102f03b789ce9bb0af04f157307422ff42f5cc213a0a909f08780f8e4771d77d',
-        '466b98e746b0c7ea2df48cfdff86d0ae9fc4059acd5783daa2374b69cef2ee58',
-        'a1334ab1a3cb67a61e70cc9abb0179610b00f4b4d62b036bc5db329743abd798',
-        'e3a35df9e70d385835d48e63f2524499a1cd28836180adbdf584832189474347',
-        'acd19eb85be70f497a636a3c8abe8ff95a99712b6776d04f5c4d44892e185683'
+        '413f0d0e0a45139a474f9691719b28a645688045b52b3d887725a1946ea8f192',
+        'b55e82e139a25e19911b131e6024500ea6c76540757357a73e4c3d8d9f191cc0',
+        'cd5ee89a99c56c3ebc7003be4106874531ab698cd8205b0395bd1de7f61380f4',
+        '04413451e45cad33cee12a71b321c89af7324ad224b58fdc0a32c762b27ca6b0',
+        '409e160bcdfe3ee40e7127f139d1f666692324eb361a6d742bd928f5dc7f5b67',
+        'fd3f529295c635bc4ca838fbc55e09a7bcfdbc22e412058c33ba2e808604d99c',
+        '5eb7fc28a44a817c90eee8e924e9bc465024da31df921fb73f110624fc13012c',
+        'de9222b782c87e1f7861baac338238d0af12471ad91c47ea6901953141d69601',
+        '1867bd638fb36a0539b5e104dfc2e51954473d14b5dcc75147fb7034ed096c98'
     ];
-    var fallbackPasswordHashes = [3941789459, 2285117425, 543908666, 2380737071, 3244371534];
+    var fallbackPasswordHashes = [1456916646,3087207917,3211496815,4211997242,2743797637,3675681440,1999266662,993298175,4128109147];
 
     function setPasswordValue(value) {
         passwordInput.value = value.replace(/\D/g, '').slice(0, 6);
@@ -1134,6 +1139,7 @@
         }
     }
     document.addEventListener('keydown', passwordKeyHandler);
+    openSimulator();
 })();
 </script>
 <div class="app-container">
@@ -1521,10 +1527,6 @@ onclick="showCompanySchedule()">
 <div onclick="openUpdateNotice()" style="padding:14px 0;border-bottom:1px solid #EFEFEF;cursor:pointer;">
     <div style="font-size:15px;color:#333;">更新公告</div>
     <div style="font-size:11px;color:#999;margin-top:2px;">查看最新更新内容</div>
-</div>
-<div onclick="openAboutSimulator()" style="padding:14px 0;border-bottom:1px solid #EFEFEF;cursor:pointer;">
-    <div style="font-size:15px;color:#333;">关于模拟器</div>
-    <div style="font-size:11px;color:#999;margin-top:2px;">章节预告、催更/投喂码</div>
 </div>
             
         </div>
