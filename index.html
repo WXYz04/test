@@ -4643,7 +4643,8 @@ function renderChatList() {
         // 头像映射
         var avatar = "";
         if (friend === "张桂源") {
-            avatar = '<img src="zgyx.jpg" style="width:52px; height:52px; border-radius:12px; object-fit:cover;" onerror="this.style.display=\'none\'">';
+            var zgyChatListAvatar = typeof chapter6GetZgyAvatar === "function" ? chapter6GetZgyAvatar() : (localStorage.getItem("chapter6_zgy_avatar") || "zgyx.jpg");
+            avatar = '<img src="' + zgyChatListAvatar + '" style="width:52px; height:52px; border-radius:12px; object-fit:cover;" onerror="this.src=\'zgyx.jpg\'">';
         } else if (friend === "左奇函" || friend === "哈哈哈") {
             avatar = '<img src="zqhwx.jpg" style="width:52px; height:52px; border-radius:12px; object-fit:cover;" onerror="this.style.display=\'none\'">';
         } else if (friend === "陈浚铭" || friend === "陈太帅") {
@@ -4733,7 +4734,7 @@ function renderChatList() {
         var chapter4Preview = String(chapter4Last.text || "[图片]").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
         var chapter4Unread = chapter4GroupData.messages.filter(function(msg) { return msg && msg.read === false; }).length;
         var chapter4GroupAvatar = '<div style="width:52px;height:52px;border-radius:12px;overflow:hidden;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:1px;background:#ddd;">' +
-            ['zgyx.jpg','zhrwx.jpg','zqhwx.jpg','cjmwx.jpg','cyhwx.jpg','ybwwx.jpg','wljwx.jpg','cshwx.jpg','gjc.jpg'].map(function(src) {
+            [(typeof chapter6GetZgyAvatar === "function" ? chapter6GetZgyAvatar() : (localStorage.getItem("chapter6_zgy_avatar") || "zgyx.jpg")),'zhrwx.jpg','zqhwx.jpg','cjmwx.jpg','cyhwx.jpg','ybwwx.jpg','wljwx.jpg','cshwx.jpg','gjc.jpg'].map(function(src) {
                 return '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;">';
             }).join('') + '</div>';
         html += '<div class="chat-contact" data-contact="everybody 棒棒" style="display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid #EFEFEF;cursor:pointer;position:relative;">';
@@ -14312,7 +14313,7 @@ b“不想要这个吗？那你想要什么？”
     }
     function chapter6ShowPrivateBranchChoice(){chapter4LockChatInput("请选择回复");showOptionsModal(["不能","下次一定"],"选择回复",function(choice){chapter6Append("张桂源",{from:"me",text:choice===0?"不能":"下次一定",time:"07:11",date:"2024年4月14日"});var branch=(choice===0?window.chapter6PrivateBranch1:window.chapter6PrivateBranch2)||[];chapter6ContinueFlow("张桂源",branch.concat(window.chapter6PrivateAfterChoice||[]),chapter6FinishPrivate);});}
     function chapter6FinishPrivate(){chapter6PrivateDone=true;chapter6Phase=2;chapter6Pages=chapter6MapPages(window.chapter6AfterPrivateData||[]);chapter6PageIndex=0;showChapter6Page(0);chapter6NotifyReturn("私聊完成，请返回第六章继续");}
-    function chapter6Replace(text){return String(text||"").replace(/\{\{PLAYER_NICKNAME\}\}/g,player.nickname||player.name||"你").replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,player.wechatName||player.name||"你");}
+    function chapter6Replace(text){var playerName=player.name||"你";return String(text||"").replace(/\{\{PLAYER_NICKNAME\}\}/g,playerName).replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,player.wechatName||playerName).replace(/南渝初中初三11班 XXX/g,"南渝初中初三11班 "+playerName).replace(/已经扒出来了，XXX/g,"已经扒出来了，"+playerName);}
     function chapter6GroupMessages(source,start){return(source||[]).map(function(m,i){var c=JSON.parse(JSON.stringify(m));c.text=chapter6Replace(c.text);c.quoteText=chapter6Replace(c.quoteText);c.time=chapter5Time(start+Math.floor(i/3));c.date="2024年4月14日";return c;});}
     function chapter6StartGroupChat(){var msgs=chapter6GroupMessages(window.chapter6GroupCommon||[],13*60+20);chapter6PrepareFlow("everybody 棒棒",msgs,chapter6ShowGroupBranchChoice,true);}
     function chapter6ShowGroupBranchChoice(){chapter4LockChatInput("请选择回复");showOptionsModal(["我忘记了","发了吧"],"选择回复",function(choice){chapter6Append("everybody 棒棒",{from:"me",text:choice===0?"我忘记了":"发了吧",time:"13:34",date:"2024年4月14日"});var branch=chapter6GroupMessages(choice===0?window.chapter6GroupBranch1:window.chapter6GroupBranch2,13*60+35);var common=chapter6GroupMessages(window.chapter6GroupAfterChoice||[],13*60+39);chapter6ContinueFlow("everybody 棒棒",branch.concat(common),chapter6FinishGroup);});}
@@ -23324,7 +23325,7 @@ function renderForum(showMore) {
         if (isUnreadFollowup) {
             html += '<span id="forumNewBadge_' + item.id + '" style="display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:2px;width:20px;height:18px;border-radius:6px;background:#E85D75;color:#fff;font-size:11px;font-weight:700;line-height:1;">新</span>';
         }
-        html += '<div style="font-size:15px;font-weight:600;color:#1A1A1A;line-height:1.4;">' + String(item.title || '').replace(/^标题[:：]\s*/, '') + '</div>';
+        html += '<div style="font-size:15px;font-weight:600;color:#1A1A1A;line-height:1.4;">' + chapter6Replace(String(item.title || '').replace(/^标题[:：]\s*/, '')) + '</div>';
         html += '</div>';
         html += '<div style="display:flex;gap:12px;margin-top:6px;font-size:12px;color:#999;">';
         html += '<span>' + item.author + '</span>';
@@ -23375,7 +23376,7 @@ function showForumDetail(postId) {
             </div>
             
             <!-- 标题 -->
-            <div style="font-size:16px;font-weight:700;color:#1A1A1A;margin-bottom:8px;">${String(post.title || '').replace(/^标题[:：]\s*/, '')}</div>
+            <div style="font-size:16px;font-weight:700;color:#1A1A1A;margin-bottom:8px;">${chapter6Replace(String(post.title || '').replace(/^标题[:：]\s*/, ''))}</div>
             
             <!-- 作者和时间 -->
             <div style="display:flex;gap:12px;font-size:12px;color:#999;margin-bottom:10px;">
@@ -23385,7 +23386,7 @@ function showForumDetail(postId) {
             
             <!-- 内容 -->
             <div style="font-size:14px;color:#333;line-height:1.6;padding:10px 0;border-top:1px solid #EFEFEF;border-bottom:1px solid #EFEFEF;margin-bottom:10px;">
-                ${post.content}
+                ${chapter6Replace(post.content)}
             </div>
             
             <!-- 点赞和评论数（在内容下方左边） -->
