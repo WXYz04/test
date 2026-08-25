@@ -4196,9 +4196,9 @@ function buildSaveManagerUI(modal, saves) {
     let currentChapter = 1;
     let chapterCompleted = false;
      // 章节数据
-    const totalChapters = 5;
-    let unlockedChapters = [true, false, false, false, false];
-    let completedChapters = [false, false, false, false, false];
+    const totalChapters = 6;
+    let unlockedChapters = [true, false, false, false, false, false];
+    let completedChapters = [false, false, false, false, false, false];
     let viewingChapter = 0;
     let meetCount = 0;
     let maxMeet = 3;
@@ -4763,7 +4763,8 @@ function renderChatList() {
                 openGroupChat();
             } else if (contact === "everybody 棒棒") {
                 var everybodyData = chatData[contact];
-                if (chapter5SessionActive && everybodyData && everybodyData.chapter5Flow) openChapter5Chat(contact);
+                if (everybodyData && everybodyData.chapter6Flow && !everybodyData.chapter6Flow.complete) openChapter6Chat(contact);
+                else if (chapter5SessionActive && everybodyData && everybodyData.chapter5Flow) openChapter5Chat(contact);
                 else openChapter4GroupChat();
             } else {
                 openChat(contact);
@@ -5261,6 +5262,39 @@ function ensureEnding2ZhangWeibo() {
     try {
         localStorage.setItem("allArtistWeibo", JSON.stringify(allArtistWeibo));
     } catch (e) {}
+}
+
+function ensureChapter6ZhangWeibo() {
+    if (typeof allArtistWeibo === "undefined" || !completedChapters[5]) return;
+    if (allArtistWeibo.some(function(w) { return w && w.id === "chapter6_zhang_weibo"; })) return;
+    allArtistWeibo.push({
+        id: "chapter6_zhang_weibo",
+        author: "TF家族-张桂源",
+        avatar: '<img src="zgywb.jpg" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">',
+        time: "2023年4月18日 20:39",
+        content: '今天有朋友来找我，哈哈哈太高端的菜不会做，于是呢就做了一碗辛拉面😂也是得到了好评哈哈哈哈😎感觉挺简单的，没有什么难度，下次可以挑战更难的<br><br><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"><img src="zm.jpg" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;"><img src="xlm.jpg" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;"></div>',
+        likes: "1.6万",
+        commentCount: 1847,
+        comments: [
+            {level:"gold",user:"桂圆不圆",text:"什么朋友呀！！还能吃到你亲手煮的面！！",vip:"金粉"},
+            {level:"blue",user:"源源的篮球",text:"辛拉面看起来好香！下次挑战火锅吧哈哈哈",vip:"铁粉"},
+            {level:"purple",user:"一颗桂圆糖",text:"得到谁的好评了！快老实交代！",vip:"钻粉"},
+            {level:"gold",user:"进击的老爹汉堡",text:"宝宝会做饭了啊啊啊好厉害！",vip:"金粉"},
+            {level:"blue",user:"桂源家的小羽毛",text:"朋友来家里玩还亲自煮面，关系很好吧",vip:"铁粉"},
+            {level:"purple",user:"小哭包TT",text:"两碗！！到底是哪位朋友！！",vip:"钻粉"},
+            {level:"gold",user:"草莓味的桂源",text:"哈哈哈哈从辛拉面开始挑战大厨之路",vip:"金粉"},
+            {level:"blue",user:"今天也在想桂源",text:"看起来真的很好吃！我也想尝尝！",vip:"铁粉"},
+            {level:"gold",user:"桂源什么时候发自拍",text:"面有了，人呢？自拍呢？",vip:"金粉"},
+            {level:"purple",user:"桂源的睫毛精",text:"朋友说好吃你就这么开心呀哈哈哈",vip:"钻粉"},
+            {level:"normal",user:"路人甲",text:"辛拉面确实简单，下一次挑战炒饭吧",vip:""},
+            {level:"blue",user:"源来是饭",text:"会给朋友做饭的小桂圆也太贴心了",vip:"铁粉"},
+            {level:"gold",user:"圆滚滚的源",text:"这卖相可以的！确实应该得到好评！",vip:"金粉"},
+            {level:"purple",user:"小桂圆冲鸭",text:"下次挑战更难的记得拍视频！",vip:"钻粉"},
+            {level:"gold",user:"一筐小蟹",text:"哈哈哈哈哈已经开始期待张大厨下一道菜了",vip:"金粉"}
+        ]
+    });
+    allArtistWeibo.sort(function(a,b){return parseWeiboTimeValue(b.time)-parseWeiboTimeValue(a.time);});
+    try { localStorage.setItem("allArtistWeibo", JSON.stringify(allArtistWeibo)); } catch(e) {}
 }
 
 function parseWeiboTimeValue(timeText) {
@@ -5916,6 +5950,19 @@ function blockContact(contact) {
     for (var i = 0; i < data.messages.length; i++) {
         var msg = data.messages[i];
 
+        // 兼容修复前已经写入本地进度的第六章群聊消息。
+        if (currentChatContact === "everybody 棒棒" && msg.chapter6 && msg.from === "other" && msg.groupSender) {
+            msg.from = msg.groupSender;
+        }
+
+        // 第六章私聊按文档时间分组；相隔五分钟以上只在中间显示一次时间。
+        if (msg.isTimeMarker) {
+            html += '<div class="chapter6-time-marker" style="text-align:center;padding:5px 0;margin:4px 0;">';
+            html += '<span style="display:inline-block;background:rgba(210,210,210,.88);color:#777;padding:3px 10px;border-radius:10px;font-size:11px;line-height:1.4;">' + msg.text + '</span>';
+            html += '</div>';
+            continue;
+        }
+
         // ===== 群聊邀请卡片 =====
         if (msg.isGroupInvite) {
             html += '<div style="background:white;border-radius:12px;padding:16px;margin:12px 0;border:1px solid #E5E5E5;box-shadow:0 1px 4px rgba(0,0,0,0.06);">';
@@ -5972,16 +6019,16 @@ function blockContact(contact) {
         if (isMe) {
             var playerAvatar = localStorage.getItem("player_avatar");
             if (playerAvatar && playerAvatar.startsWith("data:image")) {
-                avatar = '<img src="' + playerAvatar + '" style="width:40px;height:40px;border-radius:12px;object-fit:cover;">';
+                avatar = '<img src="' + playerAvatar + '" style="width:40px;height:40px;border-radius:12px;object-fit:cover;' + (window.chapter6WaitingOwnAvatar?'cursor:pointer;':'') + '"' + (window.chapter6WaitingOwnAvatar?' onclick="chapter6ChangeOwnAvatar()"':'') + '>';
             } else {
-                avatar = "🐰";
+                avatar = window.chapter6WaitingOwnAvatar?'<span style="font-size:28px;cursor:pointer;" onclick="chapter6ChangeOwnAvatar()">🐰</span>':"🐰";
             }
         } else {
             // 群聊特殊头像映射
             if (currentChatContact === "我玩狼人杀不骗人" || currentChatContact === "everybody 棒棒") {
                 var from = msg.from || "";
                 if (from === "张桂源") {
-                    avatar = '<img src="zgyx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
+                    avatar = '<img src="' + (typeof chapter6GetZgyAvatar==="function"?chapter6GetZgyAvatar():(localStorage.getItem("chapter6_zgy_avatar") || "zgyx.jpg")) + '" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.src=\'zgyx.jpg\'">';
                 } else if (from === "陈浚铭" || from === "陈太帅") {
                     avatar = '<img src="cjmwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\'">';
                 } else if (from === "左奇函" || from === "哈哈哈") {
@@ -6014,7 +6061,7 @@ function blockContact(contact) {
             } else {
                 // 普通聊天头像
                 if (currentChatContact === "张桂源") {
-                    avatar = '<img src="zgyx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'🏀\'">';
+                    avatar = '<img src="' + (typeof chapter6GetZgyAvatar==="function"?chapter6GetZgyAvatar():(localStorage.getItem("chapter6_zgy_avatar") || "zgyx.jpg")) + '" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.src=\'zgyx.jpg\'">';
                 } else if (currentChatContact === "陈太帅") {
                     avatar = '<img src="cjmwx.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'👤\'">';
                 } else if (currentChatContact === "哈哈哈") {
@@ -6297,6 +6344,14 @@ function openChat(contact) {
     var chapter5Header = document.querySelector("#chatDetailScreen .chat-detail-header");
     if (chapter5Header) chapter5Header.classList.remove("chapter5-group-header");
     let data = chatData[contact];
+    if (chapter6SessionActive && data && data.chapter6InitialActive) {
+        openChapter6InitialChat();
+        return;
+    }
+    if (data && data.chapter6Flow && !data.chapter6Flow.complete) {
+        openChapter6Chat(contact);
+        return;
+    }
     if (chapter5SessionActive && data && data.chapter5Flow && !data.chapter5Flow.complete) {
         openChapter5Chat(contact);
         return;
@@ -8259,6 +8314,7 @@ function changeMomentsBg() {
     }
     
 function renderWeibo() {
+    if (completedChapters[5]) ensureChapter6ZhangWeibo();
     // 兼容已经完成结局2、但尚未重新进入群聊或朋友圈的旧存档
     ensureEnding2SocialUpdates();
 
@@ -10441,7 +10497,8 @@ function initMomentsData() {
         "他和他的朋友",
         "恋人体验卡",
         "升温",
-        "烟花落下之前"
+        "烟花落下之前",
+        "我猜你也想靠近吧"
     ];
 
     var html = "";
@@ -10476,6 +10533,11 @@ for (var i = 0; i < totalChapters; i++) {
             isLocked = false;
             unlockedChapters[4] = true;
         }
+        // 第六章无需前置条件，默认开放
+        if (i === 5) {
+            isLocked = false;
+            unlockedChapters[5] = true;
+        }
     }
 
     if (isLocked) {
@@ -10499,7 +10561,7 @@ for (var i = 0; i < totalChapters; i++) {
             <div class="chapter-card ${isLocked ? 'locked' : ''}" data-index="${i}" ${isLocked ? 'style="cursor:not-allowed;"' : ''}>
                 <div>
                     <div class="chapter-title-text">第${i+1}章 · ${chapterNames[i]}</div>
-                    <div class="chapter-sub">${i === 0 ? '2022年 重庆' : i === 1 ? '2023年 重庆' : i === 3 ? '2023年 重庆' : i === 4 ? '2024年 重庆' : '（预留）'}</div>
+                    <div class="chapter-sub">${i === 0 ? '2022年 重庆' : i === 1 ? '2023年 重庆' : i === 3 ? '2023年 重庆' : i === 4 || i === 5 ? '2024年 重庆' : '（预留）'}</div>
                     ${extraHint}
                 </div>
                 <div class="chapter-status ${statusClass}">${statusText}</div>
@@ -10531,6 +10593,10 @@ for (var i = 0; i < totalChapters; i++) {
     }
     if (index === 4) {
         openChapter5Story();
+        return;
+    }
+    if (index === 5) {
+        openChapter6Story();
         return;
     }
 
@@ -14136,7 +14202,7 @@ b“不想要这个吗？那你想要什么？”
             if (messages) { messages.style.paddingBottom = Math.min(modal.offsetHeight + 12, 170) + "px"; messages.scrollTop = messages.scrollHeight; }
         }
     }
-    function chapter5ShowTyping(contact,sender){if(currentChatContact!==contact||document.getElementById("chatDetailScreen").style.display==="none")return;var c=document.getElementById("chatMessages"),r=document.createElement("div");r.id="chapter5ChatTyping";r.className="message-row";r.innerHTML='<div class="message-avatar"><img src="'+(contact==="everybody 棒棒"?chapter4GroupAvatarPath(sender):"zgyx.jpg")+'" style="width:40px;height:40px;border-radius:12px;object-fit:cover"></div><div class="typing-indicator">'+(contact==="everybody 棒棒"?sender:"")+'正在输入...</div>';c.appendChild(r);c.scrollTop=c.scrollHeight;}
+    function chapter5ShowTyping(contact,sender){if(currentChatContact!==contact||document.getElementById("chatDetailScreen").style.display==="none")return;var c=document.getElementById("chatMessages"),r=document.createElement("div"),typingAvatar=contact==="everybody 棒棒"?chapter4GroupAvatarPath(sender):((contact==="张桂源"&&typeof chapter6GetZgyAvatar==="function")?chapter6GetZgyAvatar():"zgyx.jpg");r.id="chapter5ChatTyping";r.className="message-row";r.innerHTML='<div class="message-avatar"><img src="'+typingAvatar+'" style="width:40px;height:40px;border-radius:12px;object-fit:cover"></div><div class="typing-indicator">'+(contact==="everybody 棒棒"?sender:"")+'正在输入...</div>';c.appendChild(r);c.scrollTop=c.scrollHeight;}
     function chapter5NotifyReturn(text){showMessageNotification("第五章剧情","<div style='font-size:34px'>📖</div>","第五章剧情",text,function(){switchPage("story");});}
 
     function chapter5FindPacket(packetId) {
@@ -14179,9 +14245,137 @@ b“不想要这个吗？那你想要什么？”
         document.getElementById("chapter5PacketDetailBack").onclick=function(){modal.remove();};
     }
 
+    // ================= 第六章：我猜你也想靠近吧 =================
+    var chapter6SessionActive=false,chapter6Pages=[],chapter6PageIndex=0,chapter6Phase=0;
+    var chapter6TypingTimer=null,chapter6TypingText="",chapter6TypingPos=0,chapter6Bgm=null,chapter6BgmName="";
+    var chapter6InitialPrepared=false,chapter6InitialViewed=false,chapter6PrivateDone=false,chapter6GroupDone=false;
+    window.chapter6WaitingOwnAvatar=false;
+    function chapter6Page(text,speaker,side,bg,bgm){return{text:text||"",speaker:speaker||"",side:side||(speaker==="你"?"right":"left"),bg:bg||"bj1.jpg",bgm:bgm||""};}
+    function chapter6MapPages(source){return(source||[]).map(function(p){return chapter6Page(chapter6Replace(p.text),p.speaker,p.side,p.bg||"bj1.jpg",p.bgm||"");});}
+    function openChapter6Story(){
+        if(chapter6SessionActive){restoreChapter6Story();return;}
+        chapter6SessionActive=true;chapter6Phase=0;chapter6PageIndex=0;chapter6InitialPrepared=false;chapter6InitialViewed=false;chapter6PrivateDone=false;chapter6GroupDone=false;window.chapter6WaitingOwnAvatar=false;
+        chapter6Pages=chapter6MapPages(window.chapter6IntroData||[]);
+        var old=document.getElementById("chapter6StoryOverlay");if(old)old.remove();
+        var overlay=document.createElement("div");overlay.id="chapter6StoryOverlay";
+        overlay.innerHTML='<button id="chapter6BackBtn">←</button><div id="chapter6TextBox"><div id="chapter6NamePlate"></div><div id="chapter6Text"></div><div id="chapter6Continue">点击继续</div></div>';
+        document.getElementById("gameScreen").appendChild(overlay);
+        if(!document.getElementById("chapter6StoryStyle")){var style=document.createElement("style");style.id="chapter6StoryStyle";style.textContent='#chapter6StoryOverlay{position:fixed;top:0;bottom:70px;left:50%;transform:translateX(-50%);width:100%;max-width:500px;z-index:92;background:linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.18)),url("jl.jpg") center/cover no-repeat;overflow:hidden}#chapter6BackBtn{position:absolute;top:max(18px,env(safe-area-inset-top));left:18px;width:42px;height:42px;border:0;border-radius:50%;background:rgba(0,0,0,.58);color:#fff;font-size:25px;z-index:5}#chapter6TextBox{position:absolute;left:14px;right:14px;bottom:14px;min-height:150px;padding:22px 22px 30px;border:1px solid rgba(255,255,255,.24);border-radius:10px;background:rgba(5,5,8,.84);box-shadow:0 8px 28px rgba(0,0,0,.42);color:#fff;cursor:pointer;user-select:none}#chapter6NamePlate{display:none;position:absolute;top:-34px;min-width:92px;height:35px;padding:0 20px;background:rgba(5,5,8,.92);border:1px solid rgba(255,255,255,.24);border-bottom:0;font-size:14px;font-weight:600;align-items:center;justify-content:center}#chapter6NamePlate.left{display:flex;left:-1px;border-radius:8px 8px 0 0}#chapter6NamePlate.right{display:flex;right:-1px;border-radius:8px 8px 0 0}#chapter6Text{font-size:15px;line-height:1.85;white-space:pre-wrap;text-shadow:0 1px 2px #000}#chapter6Continue{position:absolute;right:18px;bottom:9px;color:rgba(255,255,255,.62);font-size:11px}';document.head.appendChild(style);}
+        document.getElementById("chapter6BackBtn").onclick=function(e){e.stopPropagation();closeChapter6Story();};
+        document.getElementById("chapter6TextBox").onclick=chapter6HandleTextBoxClick;installChapter6LongPress();
+        showChapter6Page(0);
+    }
+    function showChapter6Page(index){
+        clearInterval(chapter6TypingTimer);chapter6TypingTimer=null;var p=chapter6Pages[index]||chapter6Page("");
+        var overlay=document.getElementById("chapter6StoryOverlay");if(overlay)overlay.style.backgroundImage='linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.18)),url("'+(p.bg||"jl.jpg")+'")';
+        if(p.bgm)chapter6UpdateBgm(p.bgm);
+        chapter6TypingText=p.text;chapter6TypingPos=0;var text=document.getElementById("chapter6Text"),plate=document.getElementById("chapter6NamePlate"),hint=document.getElementById("chapter6Continue");if(!text)return;
+        text.textContent="";plate.className="";plate.style.display="none";if(p.speaker){plate.textContent=p.speaker;plate.className=p.side==="right"?"right":"left";plate.style.display="flex";}hint.textContent="点击显示全文";
+        chapter6TypingTimer=setInterval(function(){chapter6TypingPos++;text.textContent=chapter6TypingText.slice(0,chapter6TypingPos);if(chapter6TypingPos>=chapter6TypingText.length){clearInterval(chapter6TypingTimer);chapter6TypingTimer=null;if(chapter6Phase===0&&chapter6PageIndex===chapter6Pages.length-1&&!chapter6InitialPrepared)chapter6PrepareInitialUnread();chapter6UpdateHint();}},34);
+    }
+    function chapter6UpdateBgm(src){if(!src)return;if(!chapter6Bgm||chapter6BgmName!==src){if(chapter6Bgm&&!chapter6Bgm.ended)chapter6Bgm.pause();chapter6Bgm=new Audio(src);chapter6Bgm.loop=false;chapter6Bgm.volume=.68;chapter6BgmName=src;}if(chapter6Bgm.paused&&!chapter6Bgm.ended)chapter6Bgm.play().catch(function(){console.warn("第六章背景音乐等待用户操作后播放");});}
+    function chapter6UpdateHint(){var h=document.getElementById("chapter6Continue");if(!h)return;if(chapter6PageIndex<chapter6Pages.length-1)h.textContent="点击继续";else if(chapter6Phase===0)h.textContent=chapter6InitialViewed?"点击文本框弹出选项":"请点击聊天列表";else if(chapter6Phase===1)h.textContent="点击文本框弹出选项";else if(chapter6Phase===2)h.textContent="点击查看群聊";else if(chapter6Phase===3)h.textContent=chapter6GroupDone?"点击结束本章":"请查看群聊消息";else if(chapter6Phase===4)h.textContent="点击结束本章";else h.textContent="点击继续";}
+    function advanceChapter6Story(){
+        if(chapter6TypingTimer){clearInterval(chapter6TypingTimer);chapter6TypingTimer=null;chapter6TypingPos=chapter6TypingText.length;document.getElementById("chapter6Text").textContent=chapter6TypingText;if(chapter6Phase===0&&chapter6PageIndex===chapter6Pages.length-1&&!chapter6InitialPrepared)chapter6PrepareInitialUnread();chapter6UpdateHint();return;}
+        if(chapter6PageIndex<chapter6Pages.length-1){chapter6PageIndex++;showChapter6Page(chapter6PageIndex);return;}
+        if(chapter6Phase===0&&!chapter6InitialViewed){chapter6UpdateHint();return;}
+        if(chapter6Phase===1||chapter6Phase===0){chapter6StartFirstReply();return;}
+        if(chapter6Phase===2){chapter6Phase=3;chapter6StartGroupChat();chapter6UpdateHint();return;}
+        if(chapter6Phase===4){completeChapter6Story();return;}
+        if(chapter6Phase===5){chapter6StartSchoolPhoneChat();return;}
+        if(chapter6Phase===6){chapter6StartWalkChat();return;}
+        if(chapter6Phase===7){chapter6StartTutoringInvite();return;}
+        if(chapter6Phase===8){chapter6ShowGraduationChoice();return;}
+        if(chapter6Phase===9){chapter6StartGraduationFinalChat();return;}
+        if(chapter6Phase===10){completeChapter6Story();}
+    }
+    function chapter6StoredMessage(msg,unread,group){
+        if(msg.isTimeMarker)return{from:"system",text:String(msg.text||""),time:"",date:"",read:true,isTimeMarker:true,chapter6:true};
+        var isMe=msg.from==="me",image=msg.image||"",text=image?'<img src="'+image+'" style="width:170px;max-width:100%;height:auto;border-radius:10px;display:block;object-fit:cover;background:#ddd;">':String(msg.text||"");
+        if(msg.quoteText)text+='<div style="margin-top:5px;padding-top:5px;border-top:1px solid #e8e8e8;font-size:12px;color:#999;">'+msg.quoteText+'</div>';
+        return{from:isMe?"me":(group?msg.from:"other"),text:text,time:msg.time||"",date:msg.date||"2024年4月14日",avatar:isMe?"":(group?chapter4GroupAvatarPath(msg.from):"zgyx.jpg"),read:unread?false:true,isImage:!!image,chapter6:true,groupSender:group?msg.from:""};
+    }
+    function chapter6PrepareInitialUnread(){
+        chapter6InitialPrepared=true;if(!chatData["张桂源"])chatData["张桂源"]={messages:[],newMsg:false};var d=chatData["张桂源"];
+        if(!d.chapter6InitialAdded){(window.chapter6InitialPrivate||[]).forEach(function(m){d.messages.push(chapter6StoredMessage(m,true,false));});d.chapter6InitialAdded=true;}
+        d.chapter6InitialActive=true;d.newMsg=true;renderChatList();chapter6UpdateHint();
+    }
+    function openChapter6InitialChat(){
+        currentChatContact="张桂源";var d=chatData["张桂源"];d.newMsg=false;(d.messages||[]).forEach(function(m){if(m.chapter6&&m.from==="other")m.read=true;});
+        chapter6InitialViewed=true;chapter6Phase=1;document.getElementById("chatListScreen").style.display="none";document.getElementById("chatDetailScreen").style.display="flex";document.getElementById("chatContactName").innerText=getContactDisplayName("张桂源");
+        document.getElementById("chatBackBtn").onclick=function(){document.getElementById("chatDetailScreen").style.display="none";document.getElementById("chatListScreen").style.display="block";renderChatList();};
+        var input=document.getElementById("chatInputBox");input.innerText="点击文本框弹出选项";input.style.color="#999";input.style.cursor="pointer";input.contentEditable="false";input.onclick=function(e){e.preventDefault();chapter6StartFirstReply();};
+        renderChatMessages();renderChatList();chapter6UpdateHint();
+    }
+    function chapter6StartFirstReply(){
+        if(document.querySelector(".option-modal"))return;var chatPage=document.getElementById("chatPage");if(!chatPage||!chatPage.classList.contains("active")){switchPage("chat");openChapter6InitialChat();}showOptionsModal(["到教室了"],"选择回复",function(){var d=chatData["张桂源"];d.chapter6InitialActive=false;chapter6Append("张桂源",{from:"me",text:"到教室了",time:"07:10",date:"2024年4月14日"});chapter6ContinueFlow("张桂源",window.chapter6PrivateBeforeChoice||[],chapter6ShowPrivateBranchChoice);openChapter6Chat("张桂源");});
+    }
+    function chapter6ShowPrivateBranchChoice(){chapter4LockChatInput("请选择回复");showOptionsModal(["不能","下次一定"],"选择回复",function(choice){chapter6Append("张桂源",{from:"me",text:choice===0?"不能":"下次一定",time:"07:11",date:"2024年4月14日"});var branch=(choice===0?window.chapter6PrivateBranch1:window.chapter6PrivateBranch2)||[];chapter6ContinueFlow("张桂源",branch.concat(window.chapter6PrivateAfterChoice||[]),chapter6FinishPrivate);});}
+    function chapter6FinishPrivate(){chapter6PrivateDone=true;chapter6Phase=2;chapter6Pages=chapter6MapPages(window.chapter6AfterPrivateData||[]);chapter6PageIndex=0;showChapter6Page(0);chapter6NotifyReturn("私聊完成，请返回第六章继续");}
+    function chapter6Replace(text){return String(text||"").replace(/\{\{PLAYER_NICKNAME\}\}/g,player.nickname||player.name||"你").replace(/\{\{PLAYER_WECHAT_NAME\}\}/g,player.wechatName||player.name||"你");}
+    function chapter6GroupMessages(source,start){return(source||[]).map(function(m,i){var c=JSON.parse(JSON.stringify(m));c.text=chapter6Replace(c.text);c.quoteText=chapter6Replace(c.quoteText);c.time=chapter5Time(start+Math.floor(i/3));c.date="2024年4月14日";return c;});}
+    function chapter6StartGroupChat(){var msgs=chapter6GroupMessages(window.chapter6GroupCommon||[],13*60+20);chapter6PrepareFlow("everybody 棒棒",msgs,chapter6ShowGroupBranchChoice,true);}
+    function chapter6ShowGroupBranchChoice(){chapter4LockChatInput("请选择回复");showOptionsModal(["我忘记了","发了吧"],"选择回复",function(choice){chapter6Append("everybody 棒棒",{from:"me",text:choice===0?"我忘记了":"发了吧",time:"13:34",date:"2024年4月14日"});var branch=chapter6GroupMessages(choice===0?window.chapter6GroupBranch1:window.chapter6GroupBranch2,13*60+35);var common=chapter6GroupMessages(window.chapter6GroupAfterChoice||[],13*60+39);chapter6ContinueFlow("everybody 棒棒",branch.concat(common),chapter6FinishGroup);});}
+    function chapter6FinishGroup(){chapter6GroupDone=true;chapter6StartAvatarPrivate();}
+    function chapter6GetZgyAvatar(){return window.chapter6ZgyAvatarData||localStorage.getItem("chapter6_zgy_avatar")||"zgyx.jpg";}
+    function chapter6CompressAvatar(file,done,fail){
+        var reader=new FileReader();
+        reader.onerror=function(){if(fail)fail();};
+        reader.onload=function(){var img=new Image();img.onerror=function(){if(fail)fail();};img.onload=function(){var max=640,w=img.naturalWidth||img.width,h=img.naturalHeight||img.height,scale=Math.min(1,max/Math.max(w,h));var canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(w*scale));canvas.height=Math.max(1,Math.round(h*scale));var ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,canvas.width,canvas.height);var data;try{data=canvas.toDataURL("image/jpeg",.82);}catch(e){data=reader.result;}done(data);};img.src=reader.result;};reader.readAsDataURL(file);
+    }
+    function chapter6RememberZgyAvatar(data){window.chapter6ZgyAvatarData=data;try{localStorage.setItem("chapter6_zgy_avatar",data);}catch(e){console.warn("头像较大，仅在本次游玩中保存",e);}}
+    function chapter6StartAvatarPrivate(){
+        var msgs=chapter6GroupMessages(window.chapter6AvatarPrivate||[],20*60+10);
+        chapter6PrepareFlow("张桂源",msgs,chapter6AwaitOwnAvatar,true);
+    }
+    function chapter6AwaitOwnAvatar(){
+        window.chapter6WaitingOwnAvatar=true;
+        chapter4LockChatInput("点击聊天页面中你的头像更换头像");
+        renderChatMessages();
+    }
+    function chapter6ChangeOwnAvatar(){
+        if(!window.chapter6WaitingOwnAvatar)return;
+        var input=document.createElement("input");input.type="file";input.accept="image/*";input.id="chapter6OwnAvatarUpload";input.style.display="none";document.body.appendChild(input);
+        input.onchange=function(){var file=input.files&&input.files[0];if(!file){input.remove();return;}chapter6CompressAvatar(file,function(data){try{localStorage.setItem("player_avatar",data);}catch(e){console.warn("玩家头像本地保存失败",e);}window.chapter6WaitingOwnAvatar=false;input.remove();renderChatMessages();var rest=chapter6GroupMessages(window.chapter6AvatarPrivateAfterOwnAvatar||[],20*60+20);chapter6ContinueFlow("张桂源",rest,chapter6StartAvatarGroup);},function(){input.remove();alert("图片读取失败，请重新选择一张图片");});};input.click();
+    }
+    function chapter6StartAvatarGroup(){
+        var msgs=chapter6GroupMessages(window.chapter6AvatarGroup||[],20*60+30);
+        chapter6PrepareFlow("everybody 棒棒",msgs,chapter6FinishAllChats,true);
+    }
+    function chapter6FinishAllChats(){chapter6Phase=5;chapter6Pages=chapter6MapPages(window.chapter6SchoolBeforePhone||[]);chapter6PageIndex=0;showChapter6Page(0);chapter6NotifyReturn("群聊完成，请返回第六章继续");}
+    function chapter6DatedMessages(source,start,date){return(source||[]).map(function(m,i){var c=JSON.parse(JSON.stringify(m));c.text=chapter6Replace(c.text);c.quoteText=chapter6Replace(c.quoteText);c.time=chapter5Time(start+Math.floor(i/2));c.date=date||"2025年";return c;});}
+    function chapter6StartSchoolPhoneChat(){var msgs=chapter6DatedMessages(window.chapter6SchoolPhoneChat||[],10*60+20,"2025年");chapter6PrepareFlow("张桂源",msgs,chapter6FinishSchoolPhoneChat,true);}
+    function chapter6FinishSchoolPhoneChat(){chapter6Phase=6;chapter6Pages=chapter6MapPages(window.chapter6SchoolAfterPhone||[]);chapter6PageIndex=0;showChapter6Page(0);chapter6NotifyReturn("聊天完成，请返回第六章继续");}
+    function chapter6StartWalkChat(){var msgs=chapter6DatedMessages(window.chapter6WalkChat||[],17*60+10,"2025年");chapter6PrepareFlow("张桂源",msgs,chapter6ShowWalkChoice,true);}
+    function chapter6ShowWalkChoice(){chapter4LockChatInput("请选择回复");showOptionsModal(["同学","朋友"],"选择回复",function(choice){chapter6Append("张桂源",{from:"me",text:choice===0?"同学？":"朋友？",time:"17:19",date:"2025年"});var branch=chapter6DatedMessages(choice===0?window.chapter6WalkBranch1:window.chapter6WalkBranch2,17*60+20,"2025年");var common=chapter6DatedMessages(window.chapter6WalkChatAfter||[],17*60+23,"2025年");chapter6ContinueFlow("张桂源",branch.concat(common),chapter6FinishWalkChat);});}
+    function chapter6FinishWalkChat(){chapter6Phase=7;chapter6Pages=chapter6MapPages(window.chapter6TutoringLead||[]);chapter6PageIndex=0;showChapter6Page(0);chapter6NotifyReturn("聊天完成，请返回第六章继续");}
+    function chapter6StartTutoringInvite(){var msgs=chapter6DatedMessages(window.chapter6TutoringInviteChat||[],20*60+5,"2025年");chapter6PrepareFlow("张桂源",msgs,chapter6FinishTutoringInvite,true);}
+    function chapter6FinishTutoringInvite(){chapter6Phase=8;chapter6Pages=chapter6MapPages(window.chapter6TutoringStory||[]);chapter6PageIndex=0;showChapter6Page(0);chapter6NotifyReturn("聊天完成，请返回第六章继续");}
+    function chapter6ShowGraduationChoice(){if(document.querySelector(".chapter6-story-options"))return;var wrap=document.createElement("div");wrap.className="chapter6-story-options";wrap.style.cssText="position:absolute;left:18px;right:18px;bottom:205px;z-index:20;display:flex;flex-direction:column;gap:10px";["偷偷松开他的手","回扣住他的手"].forEach(function(label,choice){var b=document.createElement("button");b.textContent=label;b.style.cssText="width:100%;min-height:48px;padding:10px 14px;background:rgba(5,5,8,.9);border:1px solid rgba(255,255,255,.45);border-radius:3px;color:#fff;font-size:15px";b.onclick=function(e){e.stopPropagation();wrap.remove();var branch=choice===0?window.chapter6GraduationBranch1:window.chapter6GraduationBranch2;chapter6Phase=9;chapter6Pages=chapter6MapPages((branch||[]).concat(window.chapter6GraduationCommonBeforeChat||[]));chapter6PageIndex=0;showChapter6Page(0);};wrap.appendChild(b);});document.getElementById("chapter6StoryOverlay").appendChild(wrap);}
+    function chapter6StartGraduationFinalChat(){var msgs=chapter6DatedMessages(window.chapter6GraduationFinalChat||[],15*60+30,"2025年5月");chapter6PrepareFlow("张桂源",msgs,chapter6FinishGraduationFinalChat,true);}
+    function chapter6FinishGraduationFinalChat(){chapter6Phase=10;chapter6Pages=chapter6MapPages(window.chapter6GraduationEnding||[]);chapter6PageIndex=0;showChapter6Page(0);chapter6NotifyReturn("聊天完成，请返回第六章继续");}
+    function chapter6PrepareFlow(contact,messages,done,popup){if(!chatData[contact])chatData[contact]={messages:[],newMsg:false};var d=chatData[contact];d.chapter6Flow={messages:messages,index:0,running:false,complete:false,done:done,pendingChoice:null};d.newMsg=true;if(messages.length){chapter6Append(contact,messages[0],true);d.chapter6Flow.index=1;}renderChatList();if(popup&&messages.length){var first=messages[0],zgyAvatar=chapter6GetZgyAvatar();showMessageNotification(contact,contact==="everybody 棒棒"?chapter4GroupGridAvatarHtml(48):'<img src="'+zgyAvatar+'" style="width:48px;height:48px;border-radius:12px;object-fit:cover;">',contact,(contact==="everybody 棒棒"?first.from+"：":"")+(first.image?"[图片]":first.text),function(){switchPage("chat");openChapter6Chat(contact);});}}
+    function chapter6ContinueFlow(contact,messages,done){var d=chatData[contact];d.chapter6Flow={messages:messages,index:0,running:false,complete:false,done:done,pendingChoice:null};chapter4LockChatInput("请等待消息");chapter6RunFlow(contact);}
+    function chapter6Append(contact,msg,unread){var d=chatData[contact],group=contact==="everybody 棒棒";d.messages.push(chapter6StoredMessage(msg,!!unread,group));if(currentChatContact===contact&&document.getElementById("chatDetailScreen").style.display!=="none")renderChatMessages();renderChatList();}
+    function openChapter6Chat(contact){currentChatContact=contact;var d=chatData[contact];d.newMsg=false;(d.messages||[]).forEach(function(m){if(m.from!=="me")m.read=true;});document.getElementById("chatListScreen").style.display="none";document.getElementById("chatDetailScreen").style.display="flex";document.getElementById("chatContactName").innerText=getContactDisplayName(contact);var header=document.querySelector("#chatDetailScreen .chat-detail-header");if(header)header.classList.toggle("chapter5-group-header",contact==="everybody 棒棒");document.getElementById("chatBackBtn").onclick=function(){if(header)header.classList.remove("chapter5-group-header");document.getElementById("chatDetailScreen").style.display="none";document.getElementById("chatListScreen").style.display="block";renderChatList();};chapter4LockChatInput(d.chapter6Flow&&d.chapter6Flow.complete?"聊天已完成，请返回剧情页面继续":"请等待消息");renderChatMessages();renderChatList();setTimeout(function(){chapter6RunFlow(contact);},450);}
+    function chapter6RunFlow(contact){var d=chatData[contact],s=d&&d.chapter6Flow;if(!s||s.complete)return;if(s.pendingChoice){chapter6ShowMessageChoice(contact,s.pendingChoice);return;}if(s.running)return;s.running=true;function next(){if(s.index>=s.messages.length){s.running=false;s.complete=true;chapter4LockChatInput("聊天已完成，请返回剧情页面继续");if(s.done)s.done();return;}var m=s.messages[s.index++],len=String(m.text||"").length;if(m.from==="me"){s.running=false;s.pendingChoice=m;chapter6ShowMessageChoice(contact,m);return;}chapter5ShowTyping(contact,m.from);setTimeout(function(){var t=document.getElementById("chapter5ChatTyping");if(t)t.remove();chapter6Append(contact,m);setTimeout(next,Math.max(850,600+len*38));},Math.max(1450,1050+len*75));}next();}
+    function chapter6ShowMessageChoice(contact,msg){chapter4LockChatInput("请点击选项发送");showOptionsModal([msg.image||msg.imageUpload?"发送图片":msg.text],"选择回复",function(){var s=chatData[contact].chapter6Flow;if(msg.imageUpload){var input=document.createElement("input");input.type="file";input.accept="image/*";input.id="chapter6ZgyAvatarUpload";input.style.display="none";document.body.appendChild(input);input.onchange=function(){var file=input.files&&input.files[0];if(!file){input.remove();chapter6ShowMessageChoice(contact,msg);return;}chapter6CompressAvatar(file,function(data){var sent=JSON.parse(JSON.stringify(msg));sent.image=data;sent.text="";delete sent.imageUpload;chapter6RememberZgyAvatar(data);s.pendingChoice=null;chapter6Append(contact,sent);input.remove();renderChatMessages();chapter4LockChatInput("请等待消息");setTimeout(function(){chapter6RunFlow(contact);},650);},function(){input.remove();alert("图片读取失败，请重新选择一张图片");chapter6ShowMessageChoice(contact,msg);});};input.click();return;}s.pendingChoice=null;chapter6Append(contact,msg);chapter4LockChatInput("请等待消息");setTimeout(function(){chapter6RunFlow(contact);},650);});}
+    function chapter6NotifyReturn(text){showMessageNotification("第六章剧情","<div style='font-size:34px'>📖</div>","第六章剧情",text,function(){switchPage("story");});}
+    var chapter6LongPressTimer=null,chapter6FastTimer=null,chapter6SuppressClick=false;
+    function chapter6HandleTextBoxClick(){if(chapter6SuppressClick){chapter6SuppressClick=false;return;}advanceChapter6Story();}
+    function installChapter6LongPress(){var box=document.getElementById("chapter6TextBox");if(!box||box.dataset.longPressInstalled)return;box.dataset.longPressInstalled="1";function start(e){if(e&&e.button!==undefined&&e.button!==0)return;chapter6SuppressClick=false;clearTimeout(chapter6LongPressTimer);chapter6LongPressTimer=setTimeout(function(){chapter6SuppressClick=true;chapter6FastTimer=setInterval(function(){if(document.querySelector(".chapter6-story-options")){clearInterval(chapter6FastTimer);chapter6FastTimer=null;return;}var atBoundary=!chapter6TypingTimer&&chapter6PageIndex>=chapter6Pages.length-1;advanceChapter6Story();if(atBoundary){clearInterval(chapter6FastTimer);chapter6FastTimer=null;}},105);},700);}function stop(){clearTimeout(chapter6LongPressTimer);chapter6LongPressTimer=null;if(chapter6FastTimer){clearInterval(chapter6FastTimer);chapter6FastTimer=null;setTimeout(function(){chapter6SuppressClick=false;},180);}}box.addEventListener("mousedown",start);box.addEventListener("mouseup",stop);box.addEventListener("mouseleave",stop);box.addEventListener("touchstart",start,{passive:true});box.addEventListener("touchend",stop);box.addEventListener("touchcancel",stop);box.addEventListener("contextmenu",function(e){e.preventDefault();});}
+    function completeChapter6Story(){if(!chapter6SessionActive||document.getElementById("chapter6CompleteLayer"))return;switchPage("story");restoreChapter6Story();var o=document.getElementById("chapter6StoryOverlay");if(!o)return;var l=document.createElement("div");l.id="chapter6CompleteLayer";l.textContent="第六章完成";l.style.cssText="position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:#050505;color:#fff;font-size:25px;font-weight:600;letter-spacing:5px;opacity:0;pointer-events:none;transition:opacity .55s ease";o.appendChild(l);requestAnimationFrame(function(){requestAnimationFrame(function(){l.style.opacity="1";});});setTimeout(function(){l.style.opacity="0";},1750);setTimeout(function(){completedChapters[5]=true;if(typeof ensureChapter6ZhangWeibo==="function")ensureChapter6ZhangWeibo();chapter6SessionActive=false;suspendChapter6Story();document.getElementById("storyDetailPage").style.display="none";document.getElementById("chapterSelectPage").style.display="block";renderChapterList();if(typeof autoSaveGame==="function")autoSaveGame();},2400);}
+    function closeChapter6Story(){suspendChapter6Story();document.getElementById("storyDetailPage").style.display="none";document.getElementById("chapterSelectPage").style.display="block";renderChapterList();}
+    function suspendChapter6Story(){var o=document.getElementById("chapter6StoryOverlay");if(o)o.style.display="none";}
+    function restoreChapter6Story(){var o=document.getElementById("chapter6StoryOverlay");if(o){document.getElementById("chapterSelectPage").style.display="none";document.getElementById("storyDetailPage").style.display="block";o.style.display="block";document.getElementById("chapter6TextBox").onclick=chapter6HandleTextBoxClick;installChapter6LongPress();chapter6UpdateHint();}}
+
     // ================= 页面切换 =================
 function switchPage(pageId) {
     console.log('switchPage 被调用:', pageId);
+    if (chapter6SessionActive) {
+        if (pageId === "story") restoreChapter6Story();
+        else suspendChapter6Story();
+    }
     if (chapter5SessionActive) {
         if (pageId === "story") restoreChapter5Story();
         else suspendChapter5Story();
@@ -14263,12 +14457,13 @@ function switchPage(pageId) {
         var chapterSelect = document.getElementById('chapterSelectPage');
         var storyDetail = document.getElementById('storyDetailPage');
         var storyMap = document.getElementById('storyMapPage');
-        var activeStorySession = chapter4SessionActive || chapter5SessionActive;
+        var activeStorySession = chapter4SessionActive || chapter5SessionActive || chapter6SessionActive;
         if (chapterSelect) chapterSelect.style.display = activeStorySession ? 'none' : 'block';
         if (storyDetail) storyDetail.style.display = activeStorySession ? 'block' : 'none';
         if (storyMap) storyMap.style.display = 'none';
         if (typeof renderChapterList === 'function') renderChapterList();
         if (chapter4SessionActive) restoreChapter4Story();
+        if (chapter6SessionActive) restoreChapter6Story();
         else if (chapter5SessionActive) restoreChapter5Story();
     }
     if (pageId === 'publishMoment') {
@@ -23088,7 +23283,9 @@ function renderForum(showMore) {
     }
 
     var displayData = [];
-    if (completedChapters[3]) {
+    if (completedChapters[5]) {
+        displayData = allForumPosts.concat(window.chapter6ForumPosts || []);
+    } else if (completedChapters[3]) {
         displayData = allForumPosts.slice();
     } else if (completedChapters[1]) {
         displayData = allForumPosts.slice();
@@ -23104,18 +23301,22 @@ function renderForum(showMore) {
         post._randomTime = post.time || getRandomTime(isChapter2);
     });
 
-    // 按时间倒序排列（最新在前）
+    // 第六章完成后按时间正序，其余章节维持原来的最新在前。
     displayData.sort(function(a, b) {
-        var timeA = new Date(a._randomTime.replace(/年/g, '-').replace(/月/g, '-').replace(/日/g, '').replace(/ /g, 'T'));
-        var timeB = new Date(b._randomTime.replace(/年/g, '-').replace(/月/g, '-').replace(/日/g, '').replace(/ /g, 'T'));
-        return timeB - timeA;
+        function forumTimeValue(value) {
+            var m = String(value || '').match(/(\d{4})(?:年|-)(\d{1,2})(?:月|-)(\d{1,2})(?:日)?(?:\s+|T)(\d{1,2}):(\d{2})/);
+            return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5])).getTime() : 0;
+        }
+        var timeA = forumTimeValue(a._randomTime);
+        var timeB = forumTimeValue(b._randomTime);
+        return completedChapters[5] ? timeA - timeB : timeB - timeA;
     });
 
     var html = '';
     for (var i = 0; i < displayData.length; i++) {
         var item = displayData[i];
         var randomTime = item._randomTime;
-        var isUnreadFollowup = (item.id.indexOf('werewolf_post') === 0 || item.id.indexOf('chapter4_post') === 0) &&
+        var isUnreadFollowup = (item.id.indexOf('werewolf_post') === 0 || item.id.indexOf('chapter4_post') === 0 || item.id.indexOf('chapter6_post') === 0) &&
             localStorage.getItem('forum_read_' + item.id) !== 'true';
         
         html += '<div style="padding:14px 0;border-bottom:1px solid #EFEFEF;cursor:pointer;" onclick="showForumDetail(\'' + item.id + '\')">';
@@ -23123,7 +23324,7 @@ function renderForum(showMore) {
         if (isUnreadFollowup) {
             html += '<span id="forumNewBadge_' + item.id + '" style="display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:2px;width:20px;height:18px;border-radius:6px;background:#E85D75;color:#fff;font-size:11px;font-weight:700;line-height:1;">新</span>';
         }
-        html += '<div style="font-size:15px;font-weight:600;color:#1A1A1A;line-height:1.4;">' + item.title + '</div>';
+        html += '<div style="font-size:15px;font-weight:600;color:#1A1A1A;line-height:1.4;">' + String(item.title || '').replace(/^标题[:：]\s*/, '') + '</div>';
         html += '</div>';
         html += '<div style="display:flex;gap:12px;margin-top:6px;font-size:12px;color:#999;">';
         html += '<span>' + item.author + '</span>';
@@ -23136,15 +23337,16 @@ function renderForum(showMore) {
 }
 // ================= 显示论坛帖子详情 =================
 function showForumDetail(postId) {
-    if (postId && (postId.indexOf('werewolf_post') === 0 || postId.indexOf('chapter4_post') === 0)) {
+    if (postId && (postId.indexOf('werewolf_post') === 0 || postId.indexOf('chapter4_post') === 0 || postId.indexOf('chapter6_post') === 0)) {
         localStorage.setItem('forum_read_' + postId, 'true');
         var newBadge = document.getElementById('forumNewBadge_' + postId);
         if (newBadge) newBadge.remove();
     }
     var post = null;
-    for (var i = 0; i < allForumPosts.length; i++) {
-        if (allForumPosts[i].id === postId) {
-            post = allForumPosts[i];
+    var searchableForumPosts = allForumPosts.concat(window.chapter6ForumPosts || []);
+    for (var i = 0; i < searchableForumPosts.length; i++) {
+        if (searchableForumPosts[i].id === postId) {
+            post = searchableForumPosts[i];
             break;
         }
     }
@@ -23173,7 +23375,7 @@ function showForumDetail(postId) {
             </div>
             
             <!-- 标题 -->
-            <div style="font-size:16px;font-weight:700;color:#1A1A1A;margin-bottom:8px;">${post.title}</div>
+            <div style="font-size:16px;font-weight:700;color:#1A1A1A;margin-bottom:8px;">${String(post.title || '').replace(/^标题[:：]\s*/, '')}</div>
             
             <!-- 作者和时间 -->
             <div style="display:flex;gap:12px;font-size:12px;color:#999;margin-bottom:10px;">
@@ -31106,5 +31308,8 @@ function exitWerewolf() {
 }
 </script>
 <script src="chapter5-data.js?v=20260811b"></script>
+<script src="chapter6-data.js?v=20260825a"></script>
+<script src="chapter6-continuation.js?v=20260825a"></script>
+<script src="chapter6-forum.js?v=20260825a"></script>
 </body>
 </html>
