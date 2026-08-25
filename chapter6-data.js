@@ -1,0 +1,216 @@
+window.chapter6IntroData = [
+  {text:"确认关系以后，你才发现张桂源比你想象中还要黏人一点。"},
+  {text:"之前还端着，自从新年那天后就彻底放飞自我了。"},
+  {text:"因为他要去训练，所以有时候起得比你更早一点。"},
+  {text:"你每次醒来都是十几条信息（请点击聊天列表）"}
+];
+
+window.chapter6InitialPrivate = [
+  {isTimeMarker:true,text:"2024年4月14日 06:30"},
+  {from:"other",image:"shuaixing.jpg",time:"06:30",date:"2024年4月14日"},
+  {from:"other",text:"出门了",time:"06:30",date:"2024年4月14日"},
+  {from:"other",text:"今天下雨好冷",time:"06:30",date:"2024年4月14日"},
+  {from:"other",text:"你出门记得带伞",time:"06:30",date:"2024年4月14日"},
+  {isTimeMarker:true,text:"06:40"},
+  {from:"other",text:"今天楼下那家包子店酱香饼做得巨好吃",time:"06:40",date:"2024年4月14日"},
+  {from:"other",text:"从来没这么好吃过",time:"06:40",date:"2024年4月14日"},
+  {from:"other",text:"你起来没",time:"06:40",date:"2024年4月14日"},
+  {from:"other",text:"懒猪",time:"06:40",date:"2024年4月14日"},
+  {isTimeMarker:true,text:"06:55"},
+  {from:"other",image:"baobei.jpg",time:"06:55",date:"2024年4月14日"},
+  {from:"other",text:"到公司了",time:"06:55",date:"2024年4月14日"},
+  {isTimeMarker:true,text:"07:00"},
+  {from:"other",text:"现在一看好肿啊",time:"07:00",date:"2024年4月14日"},
+  {from:"other",text:"为啥不能撤回了啊",time:"07:00",date:"2024年4月14日"},
+  {isTimeMarker:true,text:"07:05"},
+  {from:"other",text:"我记得你手机里有微信啊？",time:"07:05",date:"2024年4月14日"},
+  {from:"other",text:"我服了",time:"07:05",date:"2024年4月14日"},
+  {from:"other",text:"？",time:"07:05",date:"2024年4月14日"}
+];
+
+window.chapter6PrivateBeforeChoice = [
+  {from:"me",text:"路上在吃饭回不了",time:"07:10",date:"2024年4月14日"},
+  {from:"other",text:"不能发语音吗",time:"07:10",date:"2024年4月14日"},
+  {from:"other",text:"拍不了照吗",time:"07:10",date:"2024年4月14日"}
+];
+window.chapter6PrivateBranch1 = [
+  {from:"other",text:"？",time:"07:11",date:"2024年4月14日"},
+  {from:"other",text:"老人机都能拍",time:"07:11",date:"2024年4月14日"},
+  {from:"other",text:"要不要我给你换个老人机",time:"07:11",date:"2024年4月14日"},
+  {from:"me",text:"哎呀我知道了嘛",time:"07:12",date:"2024年4月14日"},
+  {from:"me",text:"中午给你拍好不好？",time:"07:12",date:"2024年4月14日"},
+  {from:"other",text:"晚了",time:"07:12",date:"2024年4月14日"}
+];
+window.chapter6PrivateBranch2 = [
+  {from:"other",text:"？下次",time:"07:11",date:"2024年4月14日"},
+  {from:"other",text:"下次是什么时候",time:"07:11",date:"2024年4月14日"},
+  {from:"other",text:"是下次我又发十几条消息你不回的时候吗",time:"07:11",date:"2024年4月14日"},
+  {from:"me",text:"哎呀中午中午",time:"07:12",date:"2024年4月14日"},
+  {from:"me",text:"我给你打视频",time:"07:12",date:"2024年4月14日"},
+  {from:"other",text:"哦",time:"07:12",date:"2024年4月14日"}
+];
+window.chapter6PrivateAfterChoice = [
+  {from:"me",image:"hehaoka.jpg",time:"12:05",date:"2024年4月14日"},
+  {from:"me",text:"别生气了",time:"12:05",date:"2024年4月14日"},
+  {from:"other",text:"我没生气",time:"12:05",date:"2024年4月14日"},
+  {from:"other",text:"我不想聊天框只有我的信息",time:"12:05",date:"2024年4月14日"},
+  {from:"other",text:"每次手机一响我还以为你发的呢",time:"12:05",date:"2024年4月14日"},
+  {from:"me",text:"知道了知道了小气鬼",time:"12:06",date:"2024年4月14日"},
+  {from:"other",text:"中午记得找我",time:"12:06",date:"2024年4月14日"},
+  {from:"me",text:"知道啦！",time:"12:06",date:"2024年4月14日"}
+];
+
+window.chapter6AfterPrivateData = [
+  {text:"久而久之，你也习惯了他每天的碎碎念，偶尔发的小脾气。"},
+  {text:"也开始每天和他分享你在学校的日常。"},
+  {text:"食堂中午的饭好难吃，拍给他；晚饭后好看的夕阳，拍给他；做全对的选择题，也想拍给他炫耀一下。"},
+  {text:"你总会因为收到他的信息而安心，也渐渐习惯了有他的每一天。"},
+  {text:"某个训练时候的间隙，你的手机传来一阵阵震动。"}
+];
+
+window.chapter6GroupCommon = [
+  {from:"左奇函",image:"faxinxi.jpg"},
+  {from:"左奇函",text:"给大家看一下"},
+  {from:"左奇函",text:"张桂源每次休息都在干嘛"},
+  {from:"陈思罕",text:"哦哟~"},
+  {from:"陈浚铭",text:"一天到晚就在这回信息"},
+  {from:"陈浚铭",text:"休息五分钟，打字四分钟"},
+  {from:"王橹杰",text:"懒得喷"},
+  {from:"张桂源",text:"？"},
+  {from:"张桂源",text:"你偷拍我干嘛"},
+  {from:"陈思罕",text:"还能抽空回群消息啊"},
+  {from:"张桂源",text:"删了啊"},
+  {from:"左奇函",text:"哎呀帮{{PLAYER_NICKNAME}}记录一下你嘛"},
+  {from:"张函瑞",text:"这张也发去报备",quoteText:"左奇函：哎呀帮{{PLAYER_NICKNAME}}记录一下你嘛"},
+  {from:"陈思罕",text:"支持"},
+  {from:"陈浚铭",text:"张桂源你以前回我信息有秒回过吗"},
+  {from:"张桂源",text:"你谁啊哥？"},
+  {from:"陈浚铭",text:"我让雨哥来收手机了"},
+  {from:"左奇函",text:"？"},
+  {from:"王橹杰",text:"……是敌是友"},
+  {from:"张函瑞",text:"啥子？"},
+  {from:"陈奕恒",text:"不是，你们干嘛"},
+  {from:"左奇函",text:"把陈奕恒吓得和平精英都不玩了"},
+  {from:"陈奕恒",text:"没玩哥们，抽皮肤"},
+  {from:"杨博文",text:"因为在北京逃过一劫吗"},
+  {from:"张桂源",text:"要交就交陈浚铭的"},
+  {from:"张桂源",image:"cjmwsj.jpg"},
+  {from:"张桂源",text:"谁来管管"},
+  {from:"陈浚铭",image:"baobei2.jpg"},
+  {from:"陈浚铭",text:"谁来管管"},
+  {from:"张桂源",text:"你有病吧这啥时候的照片了"},
+  {from:"左奇函",text:"我受不了了"},
+  {from:"陈思罕",text:"哦哟~"},
+  {from:"左奇函",text:"陈浚铭手机屏幕都是破的"},
+  {from:"张桂源",text:"战损这块还得看杨博文"},
+  {from:"张函瑞",text:"@{{PLAYER_WECHAT_NAME}}，所以张桂源这张发给你没"},
+  {from:"左奇函",text:"同问"},
+  {from:"陈浚铭",text:"肯定发了啊他拍完就在那笑"},
+  {from:"张桂源",text:"陈浚铭你能不能闭嘴啊"}
+];
+window.chapter6GroupBranch1 = [
+  {from:"张桂源",text:"？"},
+  {from:"me",text:"你发过那么多照片我哪记得啊"},
+  {from:"左奇函",text:"重庆小伙爱报备"},
+  {from:"王橹杰",text:"全世界倒数第一不爱报备之人"},
+  {from:"张桂源",text:"哦那我以后不发了"},
+  {from:"左奇函",text:"重庆小伙爱生气"},
+  {from:"陈浚铭",text:"姐姐我来给你发"},
+  {from:"陈浚铭",text:"每个机位都能拍"}
+];
+window.chapter6GroupBranch2 = [
+  {from:"张桂源",text:"吧是什么意思"},
+  {from:"me",text:"我不确定啊，你有那么多件白衣服"},
+  {from:"张桂源",text:"你都不认真看"},
+  {from:"陈浚铭",text:"姐姐我给你买个放大镜"},
+  {from:"左奇函",text:"？把照片打印出来裱着看",quoteText:"张桂源：你都不认真看"},
+  {from:"张桂源",text:"我以后不发了"},
+  {from:"张桂源",text:"你又不看"},
+  {from:"张桂源",text:"你是不是一次都没点开看过"},
+  {from:"王橹杰",text:"妈呀哪来的怨夫"}
+];
+window.chapter6GroupAfterChoice = [
+  {from:"左奇函",text:"哟哟哟张桂源把手机放下了"},
+  {from:"张函瑞",text:"笑死我了吧还装模做样去喝水"},
+  {from:"陈思罕",text:"前摇过长了"},
+  {from:"陈浚铭",text:"是不是去厕所偷偷哭了啊"},
+  {from:"聂玮辰",text:"我靠龙哥哭了？"},
+  {from:"聂玮辰",text:"能不能开直播啊"},
+  {from:"左奇函",text:"我去安慰一手"},
+  {from:"me",text:"其实这张我设成壁纸了",quoteText:"张函瑞：所以张桂源这张发给你没"},
+  {from:"me",text:"很帅"},
+  {from:"左奇函",text:"我杀了我自己",quoteText:"左奇函：我去安慰一手"},
+  {from:"陈思罕",text:"哦哟~"},
+  {from:"陈奕恒",text:"nb"},
+  {from:"聂玮辰",text:"下次这种环节把我屏蔽哈"},
+  {from:"张桂源",text:"哦"},
+  {from:"陈思罕",text:"哦🤔"},
+  {from:"左奇函",text:"哦~🤫"},
+  {from:"张函瑞",text:"哦！！😆"},
+  {from:"张桂源",text:"晚上回来检查"},
+  {from:"左奇函",text:"美国太坏了"},
+  {from:"张桂源",text:"？"}
+];
+
+window.chapter6AvatarPrivate = [
+  {from:"张桂源",text:"我觉得我头像好丑啊"},
+  {from:"me",text:"不是挺帅的嘛"},
+  {from:"张桂源",text:"想换一个"},
+  {from:"张桂源",text:"唉要是有人帮我选个好看的就好了"},
+  {from:"me",text:"你让陈浚铭给你选"},
+  {from:"张桂源",text:"？"},
+  {from:"张桂源",text:"他那个fzl头像？？"},
+  {from:"张桂源",text:"你头像也不好看"},
+  {from:"me",text:"我惹你了吗"},
+  {from:"张桂源",text:"你去选个好看的"},
+  {from:"张桂源",text:"我们一起用"},
+  {from:"me",text:"不换，我头像用着好好的"},
+  {from:"张桂源",text:"哎呀"},
+  {from:"张桂源",text:"我想换"},
+  {from:"张桂源",text:"我想换可不可以嘛"},
+  {from:"张桂源",text:"哎呀你选一个嘛"},
+  {from:"张桂源",text:"丑的我也用"},
+  {from:"me",text:"发送图片",imageUpload:true},
+  {from:"张桂源",text:"你咋不换"}
+];
+window.chapter6AvatarPrivateAfterOwnAvatar = [
+  {from:"张桂源",text:"满意"},
+  {from:"me",text:"下次你找"},
+  {from:"张桂源",text:"我要专门创个收藏夹"},
+  {from:"张桂源",text:"以后一天换一对"},
+  {from:"me",text:"？"}
+];
+window.chapter6AvatarGroup = [
+  {from:"张桂源",text:"咳咳"},
+  {from:"张桂源",text:"哈哈"},
+  {from:"王橹杰",text:"恭喜发财"},
+  {from:"张函瑞",text:"百年好合"},
+  {from:"陈奕恒",text:"寿比南山"},
+  {from:"左奇函",text:"大哥我们没眼瞎"},
+  {from:"王橹杰",text:"左奇函你竟然还回他"},
+  {from:"左奇函",text:"我进来开免打扰的"},
+  {from:"张桂源",text:"？"},
+  {from:"陈奕恒",text:"换上去有一分钟吗？"},
+  {from:"张函瑞",text:"你提醒我了",quoteText:"左奇函：我进来开免打扰的"},
+  {from:"左奇函",text:"你咋知道",quoteText:"陈奕恒：换上去有一分钟吗？"},
+  {from:"陈浚铭",text:"张桂源你发啥疯",quoteText:"张桂源：咳咳"},
+  {from:"陈奕恒",text:"刚刚还是之前的头像"},
+  {from:"陈浚铭",text:"啥东西"},
+  {from:"陈浚铭",text:"我这啥没显示"},
+  {from:"张桂源",text:"别羡慕"},
+  {from:"张函瑞",text:"老铁们真的无语了"},
+  {from:"左奇函",text:"张桂源我求你了"},
+  {from:"陈浚铭",text:"哦我看到了"},
+  {from:"陈浚铭",text:"不就换情头了嘛"},
+  {from:"陈浚铭",text:"还装起来了"},
+  {from:"陈浚铭",text:"未必有我忧郁"},
+  {from:"左奇函",text:"虽然不赞同张桂源"},
+  {from:"左奇函",text:"你也半斤八两"},
+  {from:"杨博文",text:"我还以为谁结婚了"},
+  {from:"王橹杰",text:"杨博文别浪费你手机时间了"},
+  {from:"杨博文",text:"已经波澜不惊了"},
+  {from:"左奇函",text:"杨博文你浪费了十几秒手机使用权"},
+  {from:"杨博文",text:"可以当份子钱吗"},
+  {from:"张桂源",text:"？"},
+  {from:"左奇函",text:"那我浪费的最多"}
+];
