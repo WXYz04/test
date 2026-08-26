@@ -14292,7 +14292,7 @@ b“不想要这个吗？那你想要什么？”
     }
     function chapter6StoredMessage(msg,unread,group){
         if(msg.isTimeMarker)return{from:"system",text:String(msg.text||""),time:"",date:"",read:true,isTimeMarker:true,chapter6:true};
-        var isMe=msg.from==="me",image=msg.image||"",text=image?'<img src="'+image+'" style="width:170px;max-width:100%;height:auto;border-radius:10px;display:block;object-fit:cover;background:#ddd;">':String(msg.text||"");
+        var isMe=msg.from==="me",image=msg.image||"",imageBase=image.split("?")[0],imageSizes={"faxinxi.jpg":[1141,1448]},size=imageSizes[imageBase]||(image.indexOf("data:image/")===0?[1,1]:[4,3]),imageHeight=Math.round(170*size[1]/size[0]),text=image?'<img src="'+image+'" width="170" height="'+imageHeight+'" style="width:170px;max-width:100%;height:'+imageHeight+'px;border-radius:10px;display:block;object-fit:cover;background:#ddd;">':String(msg.text||"");
         if(msg.quoteText)text+='<div style="margin-top:5px;padding-top:5px;border-top:1px solid #e8e8e8;font-size:12px;color:#999;">'+msg.quoteText+'</div>';
         return{from:isMe?"me":(group?msg.from:"other"),text:text,time:msg.time||"",date:msg.date||"2024年4月14日",avatar:isMe?"":(group?chapter4GroupAvatarPath(msg.from):"zgyx.jpg"),read:unread?false:true,isImage:!!image,chapter6:true,groupSender:group?msg.from:""};
     }
@@ -14360,7 +14360,7 @@ b“不想要这个吗？那你想要什么？”
     function chapter6Append(contact,msg,unread){var d=chatData[contact],group=contact==="everybody 棒棒";d.messages.push(chapter6StoredMessage(msg,!!unread,group));if(currentChatContact===contact&&document.getElementById("chatDetailScreen").style.display!=="none")renderChatMessages();renderChatList();}
     function openChapter6Chat(contact){currentChatContact=contact;var d=chatData[contact];d.newMsg=false;(d.messages||[]).forEach(function(m){if(m.from!=="me")m.read=true;});document.getElementById("chatListScreen").style.display="none";document.getElementById("chatDetailScreen").style.display="flex";document.getElementById("chatContactName").innerText=getContactDisplayName(contact);var header=document.querySelector("#chatDetailScreen .chat-detail-header");if(header)header.classList.toggle("chapter5-group-header",contact==="everybody 棒棒");document.getElementById("chatBackBtn").onclick=function(){if(header)header.classList.remove("chapter5-group-header");document.getElementById("chatDetailScreen").style.display="none";document.getElementById("chatListScreen").style.display="block";renderChatList();};chapter4LockChatInput(d.chapter6Flow&&d.chapter6Flow.complete?"聊天已完成，请返回剧情页面继续":"请等待消息");renderChatMessages();renderChatList();setTimeout(function(){chapter6RunFlow(contact);},450);}
     function chapter6RunFlow(contact){var d=chatData[contact],s=d&&d.chapter6Flow;if(!s||s.complete)return;if(s.pendingChoice){chapter6ShowMessageChoice(contact,s.pendingChoice);return;}if(s.running)return;s.running=true;function next(){if(s.index>=s.messages.length){s.running=false;s.complete=true;chapter4LockChatInput("聊天已完成，请返回剧情页面继续");if(s.done)s.done();return;}var m=s.messages[s.index++],len=String(m.text||"").length;if(m.from==="me"){s.running=false;s.pendingChoice=m;chapter6ShowMessageChoice(contact,m);return;}chapter5ShowTyping(contact,m.from);setTimeout(function(){var t=document.getElementById("chapter5ChatTyping");if(t)t.remove();chapter6Append(contact,m);setTimeout(next,Math.max(850,600+len*38));},Math.max(1450,1050+len*75));}next();}
-    function chapter6ShowMessageChoice(contact,msg){chapter4LockChatInput("请点击选项发送");showOptionsModal([msg.image||msg.imageUpload?"发送图片":msg.text],"选择回复",function(){var s=chatData[contact].chapter6Flow;if(msg.imageUpload){var input=document.createElement("input");input.type="file";input.accept="image/*";input.id="chapter6ZgyAvatarUpload";input.style.display="none";document.body.appendChild(input);input.onchange=function(){var file=input.files&&input.files[0];if(!file){input.remove();chapter6ShowMessageChoice(contact,msg);return;}chapter6CompressAvatar(file,function(data){var sent=JSON.parse(JSON.stringify(msg));sent.image=data;sent.text="";delete sent.imageUpload;chapter6RememberZgyAvatar(data);s.pendingChoice=null;chapter6Append(contact,sent);input.remove();renderChatMessages();chapter4LockChatInput("请等待消息");setTimeout(function(){chapter6RunFlow(contact);},650);},function(){input.remove();alert("图片读取失败，请重新选择一张图片");chapter6ShowMessageChoice(contact,msg);});};input.click();return;}s.pendingChoice=null;chapter6Append(contact,msg);chapter4LockChatInput("请等待消息");setTimeout(function(){chapter6RunFlow(contact);},650);});}
+    function chapter6ShowMessageChoice(contact,msg){chapter4LockChatInput("请点击选项发送");showOptionsModal([msg.image||msg.imageUpload?"发送图片":msg.text],"选择回复",function(){var s=chatData[contact].chapter6Flow;if(msg.imageUpload){var input=document.createElement("input"),finished=false;input.type="file";input.accept="image/*";input.id="chapter6ZgyAvatarUpload";input.style.display="none";document.body.appendChild(input);function reopenChoice(){if(finished)return;finished=true;if(input.isConnected)input.remove();setTimeout(function(){chapter6ShowMessageChoice(contact,msg);},120);}input.oncancel=reopenChoice;input.onchange=function(){var file=input.files&&input.files[0];if(!file){reopenChoice();return;}finished=true;chapter6CompressAvatar(file,function(data){var sent=JSON.parse(JSON.stringify(msg));sent.image=data;sent.text="";delete sent.imageUpload;chapter6RememberZgyAvatar(data);s.pendingChoice=null;chapter6Append(contact,sent);input.remove();renderChatMessages();chapter4LockChatInput("请等待消息");setTimeout(function(){chapter6RunFlow(contact);},650);},function(){input.remove();alert("图片读取失败，请重新选择一张图片");chapter6ShowMessageChoice(contact,msg);});};input.click();return;}s.pendingChoice=null;chapter6Append(contact,msg);chapter4LockChatInput("请等待消息");setTimeout(function(){chapter6RunFlow(contact);},650);});}
     function chapter6NotifyReturn(text){showMessageNotification("第六章剧情","<div style='font-size:34px'>📖</div>","第六章剧情",text,function(){switchPage("story");});}
     var chapter6LongPressTimer=null,chapter6FastTimer=null,chapter6SuppressClick=false;
     function chapter6HandleTextBoxClick(){if(chapter6SuppressClick){chapter6SuppressClick=false;return;}advanceChapter6Story();}
@@ -23299,10 +23299,11 @@ function renderForum(showMore) {
 
     displayData.forEach(function(post) {
         var isChapter2 = chapter2Ids.indexOf(post.id) !== -1;
-        post._randomTime = post.time || getRandomTime(isChapter2);
+        var sourceTime = post.time || getRandomTime(isChapter2);
+        post._randomTime = post.id.indexOf('chapter6_post') === 0 ? String(sourceTime).replace(/^2023年/, '2025年') : sourceTime;
     });
 
-    // 第六章完成后按时间正序，其余章节维持原来的最新在前。
+    // 论坛统一按时间倒序，最新（2025 年）的帖子集中显示在最上方。
     displayData.sort(function(a, b) {
         function forumTimeValue(value) {
             var m = String(value || '').match(/(\d{4})(?:年|-)(\d{1,2})(?:月|-)(\d{1,2})(?:日)?(?:\s+|T)(\d{1,2}):(\d{2})/);
@@ -23310,7 +23311,7 @@ function renderForum(showMore) {
         }
         var timeA = forumTimeValue(a._randomTime);
         var timeB = forumTimeValue(b._randomTime);
-        return completedChapters[5] ? timeA - timeB : timeB - timeA;
+        return timeB - timeA;
     });
 
     var html = '';

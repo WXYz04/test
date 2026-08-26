@@ -69,7 +69,7 @@ window.chapter6AfterPrivateData = [
 ];
 
 window.chapter6GroupCommon = [
-  {from:"左奇函",image:"faxinxi.jpg"},
+  {from:"左奇函",image:"faxinxi.jpg?v=20260826"},
   {from:"左奇函",text:"给大家看一下"},
   {from:"左奇函",text:"张桂源每次休息都在干嘛"},
   {from:"陈思罕",text:"哦哟~"},
