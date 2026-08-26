@@ -899,7 +899,7 @@
         position: fixed;
         inset: 0;
         z-index: 1000000;
-        display: none !important;
+        display: flex;
         align-items: center;
         justify-content: center;
         padding: 24px;
@@ -1139,7 +1139,6 @@
         }
     }
     document.addEventListener('keydown', passwordKeyHandler);
-    openSimulator();
 })();
 </script>
 <div class="app-container">
@@ -1527,6 +1526,10 @@ onclick="showCompanySchedule()">
 <div onclick="openUpdateNotice()" style="padding:14px 0;border-bottom:1px solid #EFEFEF;cursor:pointer;">
     <div style="font-size:15px;color:#333;">更新公告</div>
     <div style="font-size:11px;color:#999;margin-top:2px;">查看最新更新内容</div>
+</div>
+<div onclick="openAboutSimulator()" style="padding:14px 0;border-bottom:1px solid #EFEFEF;cursor:pointer;">
+    <div style="font-size:15px;color:#333;">关于模拟器</div>
+    <div style="font-size:11px;color:#999;margin-top:2px;">章节预告、催更/投喂码</div>
 </div>
             
         </div>
@@ -5267,14 +5270,21 @@ function ensureEnding2ZhangWeibo() {
 
 function ensureChapter6ZhangWeibo() {
     if (typeof allArtistWeibo === "undefined" || !completedChapters[5]) return;
-    if (allArtistWeibo.some(function(w) { return w && w.id === "chapter6_zhang_weibo"; })) return;
+    var existingChapter6Weibo = allArtistWeibo.find(function(w) { return w && w.id === "chapter6_zhang_weibo"; });
+    if (existingChapter6Weibo) {
+        existingChapter6Weibo.time = "2025年4月18日 20:39";
+        existingChapter6Weibo.likes = "10.4万";
+        allArtistWeibo.sort(function(a,b){return parseWeiboTimeValue(b.time)-parseWeiboTimeValue(a.time);});
+        try { localStorage.setItem("allArtistWeibo", JSON.stringify(allArtistWeibo)); } catch(e) {}
+        return;
+    }
     allArtistWeibo.push({
         id: "chapter6_zhang_weibo",
         author: "TF家族-张桂源",
         avatar: '<img src="zgywb.jpg" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">',
-        time: "2023年4月18日 20:39",
+        time: "2025年4月18日 20:39",
         content: '今天有朋友来找我，哈哈哈太高端的菜不会做，于是呢就做了一碗辛拉面😂也是得到了好评哈哈哈哈😎感觉挺简单的，没有什么难度，下次可以挑战更难的<br><br><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"><img src="zm.jpg" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;"><img src="xlm.jpg" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;"></div>',
-        likes: "1.6万",
+        likes: "10.4万",
         commentCount: 1847,
         comments: [
             {level:"gold",user:"桂圆不圆",text:"什么朋友呀！！还能吃到你亲手煮的面！！",vip:"金粉"},
@@ -23300,6 +23310,7 @@ function renderForum(showMore) {
     displayData.forEach(function(post) {
         var isChapter2 = chapter2Ids.indexOf(post.id) !== -1;
         var sourceTime = post.time || getRandomTime(isChapter2);
+        // 第六章发生在 2025 年；旧数据里少数帖子误写成了 2023 年。
         post._randomTime = post.id.indexOf('chapter6_post') === 0 ? String(sourceTime).replace(/^2023年/, '2025年') : sourceTime;
     });
 
@@ -23318,8 +23329,9 @@ function renderForum(showMore) {
     for (var i = 0; i < displayData.length; i++) {
         var item = displayData[i];
         var randomTime = item._randomTime;
+        var forumReadKey = 'forum_read_' + item.id + (item.id.indexOf('chapter6_post') === 0 ? '_release2' : '');
         var isUnreadFollowup = (item.id.indexOf('werewolf_post') === 0 || item.id.indexOf('chapter4_post') === 0 || item.id.indexOf('chapter6_post') === 0) &&
-            localStorage.getItem('forum_read_' + item.id) !== 'true';
+            localStorage.getItem(forumReadKey) !== 'true';
         
         html += '<div style="padding:14px 0;border-bottom:1px solid #EFEFEF;cursor:pointer;" onclick="showForumDetail(\'' + item.id + '\')">';
         html += '<div style="display:flex;align-items:flex-start;gap:7px;">';
@@ -23340,7 +23352,7 @@ function renderForum(showMore) {
 // ================= 显示论坛帖子详情 =================
 function showForumDetail(postId) {
     if (postId && (postId.indexOf('werewolf_post') === 0 || postId.indexOf('chapter4_post') === 0 || postId.indexOf('chapter6_post') === 0)) {
-        localStorage.setItem('forum_read_' + postId, 'true');
+        localStorage.setItem('forum_read_' + postId + (postId.indexOf('chapter6_post') === 0 ? '_release2' : ''), 'true');
         var newBadge = document.getElementById('forumNewBadge_' + postId);
         if (newBadge) newBadge.remove();
     }
