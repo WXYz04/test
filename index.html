@@ -9464,6 +9464,9 @@ document.addEventListener('DOMContentLoaded', function() {
 function renderMyPage() {
     // ===== 获取当前头像 =====
 var avatarData = localStorage.getItem("player_avatar");
+var zgyProfileAvatar = typeof chapter6GetZgyAvatar === "function"
+    ? chapter6GetZgyAvatar()
+    : (localStorage.getItem("chapter6_zgy_avatar") || "zgyx.jpg");
 var avatarHtml = "";
 if (avatarData && avatarData.startsWith("data:image")) {
     avatarHtml = '<img src="' + avatarData + '" style="width:80px; height:80px; border-radius:50%; object-fit:cover; cursor:pointer;" onclick="event.stopPropagation();changeAvatar()">';
@@ -9494,7 +9497,7 @@ document.getElementById("profileCard").innerHTML = `
         <div style="position:absolute; bottom:-35px; left:50%; transform:translateX(-50%); display:flex; align-items:center; justify-content:center;">
             <!-- 张桂源头像 -->
             <div style="width:80px; height:80px; border-radius:50%; overflow:hidden; z-index:2; margin-right:-8px;">
-                <img src="zgyx.jpg" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none';this.parentElement.innerHTML='🏀'">
+                <img src="${zgyProfileAvatar}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='zgyx.jpg';this.onerror=null;">
             </div>
             <!-- 玩家头像 -->
             <div id="avatarContainer" style="width:80px; height:80px; border-radius:50%; overflow:hidden; z-index:1;">
@@ -14334,7 +14337,7 @@ b“不想要这个吗？那你想要什么？”
         reader.onerror=function(){if(fail)fail();};
         reader.onload=function(){var img=new Image();img.onerror=function(){if(fail)fail();};img.onload=function(){var max=640,w=img.naturalWidth||img.width,h=img.naturalHeight||img.height,scale=Math.min(1,max/Math.max(w,h));var canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(w*scale));canvas.height=Math.max(1,Math.round(h*scale));var ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,canvas.width,canvas.height);var data;try{data=canvas.toDataURL("image/jpeg",.82);}catch(e){data=reader.result;}done(data);};img.src=reader.result;};reader.readAsDataURL(file);
     }
-    function chapter6RememberZgyAvatar(data){window.chapter6ZgyAvatarData=data;try{localStorage.setItem("chapter6_zgy_avatar",data);}catch(e){console.warn("头像较大，仅在本次游玩中保存",e);}}
+    function chapter6RememberZgyAvatar(data){window.chapter6ZgyAvatarData=data;try{localStorage.setItem("chapter6_zgy_avatar",data);}catch(e){console.warn("头像较大，仅在本次游玩中保存",e);}if(typeof renderMyPage==="function")renderMyPage();}
     function chapter6StartAvatarPrivate(){
         var msgs=chapter6GroupMessages(window.chapter6AvatarPrivate||[],20*60+10);
         chapter6PrepareFlow("张桂源",msgs,chapter6AwaitOwnAvatar,true);
