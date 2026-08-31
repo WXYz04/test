@@ -4199,9 +4199,9 @@ function buildSaveManagerUI(modal, saves) {
     let currentChapter = 1;
     let chapterCompleted = false;
      // 章节数据
-    const totalChapters = 6;
-    let unlockedChapters = [true, false, false, false, false, false];
-    let completedChapters = [false, false, false, false, false, false];
+    const totalChapters = 7;
+    let unlockedChapters = [true, false, false, false, false, false, true];
+    let completedChapters = [false, false, false, false, false, false, false];
     let viewingChapter = 0;
     let meetCount = 0;
     let maxMeet = 3;
@@ -4767,7 +4767,8 @@ function renderChatList() {
                 openGroupChat();
             } else if (contact === "everybody 棒棒") {
                 var everybodyData = chatData[contact];
-                if (everybodyData && everybodyData.chapter6Flow && !everybodyData.chapter6Flow.complete) openChapter6Chat(contact);
+                if (typeof chapter7SessionActive !== "undefined" && chapter7SessionActive && everybodyData && everybodyData.chapter7ChatActive) openChapter7Chat(contact);
+                else if (everybodyData && everybodyData.chapter6Flow && !everybodyData.chapter6Flow.complete) openChapter6Chat(contact);
                 else if (chapter5SessionActive && everybodyData && everybodyData.chapter5Flow) openChapter5Chat(contact);
                 else openChapter4GroupChat();
             } else {
@@ -6355,6 +6356,10 @@ function openChat(contact) {
     var chapter5Header = document.querySelector("#chatDetailScreen .chat-detail-header");
     if (chapter5Header) chapter5Header.classList.remove("chapter5-group-header");
     let data = chatData[contact];
+    if (typeof chapter7SessionActive !== "undefined" && chapter7SessionActive && data && data.chapter7ChatActive) {
+        openChapter7Chat(contact);
+        return;
+    }
     if (chapter6SessionActive && data && data.chapter6InitialActive) {
         openChapter6InitialChat();
         return;
@@ -10512,7 +10517,8 @@ function initMomentsData() {
         "恋人体验卡",
         "升温",
         "烟花落下之前",
-        "我猜你也想靠近吧"
+        "我猜你也想靠近吧",
+        ""
     ];
 
     var html = "";
@@ -10552,6 +10558,11 @@ for (var i = 0; i < totalChapters; i++) {
             isLocked = false;
             unlockedChapters[5] = true;
         }
+        // 终章无需前置条件，默认开放
+        if (i === 6) {
+            isLocked = false;
+            unlockedChapters[6] = true;
+        }
     }
 
     if (isLocked) {
@@ -10574,8 +10585,8 @@ for (var i = 0; i < totalChapters; i++) {
         html += `
             <div class="chapter-card ${isLocked ? 'locked' : ''}" data-index="${i}" ${isLocked ? 'style="cursor:not-allowed;"' : ''}>
                 <div>
-                    <div class="chapter-title-text">第${i+1}章 · ${chapterNames[i]}</div>
-                    <div class="chapter-sub">${i === 0 ? '2022年 重庆' : i === 1 ? '2023年 重庆' : i === 3 ? '2023年 重庆' : i === 4 || i === 5 ? '2024年 重庆' : '（预留）'}</div>
+                    <div class="chapter-title-text">${i === 6 ? '终章（7~10）章' : `第${i+1}章 · ${chapterNames[i]}`}</div>
+                    <div class="chapter-sub">${i === 6 ? '' : i === 0 ? '2022年 重庆' : i === 1 ? '2023年 重庆' : i === 3 ? '2023年 重庆' : i === 4 || i === 5 ? '2024年 重庆' : '（预留）'}</div>
                     ${extraHint}
                 </div>
                 <div class="chapter-status ${statusClass}">${statusText}</div>
@@ -10611,6 +10622,10 @@ for (var i = 0; i < totalChapters; i++) {
     }
     if (index === 5) {
         openChapter6Story();
+        return;
+    }
+    if (index === 6) {
+        openChapter7Story();
         return;
     }
 
@@ -14386,6 +14401,10 @@ b“不想要这个吗？那你想要什么？”
     // ================= 页面切换 =================
 function switchPage(pageId) {
     console.log('switchPage 被调用:', pageId);
+    if (typeof chapter7SessionActive !== "undefined" && chapter7SessionActive) {
+        if (pageId === "story") restoreChapter7Story();
+        else suspendChapter7Story();
+    }
     if (chapter6SessionActive) {
         if (pageId === "story") restoreChapter6Story();
         else suspendChapter6Story();
@@ -14471,12 +14490,13 @@ function switchPage(pageId) {
         var chapterSelect = document.getElementById('chapterSelectPage');
         var storyDetail = document.getElementById('storyDetailPage');
         var storyMap = document.getElementById('storyMapPage');
-        var activeStorySession = chapter4SessionActive || chapter5SessionActive || chapter6SessionActive;
+        var activeStorySession = chapter4SessionActive || chapter5SessionActive || chapter6SessionActive || (typeof chapter7SessionActive !== "undefined" && chapter7SessionActive);
         if (chapterSelect) chapterSelect.style.display = activeStorySession ? 'none' : 'block';
         if (storyDetail) storyDetail.style.display = activeStorySession ? 'block' : 'none';
         if (storyMap) storyMap.style.display = 'none';
         if (typeof renderChapterList === 'function') renderChapterList();
         if (chapter4SessionActive) restoreChapter4Story();
+        if (typeof chapter7SessionActive !== "undefined" && chapter7SessionActive) restoreChapter7Story();
         if (chapter6SessionActive) restoreChapter6Story();
         else if (chapter5SessionActive) restoreChapter5Story();
     }
@@ -31328,5 +31348,7 @@ function exitWerewolf() {
 <script src="chapter6-data.js?v=20260825a"></script>
 <script src="chapter6-continuation.js?v=20260825a"></script>
 <script src="chapter6-forum.js?v=20260825a"></script>
+<script src="chapter7-data.js?v=20260831a"></script>
+<script src="chapter7-runtime.js?v=20260831a"></script>
 </body>
 </html>
