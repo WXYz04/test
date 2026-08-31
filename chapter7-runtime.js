@@ -72,7 +72,8 @@
         window.chapter7CurrentPage = page;
         var overlay = document.getElementById("chapter7StoryOverlay");
         if (!overlay) return;
-        var backgroundSource = page.bg || "wdws.jpg";
+        var backgroundName = page.bg || "wdws.jpg";
+        var backgroundSource = (window.chapter7EmbeddedBackgrounds && window.chapter7EmbeddedBackgrounds[backgroundName]) || backgroundName;
         if (!/^data:/.test(backgroundSource) && backgroundSource.indexOf("?") === -1) backgroundSource += "?v=20260831b";
         overlay.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.2)),url("' + backgroundSource + '")';
         var plate = document.getElementById("chapter7NamePlate");
