@@ -1045,17 +1045,9 @@
     var passwordInput = document.getElementById('passwordGateInput');
     var passwordStatus = document.getElementById('passwordGateStatus');
     var allowedPasswordHashes = [
-        '413f0d0e0a45139a474f9691719b28a645688045b52b3d887725a1946ea8f192',
-        'b55e82e139a25e19911b131e6024500ea6c76540757357a73e4c3d8d9f191cc0',
-        'cd5ee89a99c56c3ebc7003be4106874531ab698cd8205b0395bd1de7f61380f4',
-        '04413451e45cad33cee12a71b321c89af7324ad224b58fdc0a32c762b27ca6b0',
-        '409e160bcdfe3ee40e7127f139d1f666692324eb361a6d742bd928f5dc7f5b67',
-        'fd3f529295c635bc4ca838fbc55e09a7bcfdbc22e412058c33ba2e808604d99c',
-        '5eb7fc28a44a817c90eee8e924e9bc465024da31df921fb73f110624fc13012c',
-        'de9222b782c87e1f7861baac338238d0af12471ad91c47ea6901953141d69601',
-        '1867bd638fb36a0539b5e104dfc2e51954473d14b5dcc75147fb7034ed096c98'
+        '8559ae45d2529d8a9c8012902f2a2add9b178cafec87ef9cd8828c61e7b39e00'
     ];
-    var fallbackPasswordHashes = [1456916646,3087207917,3211496815,4211997242,2743797637,3675681440,1999266662,993298175,4128109147];
+    var fallbackPasswordHashes = [1267267057];
 
     function setPasswordValue(value) {
         passwordInput.value = value.replace(/\D/g, '').slice(0, 6);
