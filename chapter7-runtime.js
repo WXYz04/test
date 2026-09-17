@@ -29,7 +29,7 @@
         style.textContent =
             '#chapter7StoryOverlay{position:fixed;top:0;bottom:70px;left:50%;transform:translateX(-50%);width:100%;max-width:500px;z-index:94;background:#111 center/cover no-repeat;overflow:hidden}' +
             '#chapter7BackBtn{position:absolute;top:max(18px,env(safe-area-inset-top));left:18px;width:42px;height:42px;border:0;border-radius:50%;background:rgba(0,0,0,.58);color:#fff;font-size:25px;z-index:8}' +
-            '#chapter7SkipBtn{position:absolute;top:max(22px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:7px 15px;border:1px solid rgba(255,255,255,.45);border-radius:4px;background:rgba(0,0,0,.68);color:#fff;font-size:12px;z-index:9}' +
+            '#chapter7SkipBtn{position:absolute;bottom:230px;left:50%;transform:translateX(-50%);padding:7px 15px;border:1px solid rgba(255,255,255,.45);border-radius:4px;background:rgba(0,0,0,.68);color:#fff;font-size:12px;z-index:9}' +
             '#chapter7PerspectiveBadge{display:none;position:absolute;top:max(66px,calc(env(safe-area-inset-top) + 48px));left:50%;transform:translateX(-50%);padding:6px 14px;border-radius:16px;background:rgba(65,20,20,.82);color:#f2dada;font-family:STKaiti,KaiTi,serif;font-size:13px;letter-spacing:2px;z-index:8}' +
             '#chapter7TextBox{position:absolute;left:14px;right:14px;bottom:14px;min-height:150px;padding:22px 22px 30px;border:1px solid rgba(255,255,255,.24);border-radius:10px;background:rgba(5,5,8,.86);box-shadow:0 8px 28px rgba(0,0,0,.42);color:#fff;cursor:pointer;user-select:none}' +
             '#chapter7NamePlate{display:none;position:absolute;top:-34px;min-width:92px;height:35px;padding:0 20px;background:rgba(5,5,8,.94);border:1px solid rgba(255,255,255,.24);border-bottom:0;font-size:14px;font-weight:600;align-items:center;justify-content:center}' +
@@ -81,9 +81,15 @@
         var overlay = document.getElementById("chapter7StoryOverlay");
         if (!overlay) return;
         var backgroundName = page.bg || "wdws.jpg";
-        var backgroundSource = (window.chapter7EmbeddedBackgrounds && window.chapter7EmbeddedBackgrounds[backgroundName]) || backgroundName;
-        if (!/^data:/.test(backgroundSource) && backgroundSource.indexOf("?") === -1) backgroundSource += "?v=20260831b";
-        overlay.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.2)),url("' + backgroundSource + '")';
+        if (backgroundName === "__white__") {
+            overlay.style.backgroundImage = "none";
+            overlay.style.backgroundColor = "#fff";
+        } else {
+            var backgroundSource = (window.chapter7EmbeddedBackgrounds && window.chapter7EmbeddedBackgrounds[backgroundName]) || backgroundName;
+            if (!/^data:/.test(backgroundSource) && backgroundSource.indexOf("?") === -1) backgroundSource += "?v=20260831b";
+            overlay.style.backgroundColor = "#111";
+            overlay.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.2)),url("' + backgroundSource + '")';
+        }
         var plate = document.getElementById("chapter7NamePlate");
         var text = document.getElementById("chapter7Text");
         var hint = document.getElementById("chapter7Continue");
