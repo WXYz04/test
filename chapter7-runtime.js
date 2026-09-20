@@ -10,6 +10,9 @@
     window.chapter7TypingPosition = 0;
     window.chapter7PendingChat = null;
     window.chapter7PendingRequiredAction = null;
+    window.chapter7LongPressTimer = null;
+    window.chapter7FastTimer = null;
+    window.chapter7SuppressClick = false;
 
     function replaceChapter7Tokens(text) {
         var currentPlayer = typeof player !== "undefined" ? player : {};
@@ -37,6 +40,7 @@
             '#chapter7NamePlate.left{display:flex;left:-1px;border-radius:8px 8px 0 0}#chapter7NamePlate.right{display:flex;right:-1px;border-radius:8px 8px 0 0}' +
             '#chapter7Text{font-size:15px;line-height:1.85;white-space:pre-wrap;text-shadow:0 1px 2px #000}' +
             '#chapter7Continue{position:absolute;right:18px;bottom:9px;color:rgba(255,255,255,.62);font-size:11px}' +
+            '#chapter7SpeedBadge{position:absolute;top:8px;right:12px;padding:3px 9px;border-radius:12px;background:rgba(232,93,117,.88);color:#fff;font-size:11px;z-index:10;pointer-events:none}' +
             '#chapter7Opening{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#050505;color:#eee;opacity:0;transition:opacity .7s ease;pointer-events:none}' +
             '#chapter7Opening .chapter-no{font-size:15px;letter-spacing:7px;color:#aaa;margin-bottom:18px}#chapter7Opening .chapter-name{font-family:STKaiti,KaiTi,serif;font-size:34px;letter-spacing:13px;text-indent:13px}' +
             '.chapter7-story-options{position:absolute;left:18px;right:18px;top:50%;transform:translateY(-50%);z-index:22;display:flex;flex-direction:column;gap:12px}.chapter7-story-option{width:100%;padding:14px 16px;background:rgba(5,5,8,.93);border:1px solid rgba(255,255,255,.48);border-radius:3px;color:#fff;text-align:left}.chapter7-story-option strong{display:block;font-size:15px;margin-bottom:5px}.chapter7-story-option span{display:block;font-size:11px;line-height:1.55;color:#bbb}.chapter7-prompt-title{text-align:center;color:#fff;font-size:18px;line-height:1.6;margin-bottom:8px;text-shadow:0 2px 4px #000}.chapter7-ending{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.9);color:#eee;opacity:0;transition:opacity .8s}.chapter7-ending small{font-size:14px;letter-spacing:5px;color:#aaa;margin-bottom:18px}.chapter7-ending strong{font-family:STKaiti,KaiTi,serif;font-size:30px;letter-spacing:4px;text-align:center;padding:0 28px}' +
@@ -66,6 +70,7 @@
             window.closeChapter7Story();
         };
         document.getElementById("chapter7TextBox").onclick = chapter7HandleTextBoxClick;
+        installChapter7LongPress();
         document.getElementById("chapter7SkipBtn").onclick = function (event) {
             event.stopPropagation();
             chapter7SkipToNextChoice();
@@ -119,6 +124,10 @@
     }
 
     function chapter7HandleTextBoxClick() {
+        if (window.chapter7SuppressClick) {
+            window.chapter7SuppressClick = false;
+            return;
+        }
         if (window.chapter7TypingTimer) {
             clearInterval(window.chapter7TypingTimer);
             window.chapter7TypingTimer = null;
@@ -128,6 +137,66 @@
             return;
         }
         chapter7AdvanceSequence();
+    }
+
+    function chapter7StopFastForward() {
+        clearTimeout(window.chapter7LongPressTimer);
+        clearInterval(window.chapter7FastTimer);
+        window.chapter7LongPressTimer = null;
+        window.chapter7FastTimer = null;
+        var badge = document.getElementById("chapter7SpeedBadge");
+        if (badge) badge.remove();
+        setTimeout(function () { window.chapter7SuppressClick = false; }, 160);
+    }
+
+    function chapter7FastStep() {
+        if (!document.getElementById("chapter7StoryOverlay") || document.querySelector(".chapter7-story-options,.chapter7-ending") || window.chapter7PendingChat || window.chapter7PendingRequiredAction) {
+            chapter7StopFastForward();
+            return;
+        }
+        if (window.chapter7TypingTimer) {
+            clearInterval(window.chapter7TypingTimer);
+            window.chapter7TypingTimer = null;
+            window.chapter7TypingPosition = window.chapter7TypingText.length;
+            document.getElementById("chapter7Text").textContent = window.chapter7TypingText;
+            document.getElementById("chapter7Continue").textContent = "点击继续";
+            return;
+        }
+        var sequence = (window.chapter7Routes && window.chapter7Routes[window.chapter7RouteId]) || [];
+        var next = sequence[window.chapter7SequenceIndex];
+        if (!next || next.type !== "page") {
+            chapter7StopFastForward();
+            return;
+        }
+        chapter7AdvanceSequence();
+    }
+
+    function installChapter7LongPress() {
+        var box = document.getElementById("chapter7TextBox");
+        if (!box || box.dataset.longPressInstalled === "1") return;
+        box.dataset.longPressInstalled = "1";
+        function start(event) {
+            if (event.target && event.target.id === "chapter7SkipBtn") return;
+            if (event.button !== undefined && event.button !== 0) return;
+            window.chapter7SuppressClick = false;
+            clearTimeout(window.chapter7LongPressTimer);
+            window.chapter7LongPressTimer = setTimeout(function () {
+                window.chapter7SuppressClick = true;
+                if (!document.getElementById("chapter7SpeedBadge")) {
+                    var badge = document.createElement("div");
+                    badge.id = "chapter7SpeedBadge";
+                    badge.textContent = "剧情加速中 »»";
+                    box.appendChild(badge);
+                }
+                chapter7FastStep();
+                window.chapter7FastTimer = setInterval(chapter7FastStep, 105);
+            }, 700);
+        }
+        box.addEventListener("pointerdown", start);
+        box.addEventListener("pointerup", chapter7StopFastForward);
+        box.addEventListener("pointercancel", chapter7StopFastForward);
+        box.addEventListener("pointerleave", chapter7StopFastForward);
+        box.addEventListener("contextmenu", function (event) { event.preventDefault(); });
     }
 
     function chapter7SetRoute(routeId, perspective) {
@@ -412,6 +481,7 @@
         document.getElementById("storyDetailPage").style.display = "block";
         overlay.style.display = "block";
         document.getElementById("chapter7TextBox").onclick = chapter7HandleTextBoxClick;
+        installChapter7LongPress();
     };
 
     window.closeChapter7Story = function () {
