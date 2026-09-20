@@ -220,9 +220,9 @@
         } else if (event.type === "friendRequests") {
             chapter7ShowFriendRequests(event.items || [], 0);
         } else if (event.type === "privateChat") {
-            chapter7StartChat("张桂源", event.messages || [], []);
+            chapter7StartChat("张桂源", event.messages || [], [], event.bg);
         } else if (event.type === "groupChat") {
-            chapter7StartChat("everybody 棒棒", event.messages || [], event.incoming || []);
+            chapter7StartChat("everybody 棒棒", event.messages || [], event.incoming || [], event.bg);
         } else if (event.type === "choice") {
             chapter7ShowChoice(event);
         } else if (event.type === "perspectivePrompt") {
@@ -288,22 +288,22 @@
         if (box) box.scrollTop = box.scrollHeight;
     }
 
-    function chapter7StartChat(contact, messages, incoming) {
+    function chapter7StartChat(contact, messages, incoming, background) {
         if (!chatData[contact]) chatData[contact] = { messages: [], newMsg: false };
         var data = chatData[contact];
         data.chapter7ChatActive = true;
         data.newMsg = true;
         (incoming || []).forEach(function (message, index) {
             if (message.withdrawn) {
-                chapter7PushMessage(contact, { from: "system", text: message.text, time: chapter7MessageTime(index), date: "2025年5月31日", read: false, chapter7: true });
+                chapter7PushMessage(contact, { from: "system", text: message.text, time: chapter7MessageTime(index), date: "2025年5月31日", read: false, chapter7: true, isSystem: true });
             } else {
                 chapter7PushMessage(contact, { from: message.from, groupSender: message.from, text: replaceChapter7Tokens(message.text), avatar: chapter4GroupAvatarPath(message.from), time: chapter7MessageTime(index), date: "2025年5月31日", read: false, chapter7: true });
             }
         });
         window.chapter7PendingChat = { contact: contact, messages: messages.map(replaceChapter7Tokens), index: 0 };
-        switchPage("chat");
-        window.openChapter7Chat(contact);
-        setTimeout(chapter7ShowNextOutgoingOption, 500);
+        renderChatList();
+        chapter7ShowPage({ type: "page", text: "请点击聊天列表", speaker: "提示", side: "left", bg: background || (window.chapter7CurrentPage && window.chapter7CurrentPage.bg) || "mk.jpg" });
+        document.getElementById("chapter7Continue").textContent = "请点击下方微信进入聊天列表";
     }
 
     window.openChapter7Chat = function (contact) {
