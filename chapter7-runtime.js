@@ -9,6 +9,7 @@
     window.chapter7TypingText = "";
     window.chapter7TypingPosition = 0;
     window.chapter7PendingChat = null;
+    window.chapter7PendingRequiredAction = null;
 
     function replaceChapter7Tokens(text) {
         var currentPlayer = typeof player !== "undefined" ? player : {};
@@ -29,7 +30,7 @@
         style.textContent =
             '#chapter7StoryOverlay{position:fixed;top:0;bottom:70px;left:50%;transform:translateX(-50%);width:100%;max-width:500px;z-index:94;background:#111 center/cover no-repeat;overflow:hidden}' +
             '#chapter7BackBtn{position:absolute;top:max(18px,env(safe-area-inset-top));left:18px;width:42px;height:42px;border:0;border-radius:50%;background:rgba(0,0,0,.58);color:#fff;font-size:25px;z-index:8}' +
-            '#chapter7SkipBtn{position:absolute;bottom:230px;left:50%;transform:translateX(-50%);padding:7px 15px;border:1px solid rgba(255,255,255,.45);border-radius:4px;background:rgba(0,0,0,.68);color:#fff;font-size:12px;z-index:9}' +
+            '#chapter7SkipBtn{position:absolute;top:0;left:50%;transform:translate(-50%,-50%);padding:7px 15px;border:1px solid rgba(255,255,255,.45);border-radius:4px;background:rgba(0,0,0,.68);color:#fff;font-size:12px;z-index:9}' +
             '#chapter7PerspectiveBadge{display:none;position:absolute;top:max(66px,calc(env(safe-area-inset-top) + 48px));left:50%;transform:translateX(-50%);padding:6px 14px;border-radius:16px;background:rgba(65,20,20,.82);color:#f2dada;font-family:STKaiti,KaiTi,serif;font-size:13px;letter-spacing:2px;z-index:8}' +
             '#chapter7TextBox{position:absolute;left:14px;right:14px;bottom:14px;min-height:150px;padding:22px 22px 30px;border:1px solid rgba(255,255,255,.24);border-radius:10px;background:rgba(5,5,8,.86);box-shadow:0 8px 28px rgba(0,0,0,.42);color:#fff;cursor:pointer;user-select:none}' +
             '#chapter7NamePlate{display:none;position:absolute;top:-34px;min-width:92px;height:35px;padding:0 20px;background:rgba(5,5,8,.94);border:1px solid rgba(255,255,255,.24);border-bottom:0;font-size:14px;font-weight:600;align-items:center;justify-content:center}' +
@@ -38,7 +39,8 @@
             '#chapter7Continue{position:absolute;right:18px;bottom:9px;color:rgba(255,255,255,.62);font-size:11px}' +
             '#chapter7Opening{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#050505;color:#eee;opacity:0;transition:opacity .7s ease;pointer-events:none}' +
             '#chapter7Opening .chapter-no{font-size:15px;letter-spacing:7px;color:#aaa;margin-bottom:18px}#chapter7Opening .chapter-name{font-family:STKaiti,KaiTi,serif;font-size:34px;letter-spacing:13px;text-indent:13px}' +
-            '.chapter7-story-options{position:absolute;left:18px;right:18px;top:50%;transform:translateY(-50%);z-index:22;display:flex;flex-direction:column;gap:12px}.chapter7-story-option{width:100%;padding:14px 16px;background:rgba(5,5,8,.93);border:1px solid rgba(255,255,255,.48);border-radius:3px;color:#fff;text-align:left}.chapter7-story-option strong{display:block;font-size:15px;margin-bottom:5px}.chapter7-story-option span{display:block;font-size:11px;line-height:1.55;color:#bbb}.chapter7-prompt-title{text-align:center;color:#fff;font-size:18px;line-height:1.6;margin-bottom:8px;text-shadow:0 2px 4px #000}.chapter7-ending{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.9);color:#eee;opacity:0;transition:opacity .8s}.chapter7-ending small{font-size:14px;letter-spacing:5px;color:#aaa;margin-bottom:18px}.chapter7-ending strong{font-family:STKaiti,KaiTi,serif;font-size:30px;letter-spacing:4px;text-align:center;padding:0 28px}';
+            '.chapter7-story-options{position:absolute;left:18px;right:18px;top:50%;transform:translateY(-50%);z-index:22;display:flex;flex-direction:column;gap:12px}.chapter7-story-option{width:100%;padding:14px 16px;background:rgba(5,5,8,.93);border:1px solid rgba(255,255,255,.48);border-radius:3px;color:#fff;text-align:left}.chapter7-story-option strong{display:block;font-size:15px;margin-bottom:5px}.chapter7-story-option span{display:block;font-size:11px;line-height:1.55;color:#bbb}.chapter7-prompt-title{text-align:center;color:#fff;font-size:18px;line-height:1.6;margin-bottom:8px;text-shadow:0 2px 4px #000}.chapter7-ending{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.9);color:#eee;opacity:0;transition:opacity .8s}.chapter7-ending small{font-size:14px;letter-spacing:5px;color:#aaa;margin-bottom:18px}.chapter7-ending strong{font-family:STKaiti,KaiTi,serif;font-size:30px;letter-spacing:4px;text-align:center;padding:0 28px}' +
+            '#chapter7ActionModal{position:fixed;inset:0;z-index:10020;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:24px}#chapter7ActionModal .panel{width:min(330px,88vw);overflow:hidden;border-radius:12px;background:#fff;color:#222;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.3)}#chapter7ActionModal h3{margin:22px 18px 10px;font-size:18px}#chapter7ActionModal p{margin:0 22px 22px;color:#666;font-size:14px;line-height:1.55}#chapter7ActionModal .buttons{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #eee}#chapter7ActionModal button{height:48px;border:0;background:#fff;font-size:15px}#chapter7ActionModal button+button{border-left:1px solid #eee;color:#e34e64;font-weight:600}';
         document.head.appendChild(style);
     }
 
@@ -57,7 +59,7 @@
         if (old) old.remove();
         var overlay = document.createElement("div");
         overlay.id = "chapter7StoryOverlay";
-        overlay.innerHTML = '<button id="chapter7BackBtn">←</button><button id="chapter7SkipBtn">Skip</button><div id="chapter7PerspectiveBadge">张桂源视角</div><div id="chapter7TextBox"><div id="chapter7NamePlate"></div><div id="chapter7Text"></div><div id="chapter7Continue">点击继续</div></div><div id="chapter7Opening"><div class="chapter-no">第七章</div><div class="chapter-name">梦哑</div></div>';
+        overlay.innerHTML = '<button id="chapter7BackBtn">←</button><div id="chapter7PerspectiveBadge">张桂源视角</div><div id="chapter7TextBox"><button id="chapter7SkipBtn">Skip</button><div id="chapter7NamePlate"></div><div id="chapter7Text"></div><div id="chapter7Continue">点击继续</div></div><div id="chapter7Opening"><div class="chapter-no">第七章</div><div class="chapter-name">梦哑</div></div>';
         document.getElementById("gameScreen").appendChild(overlay);
         document.getElementById("chapter7BackBtn").onclick = function (event) {
             event.stopPropagation();
@@ -162,7 +164,9 @@
         } else if (event.type === "ending") {
             chapter7ShowEnding(event);
         } else if (event.type === "deleteContactPrompt") {
-            chapter7ShowDeletePrompt(event);
+            chapter7StartRequiredAction(event.contact || "张桂源", "delete");
+        } else if (event.type === "groupExitPrompt") {
+            chapter7StartRequiredAction(event.contact || "everybody 棒棒", "exit");
         }
     }
 
@@ -333,9 +337,49 @@
         overlay.appendChild(wrap);
     }
 
-    function chapter7ShowDeletePrompt(event) {
-        chapter7ShowPage({ type: "page", text: "请进入张桂源聊天页面，点击右上角删除联系人。完成后返回剧情继续。", speaker: "提示", side: "left", bg: event.bg || "mk.jpg" });
-        document.getElementById("chapter7Continue").textContent = "点击继续";
+    function chapter7ShowActionModal(action) {
+        var old = document.getElementById("chapter7ActionModal");
+        if (old) old.remove();
+        var isDelete = action.actionType === "delete";
+        var modal = document.createElement("div");
+        modal.id = "chapter7ActionModal";
+        modal.innerHTML = '<div class="panel"><h3>' + (isDelete ? '删除好友' : '退出群聊') + '</h3><p>' + (isDelete ? '删除好友后历史聊天也会清空。确定删除张桂源吗？' : '退出后群聊记录将会清空。确定退出群聊吗？') + '</p><div class="buttons"><button type="button" data-role="cancel">取消</button><button type="button" data-role="confirm">确定</button></div></div>';
+        document.body.appendChild(modal);
+        modal.querySelector('[data-role="cancel"]').onclick = function () { modal.remove(); };
+        modal.querySelector('[data-role="confirm"]').onclick = function () {
+            modal.remove();
+            action.confirmed = true;
+            /* 测试版只验证流程，不清空联系人、群聊或历史消息。 */
+            var more = document.getElementById("chatMoreBtn");
+            if (more) more.onclick = null;
+            window.chapter7PendingRequiredAction = null;
+            switchPage("story");
+            window.restoreChapter7Story();
+            setTimeout(chapter7AdvanceSequence, 180);
+        };
+    }
+
+    function chapter7StartRequiredAction(contact, actionType) {
+        if (!chatData[contact]) chatData[contact] = { messages: [], newMsg: false };
+        var action = { contact: contact, actionType: actionType, confirmed: false };
+        window.chapter7PendingRequiredAction = action;
+        switchPage("chat");
+        window.openChapter7Chat(contact);
+        var more = document.getElementById("chatMoreBtn");
+        if (more) {
+            more.style.display = "block";
+            more.onclick = function (event) {
+                event.stopPropagation();
+                chapter7ShowActionModal(action);
+            };
+        }
+        var back = document.getElementById("chatBackBtn");
+        if (back) back.onclick = function () {
+            var message = actionType === "delete" ? "请先删除张桂源继续剧情！" : "请先退出群聊继续剧情！";
+            showMessageNotification("第七章剧情", '<span style="font-size:28px">📖</span>', "提示", message, function () {});
+        };
+        var input = document.getElementById("chatInputBox");
+        if (input) input.innerText = actionType === "delete" ? "请点击右上角删除好友" : "请点击右上角退出群聊";
     }
 
     function chapter7ShowEnding(event) {
