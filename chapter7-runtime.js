@@ -10,6 +10,8 @@
     window.chapter7TypingPosition = 0;
     window.chapter7PendingChat = null;
     window.chapter7PendingRequiredAction = null;
+    window.chapter7PendingExposureWeibo = null;
+    window.chapter7ExposurePost = null;
     window.chapter7LongPressTimer = null;
     window.chapter7FastTimer = null;
     window.chapter7SuppressClick = false;
@@ -136,6 +138,10 @@
             document.getElementById("chapter7Continue").textContent = "点击继续";
             return;
         }
+        if (window.chapter7PendingExposureWeibo) {
+            showMessageNotification("第七章剧情", '<span style="font-size:28px">📣</span>', "提示", "请先按照提示完成微博操作", function () {});
+            return;
+        }
         chapter7AdvanceSequence();
     }
 
@@ -150,7 +156,7 @@
     }
 
     function chapter7FastStep() {
-        if (!document.getElementById("chapter7StoryOverlay") || document.querySelector(".chapter7-story-options,.chapter7-ending") || window.chapter7PendingChat || window.chapter7PendingRequiredAction) {
+        if (!document.getElementById("chapter7StoryOverlay") || document.querySelector(".chapter7-story-options,.chapter7-ending") || window.chapter7PendingChat || window.chapter7PendingRequiredAction || window.chapter7PendingExposureWeibo) {
             chapter7StopFastForward();
             return;
         }
@@ -236,7 +242,106 @@
             chapter7StartRequiredAction(event.contact || "张桂源", "delete");
         } else if (event.type === "groupExitPrompt") {
             chapter7StartRequiredAction(event.contact || "everybody 棒棒", "exit");
+        } else if (event.type === "exposureWeibo") {
+            chapter7StartExposureWeibo(event);
         }
+    }
+
+    function chapter7EscapeHtml(value) {
+        return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char];
+        });
+    }
+
+    function chapter7StartExposureWeibo(event) {
+        window.chapter7PendingExposureWeibo = {
+            event: event,
+            published: event.phase === "moreComments",
+            commentIndex: 0,
+            complete: false
+        };
+        chapter7ShowPage({ type: "page", text: event.phase === "moreComments" ? "请前往微博，在上一条微博的评论区继续发送评论。" : "请点击下方微博，进入「我的微博」完成发帖。", speaker: "提示", side: "left", bg: event.bg || "__white__" });
+        document.getElementById("chapter7Continue").textContent = "请先完成微博操作";
+    }
+
+    function chapter7ExposureAvatar() {
+        var avatarData = localStorage.getItem("player_avatar");
+        return avatarData && avatarData.indexOf("data:image") === 0 ? '<img src="' + avatarData + '" style="width:100%;height:100%;object-fit:cover">' : "🐰";
+    }
+
+    function chapter7RenderExposurePanel() {
+        var pending = window.chapter7PendingExposureWeibo;
+        if (!pending) return;
+        var active = document.querySelector('#weiboTabs .tab.active');
+        if (!active || active.dataset.tab !== "myweibo") return;
+        var container = document.getElementById("weiboContent");
+        if (!container) return;
+        var old = document.getElementById("chapter7ExposurePanel");
+        if (old) old.remove();
+        var panel = document.createElement("div");
+        panel.id = "chapter7ExposurePanel";
+        panel.style.cssText = "background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 3px 12px rgba(0,0,0,.05)";
+        if (!pending.published) {
+            panel.innerHTML = '<div style="text-align:center;color:#888;font-size:13px;padding:12px">请点击上方文本框，确认默认文案后发表微博</div>';
+            container.prepend(panel);
+            var input = document.getElementById("weiboInput");
+            if (input && !input.value) {
+                input.value = pending.event.defaultText || "";
+                if (typeof updateWeiboCharCount === "function") updateWeiboCharCount();
+            }
+            return;
+        }
+        var post = window.chapter7ExposurePost || { content: pending.event.defaultText || "", userComments: [], fixedComments: [] };
+        var media = "";
+        if (post.hasRecords) {
+            media = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:10px">';
+            for (var i = 0; i < 9; i++) media += '<div style="aspect-ratio:1;background:linear-gradient(135deg,#eee,#d7d7d7);display:flex;align-items:center;justify-content:center;color:#777;font-size:12px;border-radius:4px">聊天记录</div>';
+            media += "</div>";
+        }
+        var comments = "";
+        (post.userComments || []).forEach(function (item) {
+            var entry = typeof item === "string" ? { text: item } : item;
+            comments += '<div style="padding:7px 0;border-bottom:1px solid #f2f2f2;font-size:13px"><b>' + chapter7EscapeHtml((player && (player.weiboName || player.name)) || "你") + '</b>：' + chapter7EscapeHtml(entry.text) + (entry.image ? '<div style="margin-top:7px"><img src="' + chapter7EscapeHtml(entry.image) + '" style="display:block;max-width:160px;max-height:180px;border-radius:6px;object-fit:cover"></div>' : "") + '</div>';
+        });
+        (post.fixedComments || []).forEach(function (text, index) {
+            comments += '<div style="padding:7px 0;border-bottom:1px solid #f2f2f2;font-size:13px"><b>网友' + (index + 1) + '</b>：' + chapter7EscapeHtml(text) + '</div>';
+        });
+        var actions = pending.complete
+            ? '<button id="chapter7ExposureReturn" style="width:100%;margin-top:12px;padding:11px;border:0;border-radius:20px;background:#e85d75;color:#fff">返回剧情页面</button>'
+            : '<button id="chapter7ExposureComment" style="width:100%;margin-top:12px;padding:11px;border:1px solid #e85d75;border-radius:20px;background:#fff;color:#e85d75">点击评论区发送评论</button>';
+        panel.innerHTML = '<div style="display:flex;gap:9px;align-items:center"><div style="width:38px;height:38px;border-radius:50%;overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center">' + chapter7ExposureAvatar() + '</div><div><b>' + chapter7EscapeHtml((player && (player.weiboName || player.name)) || "用户") + '</b><div style="font-size:11px;color:#aaa">刚刚</div></div></div><div style="font-size:14px;line-height:1.65;margin-top:10px;white-space:pre-wrap">' + chapter7EscapeHtml(post.content) + '</div>' + media + '<div style="font-size:12px;color:#999;margin-top:10px">评论区</div><div>' + comments + '</div>' + actions;
+        container.prepend(panel);
+        var commentButton = document.getElementById("chapter7ExposureComment");
+        if (commentButton) commentButton.onclick = chapter7SendExposureComment;
+        var returnButton = document.getElementById("chapter7ExposureReturn");
+        if (returnButton) returnButton.onclick = chapter7FinishExposureStep;
+    }
+
+    function chapter7SendExposureComment() {
+        var pending = window.chapter7PendingExposureWeibo;
+        if (!pending) return;
+        var items = pending.event.userComments || [];
+        if (pending.commentIndex >= items.length) return;
+        var item = items[pending.commentIndex];
+        var entry = typeof item === "string" ? { text: item } : item;
+        showOptionsModal([entry.text], "发送评论", function () {
+            if (!window.chapter7ExposurePost) window.chapter7ExposurePost = { content: "", userComments: [], fixedComments: [], hasRecords: true };
+            window.chapter7ExposurePost.userComments.push(entry);
+            pending.commentIndex += 1;
+            if (pending.commentIndex >= items.length) {
+                window.chapter7ExposurePost.fixedComments = window.chapter7ExposurePost.fixedComments.concat(pending.event.fixedComments || []);
+                pending.complete = true;
+            }
+            chapter7RenderExposurePanel();
+        });
+    }
+
+    function chapter7FinishExposureStep() {
+        window.chapter7PendingExposureWeibo = null;
+        switchPage("story");
+        window.restoreChapter7Story();
+        setTimeout(chapter7AdvanceSequence, 180);
+        if (typeof autoSaveGame === "function") autoSaveGame();
     }
 
     function chapter7SkipToNextChoice() {
@@ -490,4 +595,60 @@
         document.getElementById("chapterSelectPage").style.display = "block";
         renderChapterList();
     };
+
+    var chapter7OriginalRenderWeibo = window.renderWeibo;
+    if (typeof chapter7OriginalRenderWeibo === "function") {
+        window.renderWeibo = function () {
+            chapter7OriginalRenderWeibo.apply(this, arguments);
+            chapter7RenderExposurePanel();
+        };
+    }
+
+    var chapter7OriginalSwitchWeiboTab = window.switchWeiboTab;
+    if (typeof chapter7OriginalSwitchWeiboTab === "function") {
+        window.switchWeiboTab = function (tab) {
+            chapter7OriginalSwitchWeiboTab.apply(this, arguments);
+            if (tab === "myweibo") setTimeout(chapter7RenderExposurePanel, 0);
+        };
+    }
+
+    var chapter7OriginalPublishWeibo = window.publishWeibo;
+    window.publishWeibo = function () {
+        var pending = window.chapter7PendingExposureWeibo;
+        if (!pending || pending.published || pending.event.phase === "moreComments") {
+            return chapter7OriginalPublishWeibo && chapter7OriginalPublishWeibo.apply(this, arguments);
+        }
+        var input = document.getElementById("weiboInput");
+        var content = input ? input.value.trim() : "";
+        if (!content) {
+            alert("请输入内容");
+            return;
+        }
+        window.chapter7ExposurePost = {
+            content: content,
+            userComments: [],
+            fixedComments: [],
+            hasRecords: pending.event.phase === "firstPost"
+        };
+        pending.published = true;
+        pending.commentIndex = 0;
+        if (pending.event.phase === "secondPost") {
+            window.chapter7ExposurePost.fixedComments = (pending.event.fixedComments || []).slice();
+            pending.complete = true;
+        }
+        if (input) input.value = "";
+        if (typeof updateWeiboCharCount === "function") updateWeiboCharCount();
+        chapter7RenderExposurePanel();
+    };
+
+    var chapter7PublishButton = document.getElementById("publishWeiboBtn");
+    if (chapter7PublishButton) {
+        chapter7PublishButton.addEventListener("click", function (event) {
+            var pending = window.chapter7PendingExposureWeibo;
+            if (!pending || pending.published || pending.event.phase === "moreComments") return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            window.publishWeibo();
+        }, true);
+    }
 })();
