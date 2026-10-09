@@ -15,6 +15,7 @@
     window.chapter7LongPressTimer = null;
     window.chapter7FastTimer = null;
     window.chapter7SuppressClick = false;
+    window.chapter7EndingReached = false;
 
     function replaceChapter7Tokens(text) {
         var currentPlayer = typeof player !== "undefined" ? player : {};
@@ -51,6 +52,12 @@
     }
 
     window.openChapter7Story = function () {
+        if (window.chapter7EndingReached) {
+            window.chapter7SessionActive = false;
+            window.chapter7EndingReached = false;
+            var finishedOverlay = document.getElementById("chapter7StoryOverlay");
+            if (finishedOverlay) finishedOverlay.remove();
+        }
         if (window.chapter7SessionActive) {
             window.restoreChapter7Story();
             return;
@@ -311,14 +318,24 @@
             media += "</div>";
         }
         var comments = "";
-        (post.userComments || []).forEach(function (item) {
-            var entry = typeof item === "string" ? { text: item } : item;
-            comments += '<div style="padding:7px 0;border-bottom:1px solid #f2f2f2;font-size:13px"><b>' + chapter7EscapeHtml((player && (player.weiboName || player.name)) || "你") + '</b>：' + chapter7EscapeHtml(entry.text) + (entry.image ? '<div style="margin-top:7px"><img src="' + chapter7EscapeHtml(entry.image) + '" style="display:block;max-width:160px;max-height:180px;border-radius:6px;object-fit:cover"></div>' : "") + '</div>';
+        var timeline = post.timeline || [];
+        if (!timeline.length) {
+            (post.userComments || []).forEach(function (item) { timeline.push({ kind: "user", entry: typeof item === "string" ? { text: item } : item }); });
+            (post.fixedComments || []).forEach(function (text) { timeline.push({ kind: "fixed", text: text }); });
+        }
+        var fixedNumber = 0;
+        timeline.forEach(function (item) {
+            if (item.kind === "user") {
+                var entry = item.entry || { text: "" };
+                comments += '<div style="padding:7px 0;border-bottom:1px solid #f2f2f2;font-size:13px"><b>' + chapter7EscapeHtml((player && (player.weiboName || player.name)) || "你") + '</b>：' + chapter7EscapeHtml(entry.text) + (entry.image ? '<div style="margin-top:7px"><img src="' + chapter7EscapeHtml(entry.image) + '" style="display:block;max-width:160px;max-height:180px;border-radius:6px;object-fit:cover"></div>' : "") + '</div>';
+            } else {
+                fixedNumber += 1;
+                comments += '<div style="padding:7px 0;border-bottom:1px solid #f2f2f2;font-size:13px"><b>网友' + fixedNumber + '</b>：' + chapter7EscapeHtml(item.text) + '</div>';
+            }
         });
-        (post.fixedComments || []).forEach(function (text, index) {
-            comments += '<div style="padding:7px 0;border-bottom:1px solid #f2f2f2;font-size:13px"><b>网友' + (index + 1) + '</b>：' + chapter7EscapeHtml(text) + '</div>';
-        });
-        var actions = pending.complete
+        var actions = pending.revealing
+            ? '<div style="text-align:center;margin-top:12px;padding:10px;color:#999;font-size:13px">评论正在出现…</div>'
+            : pending.complete
             ? '<button id="chapter7ExposureReturn" style="width:100%;margin-top:12px;padding:11px;border:0;border-radius:20px;background:#e85d75;color:#fff">返回剧情页面</button>'
             : '<button id="chapter7ExposureComment" style="width:100%;margin-top:12px;padding:11px;border:1px solid #e85d75;border-radius:20px;background:#fff;color:#e85d75">点击评论区发送评论</button>';
         panel.innerHTML = '<div style="display:flex;gap:9px;align-items:center"><div style="width:38px;height:38px;border-radius:50%;overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center">' + chapter7ExposureAvatar() + '</div><div><b>' + chapter7EscapeHtml((player && (player.weiboName || player.name)) || "用户") + '</b><div style="font-size:11px;color:#aaa">刚刚</div></div></div><div style="font-size:14px;line-height:1.65;margin-top:10px;white-space:pre-wrap">' + chapter7EscapeHtml(post.content) + '</div>' + media + '<div style="font-size:12px;color:#999;margin-top:10px">评论区</div><div>' + comments + '</div>' + actions;
@@ -343,9 +360,21 @@
         var panel = document.createElement("div");
         panel.id = "chapter7ExposurePanel";
         panel.style.cssText = "background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 3px 12px rgba(0,0,0,.06)";
-        panel.innerHTML = '<div style="display:flex;gap:9px;align-items:center"><img src="' + (typeof getZhangGuiyuanAvatar === "function" ? getZhangGuiyuanAvatar() : "zgyx.jpg") + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover"><div><b>' + chapter7EscapeHtml(event.author || "张桂源") + '</b><div style="font-size:11px;color:#aaa">刚刚</div></div></div><div style="font-size:14px;line-height:1.65;margin-top:10px;white-space:pre-wrap">' + chapter7EscapeHtml(event.content || "") + '</div><div style="position:relative;min-height:180px;background:#f1f1f1;border-radius:8px;margin-top:10px;display:flex;align-items:center;justify-content:center;color:#999;font-size:13px"><span>手写道歉信</span><img src="' + chapter7EscapeHtml(event.image || "") + '" style="position:absolute;inset:0;display:block;width:100%;height:100%;max-height:420px;object-fit:contain;background:#f6f6f6;border-radius:8px" onerror="this.style.display=\'none\'"></div><div style="display:flex;justify-content:space-between;color:#999;font-size:12px;margin-top:10px"><span>转发 ' + chapter7EscapeHtml(event.reposts || "0") + '</span><span>评论 ' + chapter7EscapeHtml(event.commentCount || "0") + '</span><span>点赞 ' + chapter7EscapeHtml(event.likes || "0") + '</span></div><div style="margin-top:8px;padding-top:6px;border-top:1px solid #eee">' + comments + '</div><button id="chapter7ExposureReturn" style="width:100%;margin-top:12px;padding:11px;border:0;border-radius:20px;background:#e85d75;color:#fff">返回剧情页面</button>';
+        panel.innerHTML = '<div style="display:flex;gap:9px;align-items:center"><img src="' + (typeof getZhangGuiyuanAvatar === "function" ? getZhangGuiyuanAvatar() : "zgyx.jpg") + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover"><div><b>' + chapter7EscapeHtml(event.author || "张桂源") + '</b><div style="font-size:11px;color:#aaa">刚刚</div></div></div><div style="font-size:14px;line-height:1.65;margin-top:10px;white-space:pre-wrap">' + chapter7EscapeHtml(event.content || "") + '</div><div id="chapter7ApologyImage" style="position:relative;width:calc(100% + 28px);margin-left:-14px;min-height:220px;background:#f1f1f1;margin-top:10px;display:flex;align-items:center;justify-content:center;color:#999;font-size:13px;cursor:zoom-in"><span>手写道歉信</span><img src="' + chapter7EscapeHtml(event.image || "") + '" style="position:absolute;inset:0;display:block;width:100%;height:100%;max-height:520px;object-fit:contain;background:#f6f6f6" onerror="this.style.display=\'none\'"></div><div style="display:flex;justify-content:space-between;color:#999;font-size:12px;margin-top:10px"><span>转发 ' + chapter7EscapeHtml(event.reposts || "0") + '</span><span>评论 ' + chapter7EscapeHtml(event.commentCount || "0") + '</span><span>点赞 ' + chapter7EscapeHtml(event.likes || "0") + '</span></div><div style="margin-top:8px;padding-top:6px;border-top:1px solid #eee">' + comments + '</div><button id="chapter7ExposureReturn" style="width:100%;margin-top:12px;padding:11px;border:0;border-radius:20px;background:#e85d75;color:#fff">返回剧情页面</button>';
         container.prepend(panel);
         document.getElementById("chapter7ExposureReturn").onclick = chapter7FinishExposureStep;
+        document.getElementById("chapter7ApologyImage").onclick = function () { chapter7ShowImageViewer(event.image || "dqx.png"); };
+    }
+
+    function chapter7ShowImageViewer(src) {
+        var old = document.getElementById("chapter7ImageViewer");
+        if (old) old.remove();
+        var viewer = document.createElement("div");
+        viewer.id = "chapter7ImageViewer";
+        viewer.style.cssText = "position:fixed;inset:0;z-index:10040;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:12px;cursor:zoom-out";
+        viewer.innerHTML = '<img src="' + chapter7EscapeHtml(src) + '" style="display:block;max-width:100%;max-height:100%;object-fit:contain">';
+        viewer.onclick = function () { viewer.remove(); };
+        document.body.appendChild(viewer);
     }
 
     function chapter7SendExposureComment() {
@@ -356,15 +385,40 @@
         var item = items[pending.commentIndex];
         var entry = typeof item === "string" ? { text: item } : item;
         chapter7ShowExposureCommentModal(entry, function () {
-            if (!window.chapter7ExposurePost) window.chapter7ExposurePost = { content: "", userComments: [], fixedComments: [], hasRecords: true };
+            if (!window.chapter7ExposurePost) window.chapter7ExposurePost = { content: "", userComments: [], fixedComments: [], timeline: [], hasRecords: true };
             window.chapter7ExposurePost.userComments.push(entry);
+            if (!window.chapter7ExposurePost.timeline) window.chapter7ExposurePost.timeline = [];
+            window.chapter7ExposurePost.timeline.push({ kind: "user", entry: entry });
             pending.commentIndex += 1;
-            if (pending.commentIndex >= items.length) {
-                window.chapter7ExposurePost.fixedComments = window.chapter7ExposurePost.fixedComments.concat(pending.event.fixedComments || []);
-                pending.complete = true;
-            }
+            if (pending.commentIndex >= items.length) chapter7RevealExposureComments(pending.event.fixedComments || [], pending);
             chapter7RenderExposurePanel();
         });
+    }
+
+    function chapter7RevealExposureComments(comments, pending) {
+        var queue = (comments || []).slice();
+        if (!queue.length) {
+            pending.complete = true;
+            chapter7RenderExposurePanel();
+            return;
+        }
+        pending.revealing = true;
+        pending.complete = false;
+        function revealNext() {
+            if (!window.chapter7PendingExposureWeibo || window.chapter7PendingExposureWeibo !== pending) return;
+            if (!queue.length) {
+                pending.revealing = false;
+                pending.complete = true;
+                chapter7RenderExposurePanel();
+                return;
+            }
+            window.chapter7ExposurePost.fixedComments.push(queue.shift());
+            if (!window.chapter7ExposurePost.timeline) window.chapter7ExposurePost.timeline = [];
+            window.chapter7ExposurePost.timeline.push({ kind: "fixed", text: window.chapter7ExposurePost.fixedComments[window.chapter7ExposurePost.fixedComments.length - 1] });
+            chapter7RenderExposurePanel();
+            setTimeout(revealNext, 720);
+        }
+        setTimeout(revealNext, 520);
     }
 
     function chapter7ShowExposureCommentModal(entry, callback) {
@@ -611,11 +665,15 @@
         overlay.appendChild(ending);
         requestAnimationFrame(function () { requestAnimationFrame(function () { ending.style.opacity = "1"; }); });
         localStorage.setItem("chapter7_ending_" + (event.title || "ending"), "1");
+        window.chapter7EndingReached = true;
         if (typeof autoSaveGame === "function") autoSaveGame();
         setTimeout(function () {
             ending.onclick = function () {
                 ending.style.opacity = "0";
-                setTimeout(function () { ending.remove(); }, 800);
+                setTimeout(function () {
+                    ending.remove();
+                    window.closeChapter7Story();
+                }, 800);
             };
         }, 900);
     }
@@ -639,6 +697,16 @@
         window.suspendChapter7Story();
         document.getElementById("storyDetailPage").style.display = "none";
         document.getElementById("chapterSelectPage").style.display = "block";
+        if (window.chapter7EndingReached) {
+            var overlay = document.getElementById("chapter7StoryOverlay");
+            if (overlay) overlay.remove();
+            window.chapter7SessionActive = false;
+            window.chapter7EndingReached = false;
+            window.chapter7RouteId = "intro";
+            window.chapter7SequenceIndex = 0;
+            window.chapter7Sequence = window.chapter7Routes && window.chapter7Routes.intro;
+            window.chapter7CurrentPage = null;
+        }
         renderChapterList();
     };
 
@@ -674,6 +742,7 @@
             content: content,
             userComments: [],
             fixedComments: [],
+            timeline: [],
             hasRecords: pending.event.phase === "firstPost"
         };
         pending.published = true;
