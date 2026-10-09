@@ -244,6 +244,8 @@
             chapter7StartRequiredAction(event.contact || "everybody 棒棒", "exit");
         } else if (event.type === "exposureWeibo") {
             chapter7StartExposureWeibo(event);
+        } else if (event.type === "exposureArtistWeibo") {
+            chapter7StartExposureArtistWeibo(event);
         }
     }
 
@@ -264,6 +266,12 @@
         document.getElementById("chapter7Continue").textContent = "请先完成微博操作";
     }
 
+    function chapter7StartExposureArtistWeibo(event) {
+        window.chapter7PendingExposureWeibo = { event: event, artistPost: true, complete: true };
+        chapter7ShowPage({ type: "page", text: "请点击下方微博，进入「我的关注」查看张桂源更新的微博。", speaker: "提示", side: "left", bg: event.bg || "__white__" });
+        document.getElementById("chapter7Continue").textContent = "请先查看张桂源微博";
+    }
+
     function chapter7ExposureAvatar() {
         var avatarData = localStorage.getItem("player_avatar");
         return avatarData && avatarData.indexOf("data:image") === 0 ? '<img src="' + avatarData + '" style="width:100%;height:100%;object-fit:cover">' : "🐰";
@@ -273,6 +281,10 @@
         var pending = window.chapter7PendingExposureWeibo;
         if (!pending) return;
         var active = document.querySelector('#weiboTabs .tab.active');
+        if (pending.artistPost) {
+            chapter7RenderArtistWeiboPanel(active);
+            return;
+        }
         if (!active || active.dataset.tab !== "myweibo") return;
         var container = document.getElementById("weiboContent");
         if (!container) return;
@@ -317,6 +329,25 @@
         if (returnButton) returnButton.onclick = chapter7FinishExposureStep;
     }
 
+    function chapter7RenderArtistWeiboPanel(active) {
+        if (!active || active.dataset.tab !== "following") return;
+        var pending = window.chapter7PendingExposureWeibo;
+        var event = pending && pending.event;
+        var container = document.getElementById("weiboContent");
+        if (!event || !container) return;
+        var old = document.getElementById("chapter7ExposurePanel");
+        if (old) old.remove();
+        var comments = (event.comments || []).map(function (text, index) {
+            return '<div style="padding:7px 0;border-bottom:1px solid #f2f2f2;font-size:13px"><b>网友' + (index + 1) + '</b>：' + chapter7EscapeHtml(text) + '</div>';
+        }).join("");
+        var panel = document.createElement("div");
+        panel.id = "chapter7ExposurePanel";
+        panel.style.cssText = "background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 3px 12px rgba(0,0,0,.06)";
+        panel.innerHTML = '<div style="display:flex;gap:9px;align-items:center"><img src="' + (typeof getZhangGuiyuanAvatar === "function" ? getZhangGuiyuanAvatar() : "zgyx.jpg") + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover"><div><b>' + chapter7EscapeHtml(event.author || "张桂源") + '</b><div style="font-size:11px;color:#aaa">刚刚</div></div></div><div style="font-size:14px;line-height:1.65;margin-top:10px;white-space:pre-wrap">' + chapter7EscapeHtml(event.content || "") + '</div><div style="position:relative;min-height:180px;background:#f1f1f1;border-radius:8px;margin-top:10px;display:flex;align-items:center;justify-content:center;color:#999;font-size:13px"><span>手写道歉信</span><img src="' + chapter7EscapeHtml(event.image || "") + '" style="position:absolute;inset:0;display:block;width:100%;height:100%;max-height:420px;object-fit:contain;background:#f6f6f6;border-radius:8px" onerror="this.style.display=\'none\'"></div><div style="display:flex;justify-content:space-between;color:#999;font-size:12px;margin-top:10px"><span>转发 ' + chapter7EscapeHtml(event.reposts || "0") + '</span><span>评论 ' + chapter7EscapeHtml(event.commentCount || "0") + '</span><span>点赞 ' + chapter7EscapeHtml(event.likes || "0") + '</span></div><div style="margin-top:8px;padding-top:6px;border-top:1px solid #eee">' + comments + '</div><button id="chapter7ExposureReturn" style="width:100%;margin-top:12px;padding:11px;border:0;border-radius:20px;background:#e85d75;color:#fff">返回剧情页面</button>';
+        container.prepend(panel);
+        document.getElementById("chapter7ExposureReturn").onclick = chapter7FinishExposureStep;
+    }
+
     function chapter7SendExposureComment() {
         var pending = window.chapter7PendingExposureWeibo;
         if (!pending) return;
@@ -324,7 +355,7 @@
         if (pending.commentIndex >= items.length) return;
         var item = items[pending.commentIndex];
         var entry = typeof item === "string" ? { text: item } : item;
-        showOptionsModal([entry.text], "发送评论", function () {
+        chapter7ShowExposureCommentModal(entry, function () {
             if (!window.chapter7ExposurePost) window.chapter7ExposurePost = { content: "", userComments: [], fixedComments: [], hasRecords: true };
             window.chapter7ExposurePost.userComments.push(entry);
             pending.commentIndex += 1;
@@ -334,6 +365,21 @@
             }
             chapter7RenderExposurePanel();
         });
+    }
+
+    function chapter7ShowExposureCommentModal(entry, callback) {
+        var old = document.getElementById("chapter7ExposureCommentModal");
+        if (old) old.remove();
+        var modal = document.createElement("div");
+        modal.id = "chapter7ExposureCommentModal";
+        modal.style.cssText = "position:fixed;inset:0;z-index:10030;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:22px";
+        modal.innerHTML = '<div style="width:min(340px,92vw);background:#fff;border-radius:16px;padding:18px;box-shadow:0 16px 48px rgba(0,0,0,.3)"><div style="font-weight:700;font-size:16px;margin-bottom:12px">发送评论</div><div style="padding:12px;border:1px solid #eee;border-radius:10px;font-size:14px;line-height:1.6;word-break:break-word">' + chapter7EscapeHtml(entry.text) + (entry.image ? '<div style="margin-top:9px;color:#999;font-size:12px">附带图片：' + chapter7EscapeHtml(entry.image) + '</div>' : '') + '</div><div style="display:flex;gap:10px;margin-top:16px"><button type="button" data-role="cancel" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#666">取消</button><button type="button" data-role="send" style="flex:1;padding:10px;border:0;border-radius:20px;background:#e85d75;color:#fff">发送</button></div></div>';
+        document.body.appendChild(modal);
+        modal.querySelector('[data-role="cancel"]').onclick = function () { modal.remove(); };
+        modal.querySelector('[data-role="send"]').onclick = function () {
+            modal.remove();
+            callback();
+        };
     }
 
     function chapter7FinishExposureStep() {
@@ -608,7 +654,7 @@
     if (typeof chapter7OriginalSwitchWeiboTab === "function") {
         window.switchWeiboTab = function (tab) {
             chapter7OriginalSwitchWeiboTab.apply(this, arguments);
-            if (tab === "myweibo") setTimeout(chapter7RenderExposurePanel, 0);
+            if (tab === "myweibo" || tab === "following") setTimeout(chapter7RenderExposurePanel, 0);
         };
     }
 
