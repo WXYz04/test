@@ -47,6 +47,7 @@
             '#chapter7Opening{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#050505;color:#eee;opacity:0;transition:opacity .7s ease;pointer-events:none}' +
             '#chapter7Opening .chapter-no{font-size:15px;letter-spacing:7px;color:#aaa;margin-bottom:18px}#chapter7Opening .chapter-name{font-family:STKaiti,KaiTi,serif;font-size:34px;letter-spacing:13px;text-indent:13px}' +
             '.chapter7-story-options{position:absolute;left:18px;right:18px;top:50%;transform:translateY(-50%);z-index:22;display:flex;flex-direction:column;gap:12px}.chapter7-story-option{width:100%;padding:14px 16px;background:rgba(5,5,8,.93);border:1px solid rgba(255,255,255,.48);border-radius:3px;color:#fff;text-align:left}.chapter7-story-option strong{display:block;font-size:15px;margin-bottom:5px}.chapter7-story-option span{display:block;font-size:11px;line-height:1.55;color:#bbb}.chapter7-prompt-title{text-align:center;color:#fff;font-size:18px;line-height:1.6;margin-bottom:8px;text-shadow:0 2px 4px #000}.chapter7-ending{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.9);color:#eee;opacity:0;transition:opacity .8s}.chapter7-ending small{font-size:14px;letter-spacing:5px;color:#aaa;margin-bottom:18px}.chapter7-ending strong{font-family:STKaiti,KaiTi,serif;font-size:30px;letter-spacing:4px;text-align:center;padding:0 28px}' +
+            '.chapter7-ending-transition{position:absolute;inset:0;z-index:29;display:flex;align-items:center;justify-content:center;background:#050505;color:#fff;font-family:Georgia,Times New Roman,serif;font-size:48px;font-weight:700;letter-spacing:8px;opacity:0;transform:translateY(54px);transition:opacity .85s ease,transform 1.1s ease}.chapter7-ending-transition.show{opacity:1;transform:translateY(0)}' +
             '#chapter7ActionModal{position:fixed;inset:0;z-index:10020;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:24px}#chapter7ActionModal .panel{width:min(330px,88vw);overflow:hidden;border-radius:12px;background:#fff;color:#222;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.3)}#chapter7ActionModal h3{margin:22px 18px 10px;font-size:18px}#chapter7ActionModal p{margin:0 22px 22px;color:#666;font-size:14px;line-height:1.55}#chapter7ActionModal .buttons{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #eee}#chapter7ActionModal button{height:48px;border:0;background:#fff;font-size:15px}#chapter7ActionModal button+button{border-left:1px solid #eee;color:#e34e64;font-weight:600}';
         document.head.appendChild(style);
     }
@@ -253,6 +254,8 @@
             chapter7StartExposureWeibo(event);
         } else if (event.type === "exposureArtistWeibo") {
             chapter7StartExposureArtistWeibo(event);
+        } else if (event.type === "endingTransition") {
+            chapter7ShowEndingTransition(event);
         }
     }
 
@@ -360,7 +363,7 @@
         var panel = document.createElement("div");
         panel.id = "chapter7ExposurePanel";
         panel.style.cssText = "background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 3px 12px rgba(0,0,0,.06)";
-        panel.innerHTML = '<div style="display:flex;gap:9px;align-items:center"><img src="' + (typeof getZhangGuiyuanAvatar === "function" ? getZhangGuiyuanAvatar() : "zgyx.jpg") + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover"><div><b>' + chapter7EscapeHtml(event.author || "张桂源") + '</b><div style="font-size:11px;color:#aaa">刚刚</div></div></div><div style="font-size:14px;line-height:1.65;margin-top:10px;white-space:pre-wrap">' + chapter7EscapeHtml(event.content || "") + '</div><div id="chapter7ApologyImage" style="position:relative;width:calc(100% + 28px);margin-left:-14px;min-height:220px;background:#f1f1f1;margin-top:10px;display:flex;align-items:center;justify-content:center;color:#999;font-size:13px;cursor:zoom-in"><span>手写道歉信</span><img src="' + chapter7EscapeHtml(event.image || "") + '" style="position:absolute;inset:0;display:block;width:100%;height:100%;max-height:520px;object-fit:contain;background:#f6f6f6" onerror="this.style.display=\'none\'"></div><div style="display:flex;justify-content:space-between;color:#999;font-size:12px;margin-top:10px"><span>转发 ' + chapter7EscapeHtml(event.reposts || "0") + '</span><span>评论 ' + chapter7EscapeHtml(event.commentCount || "0") + '</span><span>点赞 ' + chapter7EscapeHtml(event.likes || "0") + '</span></div><div style="margin-top:8px;padding-top:6px;border-top:1px solid #eee">' + comments + '</div><button id="chapter7ExposureReturn" style="width:100%;margin-top:12px;padding:11px;border:0;border-radius:20px;background:#e85d75;color:#fff">返回剧情页面</button>';
+        panel.innerHTML = '<div style="display:flex;gap:9px;align-items:center"><img src="' + (typeof getZhangGuiyuanAvatar === "function" ? getZhangGuiyuanAvatar() : "zgyx.jpg") + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover"><div><b>' + chapter7EscapeHtml(event.author || "张桂源") + '</b><div style="font-size:11px;color:#aaa">刚刚</div></div></div><div style="font-size:14px;line-height:1.65;margin-top:10px;white-space:pre-wrap">' + chapter7EscapeHtml(event.content || "") + '</div><div id="chapter7ApologyImage" style="position:relative;width:calc(100% + 28px);margin-left:-14px;aspect-ratio:1055/1491;background:#f1f1f1;margin-top:10px;display:flex;align-items:center;justify-content:center;color:#999;font-size:13px;cursor:zoom-in;overflow:hidden"><span>手写道歉信</span><img src="' + chapter7EscapeHtml(event.image || "") + '" style="position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;background:#f6f6f6" onerror="this.style.display=\'none\'"></div><div style="display:flex;justify-content:space-between;color:#999;font-size:12px;margin-top:10px"><span>转发 ' + chapter7EscapeHtml(event.reposts || "0") + '</span><span>评论 ' + chapter7EscapeHtml(event.commentCount || "0") + '</span><span>点赞 ' + chapter7EscapeHtml(event.likes || "0") + '</span></div><div style="margin-top:8px;padding-top:6px;border-top:1px solid #eee">' + comments + '</div><button id="chapter7ExposureReturn" style="width:100%;margin-top:12px;padding:11px;border:0;border-radius:20px;background:#e85d75;color:#fff">返回剧情页面</button>';
         container.prepend(panel);
         document.getElementById("chapter7ExposureReturn").onclick = chapter7FinishExposureStep;
         document.getElementById("chapter7ApologyImage").onclick = function () { chapter7ShowImageViewer(event.image || "dqx.png"); };
@@ -375,6 +378,24 @@
         viewer.innerHTML = '<img src="' + chapter7EscapeHtml(src) + '" style="display:block;max-width:100%;max-height:100%;object-fit:contain">';
         viewer.onclick = function () { viewer.remove(); };
         document.body.appendChild(viewer);
+    }
+
+    function chapter7ShowEndingTransition(event) {
+        var overlay = document.getElementById("chapter7StoryOverlay");
+        if (!overlay) return;
+        var transition = document.createElement("div");
+        transition.className = "chapter7-ending-transition";
+        transition.textContent = event.text || "Ending";
+        overlay.appendChild(transition);
+        requestAnimationFrame(function () { requestAnimationFrame(function () { transition.classList.add("show"); }); });
+        setTimeout(function () {
+            transition.style.opacity = "0";
+            transition.style.transform = "translateY(-42px)";
+        }, 1900);
+        setTimeout(function () {
+            transition.remove();
+            chapter7AdvanceSequence();
+        }, 2850);
     }
 
     function chapter7SendExposureComment() {
@@ -748,8 +769,7 @@
         pending.published = true;
         pending.commentIndex = 0;
         if (pending.event.phase === "secondPost") {
-            window.chapter7ExposurePost.fixedComments = (pending.event.fixedComments || []).slice();
-            pending.complete = true;
+            chapter7RevealExposureComments(pending.event.fixedComments || [], pending);
         }
         if (input) input.value = "";
         if (typeof updateWeiboCharCount === "function") updateWeiboCharCount();
