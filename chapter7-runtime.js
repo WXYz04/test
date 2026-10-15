@@ -234,7 +234,9 @@
         } else if (event.type === "friendRequests") {
             chapter7ShowFriendRequests(event.items || [], 0);
         } else if (event.type === "privateChat") {
-            chapter7StartChat("张桂源", event.messages || [], [], event.bg);
+            chapter7StartChat(event.contact || "张桂源", event.messages || [], [], event.bg);
+        } else if (event.type === "scriptedChat") {
+            chapter7StartScriptedChat(event.contact || "WXYz", event.entries || [], event.bg);
         } else if (event.type === "groupChat") {
             chapter7StartChat("everybody 棒棒", event.messages || [], event.incoming || [], event.bg);
         } else if (event.type === "choice") {
@@ -532,6 +534,55 @@
         document.getElementById("chapter7Continue").textContent = "请点击下方微信进入聊天列表";
     }
 
+    function chapter7StartScriptedChat(contact, entries, background) {
+        if (!chatData[contact]) chatData[contact] = { messages: [], newMsg: false };
+        chatData[contact].chapter7ChatActive = true;
+        chatData[contact].newMsg = true;
+        window.chapter7PendingChat = { contact: contact, entries: entries.map(function (entry) { return Object.assign({}, entry, { text: replaceChapter7Tokens(entry.text || "") }); }), index: 0, scripted: true };
+        renderChatList();
+        chapter7ShowPage({ type: "page", text: "请点击聊天列表", speaker: "提示", side: "left", bg: background || (window.chapter7CurrentPage && window.chapter7CurrentPage.bg) || "__white__" });
+        document.getElementById("chapter7Continue").textContent = "请点击下方微信进入聊天列表";
+    }
+
+    function chapter7FinishScriptedChat(pending) {
+        var data = chatData[pending.contact];
+        if (data) data.chapter7ChatActive = false;
+        window.chapter7PendingChat = null;
+        var input = document.getElementById("chatInputBox");
+        if (input) input.innerText = "发送完成，请返回剧情页面";
+        showMessageNotification("第七章剧情", '<span style="font-size:30px">📖</span>', "第七章剧情", "聊天完成，请返回剧情页面继续", function () { switchPage("story"); });
+        if (typeof autoSaveGame === "function") autoSaveGame();
+    }
+
+    function chapter7ShowNextScriptedEntry() {
+        var pending = window.chapter7PendingChat;
+        if (!pending || !pending.scripted || document.querySelector(".option-modal")) return;
+        if (pending.index >= pending.entries.length) {
+            chapter7FinishScriptedChat(pending);
+            return;
+        }
+        var entry = pending.entries[pending.index];
+        if (entry.from === "me") {
+            showOptionsModal([entry.image ? "发送图片" : entry.text], "选择发送", function () {
+                var content = entry.image ? '<img src="' + entry.image + '" style="width:170px;max-width:100%;border-radius:10px;display:block" onerror="this.outerHTML=\'[图片]\'">' : entry.text;
+                chapter7PushMessage(pending.contact, { from: "me", text: content, time: chapter7MessageTime(pending.index + 3), date: "", read: true, chapter7: true });
+                pending.index += 1;
+                setTimeout(chapter7ShowNextScriptedEntry, 420);
+            });
+            return;
+        }
+        var wait = Math.min(1800, 650 + String(entry.text || "").length * 45);
+        var input = document.getElementById("chatInputBox");
+        if (input) input.innerText = "对方正在输入中...";
+        setTimeout(function () {
+            if (!window.chapter7PendingChat || window.chapter7PendingChat !== pending) return;
+            var content = entry.image ? '<img src="' + entry.image + '" style="width:170px;max-width:100%;border-radius:10px;display:block" onerror="this.outerHTML=\'[图片]\'">' : entry.text;
+            chapter7PushMessage(pending.contact, { from: "other", text: content, time: chapter7MessageTime(pending.index + 3), date: "", read: false, chapter7: true });
+            pending.index += 1;
+            setTimeout(chapter7ShowNextScriptedEntry, 360);
+        }, wait);
+    }
+
     window.openChapter7Chat = function (contact) {
         currentChatContact = contact;
         var data = chatData[contact];
@@ -555,7 +606,7 @@
         input.style.color = "#999";
         renderChatMessages();
         renderChatList();
-        if (window.chapter7PendingChat && window.chapter7PendingChat.contact === contact) setTimeout(chapter7ShowNextOutgoingOption, 350);
+        if (window.chapter7PendingChat && window.chapter7PendingChat.contact === contact) setTimeout(window.chapter7PendingChat.scripted ? chapter7ShowNextScriptedEntry : chapter7ShowNextOutgoingOption, 350);
     };
 
     function chapter7ShowNextOutgoingOption() {
