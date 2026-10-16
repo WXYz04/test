@@ -236,7 +236,7 @@
         } else if (event.type === "privateChat") {
             chapter7StartChat(event.contact || "张桂源", event.messages || [], [], event.bg);
         } else if (event.type === "scriptedChat") {
-            chapter7StartScriptedChat(event.contact || "WXYz", event.entries || [], event.bg);
+            chapter7StartScriptedChat(event.contact || "WXYz", event.entries || [], event.bg, event.notifications || [], !!event.preloadFirstIncoming);
         } else if (event.type === "groupChat") {
             chapter7StartChat("everybody 棒棒", event.messages || [], event.incoming || [], event.bg);
         } else if (event.type === "choice") {
@@ -534,14 +534,30 @@
         document.getElementById("chapter7Continue").textContent = "请点击下方微信进入聊天列表";
     }
 
-    function chapter7StartScriptedChat(contact, entries, background) {
+    function chapter7StartScriptedChat(contact, entries, background, notifications, preloadFirstIncoming) {
         if (!chatData[contact]) chatData[contact] = { messages: [], newMsg: false };
         chatData[contact].chapter7ChatActive = true;
         chatData[contact].newMsg = true;
-        window.chapter7PendingChat = { contact: contact, entries: entries.map(function (entry) { return Object.assign({}, entry, { text: replaceChapter7Tokens(entry.text || "") }); }), index: 0, scripted: true };
+        var normalized = entries.map(function (entry) { return Object.assign({}, entry, { text: replaceChapter7Tokens(entry.text || "") }); });
+        var startIndex = 0;
+        if (preloadFirstIncoming && normalized[0] && normalized[0].from !== "me") {
+            var first = normalized[0];
+            var firstContent = first.image ? '<img src="' + first.image + '" style="width:170px;max-width:100%;border-radius:10px;display:block" onerror="this.outerHTML=\'[图片]\'">' : first.text;
+            chapter7PushMessage(contact, { from: "other", text: firstContent, time: chapter7MessageTime(3), date: "", read: false, chapter7: true });
+            startIndex = 1;
+        }
+        window.chapter7PendingChat = { contact: contact, entries: normalized, index: startIndex, scripted: true };
         renderChatList();
         chapter7ShowPage({ type: "page", text: "请点击聊天列表", speaker: "提示", side: "left", bg: background || (window.chapter7CurrentPage && window.chapter7CurrentPage.bg) || "__white__" });
         document.getElementById("chapter7Continue").textContent = "请点击下方微信进入聊天列表";
+        (notifications || []).slice(0, 2).forEach(function (notice, index) {
+            setTimeout(function () {
+                var noticeText = notice.image ? "[图片]" : replaceChapter7Tokens(notice.text || "");
+                var avatar = typeof getContactAvatar === "function" ? getContactAvatar(contact) : "";
+                var icon = avatar ? '<img src="' + avatar + '" style="width:42px;height:42px;border-radius:8px;object-fit:cover">' : '<span style="font-size:30px">💬</span>';
+                showMessageNotification(contact, icon, contact, noticeText, function () { switchPage("chat"); setTimeout(function () { openChapter7Chat(contact); }, 80); });
+            }, 250 + index * 950);
+        });
     }
 
     function chapter7FinishScriptedChat(pending) {
