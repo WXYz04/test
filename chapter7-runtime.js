@@ -16,6 +16,8 @@
     window.chapter7FastTimer = null;
     window.chapter7SuppressClick = false;
     window.chapter7EndingReached = false;
+    window.chapter7VisitedPlaces = {};
+    window.chapter7ExploreChoiceEvent = null;
 
     function replaceChapter7Tokens(text) {
         var currentPlayer = typeof player !== "undefined" ? player : {};
@@ -68,6 +70,8 @@
         window.chapter7SequenceIndex = 0;
         window.chapter7CurrentPage = null;
         window.chapter7PendingChat = null;
+        window.chapter7VisitedPlaces = {};
+        window.chapter7ExploreChoiceEvent = null;
         ensureChapter7Style();
         var old = document.getElementById("chapter7StoryOverlay");
         if (old) old.remove();
@@ -237,6 +241,12 @@
             chapter7StartChat(event.contact || "张桂源", event.messages || [], [], event.bg);
         } else if (event.type === "scriptedChat") {
             chapter7StartScriptedChat(event.contact || "WXYz", event.entries || [], event.bg, event.notifications || [], !!event.preloadFirstIncoming);
+        } else if (event.type === "exploreChoice") {
+            chapter7ShowExploreChoice(event);
+        } else if (event.type === "exploreReturn") {
+            var visitedCount = Object.keys(window.chapter7VisitedPlaces || {}).length;
+            if (visitedCount >= 2 && chapter7SetRoute(event.commonRoute, false)) chapter7AdvanceSequence();
+            else chapter7ShowExploreChoice(window.chapter7ExploreChoiceEvent);
         } else if (event.type === "groupChat") {
             chapter7StartChat("everybody 棒棒", event.messages || [], event.incoming || [], event.bg);
         } else if (event.type === "choice") {
@@ -579,8 +589,10 @@
         }
         var entry = pending.entries[pending.index];
         if (entry.from === "me") {
-            showOptionsModal([entry.image ? "发送图片" : entry.text], "选择发送", function () {
-                var content = entry.image ? '<img src="' + entry.image + '" style="width:170px;max-width:100%;border-radius:10px;display:block" onerror="this.outerHTML=\'[图片]\'">' : entry.text;
+            var replyOptions = entry.choices && entry.choices.length ? entry.choices : [entry.image ? "发送图片" : entry.text];
+            showOptionsModal(replyOptions, entry.choices ? "选择回复" : "选择发送", function (choiceIndex) {
+                var selectedText = entry.choices ? entry.choices[choiceIndex] : entry.text;
+                var content = entry.image ? '<img src="' + entry.image + '" style="width:170px;max-width:100%;border-radius:10px;display:block" onerror="this.outerHTML=\'[图片]\'">' : selectedText;
                 chapter7PushMessage(pending.contact, { from: "me", text: content, time: chapter7MessageTime(pending.index + 3), date: "", read: true, chapter7: true });
                 pending.index += 1;
                 setTimeout(chapter7ShowNextScriptedEntry, 420);
@@ -667,6 +679,37 @@
                 wrap.remove();
                 chapter7SetRoute(option.route, false);
                 if (typeof autoSaveGame === "function") autoSaveGame();
+                chapter7AdvanceSequence();
+            };
+            wrap.appendChild(button);
+        });
+        overlay.appendChild(wrap);
+    }
+
+    function chapter7ShowExploreChoice(event) {
+        if (!event) return;
+        window.chapter7ExploreChoiceEvent = event;
+        var overlay = document.getElementById("chapter7StoryOverlay");
+        if (!overlay) return;
+        var old = overlay.querySelector(".chapter7-story-options");
+        if (old) old.remove();
+        var remaining = (event.options || []).filter(function (option) { return !window.chapter7VisitedPlaces[option.key]; });
+        if (!remaining.length) {
+            if (chapter7SetRoute(event.commonRoute, false)) chapter7AdvanceSequence();
+            return;
+        }
+        document.getElementById("chapter7Continue").textContent = remaining.length === 1 ? "还需前往剩余地点" : "两个地点都需要寻找";
+        var wrap = document.createElement("div");
+        wrap.className = "chapter7-story-options";
+        remaining.forEach(function (option, index) {
+            var button = document.createElement("button");
+            button.className = "chapter7-story-option";
+            button.innerHTML = "<strong>" + (index + 1) + ". " + replaceChapter7Tokens(option.title) + "</strong>";
+            button.onclick = function (clickEvent) {
+                clickEvent.stopPropagation();
+                window.chapter7VisitedPlaces[option.key] = true;
+                wrap.remove();
+                chapter7SetRoute(option.route, false);
                 chapter7AdvanceSequence();
             };
             wrap.appendChild(button);
