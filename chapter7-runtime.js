@@ -258,6 +258,10 @@
             if (chapter7SetRoute(event.nextRoute, window.chapter7PerspectiveMode)) chapter7AdvanceSequence();
         } else if (event.type === "ending") {
             chapter7ShowEnding(event);
+        } else if (event.type === "endingContinue") {
+            chapter7ShowEndingContinue(event);
+        } else if (event.type === "chapterExit") {
+            chapter7ExitToHome();
         } else if (event.type === "deleteContactPrompt") {
             chapter7StartRequiredAction(event.contact || "张桂源", "delete");
         } else if (event.type === "groupExitPrompt") {
@@ -727,13 +731,17 @@
         title.className = "chapter7-prompt-title";
         title.textContent = event.title || "是否查看上帝视角？";
         wrap.appendChild(title);
-        [{ label: "是，查看上帝视角", route: event.yesRoute, perspective: true }, { label: "否，继续后续剧情", route: event.noRoute, perspective: false }].forEach(function (item) {
+        [{ label: event.yesLabel || "是，查看上帝视角", route: event.yesRoute, perspective: true }, { label: event.noLabel || "否，继续后续剧情", route: event.noRoute, perspective: false }].forEach(function (item) {
             var button = document.createElement("button");
             button.className = "chapter7-story-option";
             button.innerHTML = "<strong>" + item.label + "</strong>";
             button.onclick = function (clickEvent) {
                 clickEvent.stopPropagation();
                 wrap.remove();
+                if (item.route === "__home__") {
+                    chapter7ExitToHome();
+                    return;
+                }
                 chapter7SetRoute(item.route, item.perspective);
                 chapter7AdvanceSequence();
             };
@@ -807,6 +815,42 @@
                 }, 800);
             };
         }, 900);
+    }
+
+    function chapter7ShowEndingContinue(event) {
+        var overlay = document.getElementById("chapter7StoryOverlay");
+        if (!overlay) return;
+        var ending = document.createElement("div");
+        ending.className = "chapter7-ending";
+        ending.innerHTML = "<small>结局达成</small><strong>" + replaceChapter7Tokens(event.title || "") + "</strong>";
+        overlay.appendChild(ending);
+        requestAnimationFrame(function () { requestAnimationFrame(function () { ending.style.opacity = "1"; }); });
+        localStorage.setItem("chapter7_ending_" + (event.title || "ending"), "1");
+        if (typeof autoSaveGame === "function") autoSaveGame();
+        setTimeout(function () {
+            ending.onclick = function () {
+                ending.style.opacity = "0";
+                setTimeout(function () {
+                    ending.remove();
+                    chapter7AdvanceSequence();
+                }, 800);
+            };
+        }, 900);
+    }
+
+    function chapter7ExitToHome() {
+        var overlay = document.getElementById("chapter7StoryOverlay");
+        if (overlay) overlay.remove();
+        window.chapter7SessionActive = false;
+        window.chapter7EndingReached = false;
+        window.chapter7PerspectiveMode = false;
+        window.chapter7RouteId = "intro";
+        window.chapter7SequenceIndex = 0;
+        window.chapter7Sequence = window.chapter7Routes && window.chapter7Routes.intro;
+        window.chapter7CurrentPage = null;
+        document.getElementById("storyDetailPage").style.display = "none";
+        document.getElementById("chapterSelectPage").style.display = "block";
+        renderChapterList();
     }
 
     window.suspendChapter7Story = function () {
