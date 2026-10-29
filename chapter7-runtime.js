@@ -51,6 +51,7 @@
             '.chapter7-story-options{position:absolute;left:18px;right:18px;top:50%;transform:translateY(-50%);z-index:22;display:flex;flex-direction:column;gap:12px}.chapter7-story-option{width:100%;padding:14px 16px;background:rgba(5,5,8,.93);border:1px solid rgba(255,255,255,.48);border-radius:3px;color:#fff;text-align:left}.chapter7-story-option strong{display:block;font-size:15px;margin-bottom:5px}.chapter7-story-option span{display:block;font-size:11px;line-height:1.55;color:#bbb}.chapter7-prompt-title{text-align:center;color:#fff;font-size:18px;line-height:1.6;margin-bottom:8px;text-shadow:0 2px 4px #000}.chapter7-ending{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.9);color:#eee;opacity:0;transition:opacity .8s}.chapter7-ending small{font-size:14px;letter-spacing:5px;color:#aaa;margin-bottom:18px}.chapter7-ending strong{font-family:STKaiti,KaiTi,serif;font-size:30px;letter-spacing:4px;text-align:center;padding:0 28px}' +
             '.chapter7-ending-transition{position:absolute;inset:0;z-index:29;display:flex;align-items:center;justify-content:center;background:#050505;color:#fff;font-family:Georgia,Times New Roman,serif;font-size:48px;font-weight:700;letter-spacing:8px;opacity:0;transform:translateY(54px);transition:opacity .85s ease,transform 1.1s ease}.chapter7-ending-transition.show{opacity:1;transform:translateY(0)}' +
             '#chapter7ActionModal{position:fixed;inset:0;z-index:10020;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:24px}#chapter7ActionModal .panel{width:min(330px,88vw);overflow:hidden;border-radius:12px;background:#fff;color:#222;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.3)}#chapter7ActionModal h3{margin:22px 18px 10px;font-size:18px}#chapter7ActionModal p{margin:0 22px 22px;color:#666;font-size:14px;line-height:1.55}#chapter7ActionModal .buttons{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #eee}#chapter7ActionModal button{height:48px;border:0;background:#fff;font-size:15px}#chapter7ActionModal button+button{border-left:1px solid #eee;color:#e34e64;font-weight:600}';
+        style.textContent += '#chapter7MiniPhoneWrap{position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.76);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}#chapter7MiniPhone{width:min(310px,82vw);height:min(620px,72vh);border:9px solid #181818;border-radius:32px;background:#f3f3f3;overflow:hidden;box-shadow:0 20px 60px #000;position:relative;color:#222}#chapter7PhoneLock{position:absolute;inset:0;background:linear-gradient(150deg,#2c3347,#9c727b);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:45px 20px;font-size:13px;touch-action:none}#chapter7PhoneLock b{position:absolute;top:70px;font-size:42px;font-weight:300}#chapter7PhoneHome{display:none;height:100%;padding:65px 22px 22px;background:linear-gradient(150deg,#d6ddeb,#e8cad0)}.chapter7-phone-apps{display:grid;grid-template-columns:1fr 1fr;gap:28px 22px}.chapter7-phone-app{border:0;background:none;font-size:13px;color:#222}.chapter7-phone-app i{display:flex;width:58px;height:58px;margin:0 auto 7px;border-radius:14px;background:#fff;align-items:center;justify-content:center;font-style:normal;font-size:27px;box-shadow:0 3px 10px rgba(0,0,0,.18)}#chapter7PhonePage{display:none;height:100%;background:#fff;overflow:auto;padding:52px 15px 18px}#chapter7PhonePage h3{margin:0 0 18px;text-align:center;font-size:17px}#chapter7PhonePage .phone-back{position:absolute;left:18px;top:18px;border:0;background:none;font-size:24px}.phone-card{padding:12px;margin-bottom:12px;border-radius:10px;background:#f2f2f2;font-size:12px;line-height:1.65}.phone-card b{display:block;margin-bottom:5px}.phone-thread-title{margin:18px 0 8px;text-align:center;color:#888;font-size:11px}.phone-msg{max-width:78%;padding:9px 11px;margin:7px 0;border-radius:12px;background:#eee;font-size:12px;line-height:1.5;clear:both}.phone-msg.right{float:right;background:#95ec69}.phone-msg.center{max-width:100%;margin:8px auto;text-align:center;background:none;color:#999}.phone-msg small{display:block;color:#888;margin-bottom:3px}.phone-post{padding:14px 0;border-bottom:1px solid #eee;font-size:12px;line-height:1.65}.phone-post b{display:block;font-size:14px;margin-bottom:7px}#chapter7PutPhoneDown{border:1px solid rgba(255,255,255,.6);border-radius:18px;background:rgba(0,0,0,.7);color:#fff;padding:8px 24px;font-size:13px}';
         document.head.appendChild(style);
     }
 
@@ -272,7 +273,37 @@
             chapter7StartExposureArtistWeibo(event);
         } else if (event.type === "endingTransition") {
             chapter7ShowEndingTransition(event);
+        } else if (event.type === "embeddedPhone") {
+            chapter7ShowEmbeddedPhone(event);
         }
+    }
+
+    function chapter7ShowEmbeddedPhone(event) {
+        var overlay = document.getElementById("chapter7StoryOverlay");
+        if (!overlay) return;
+        var wrap = document.createElement("div");
+        wrap.id = "chapter7MiniPhoneWrap";
+        wrap.innerHTML = '<div id="chapter7MiniPhone"><div id="chapter7PhoneLock"><b>22:18</b><span>向上滑动解锁</span></div><div id="chapter7PhoneHome"><div class="chapter7-phone-apps"><button class="chapter7-phone-app" data-app="notes"><i>📝</i>备忘录</button><button class="chapter7-phone-app" data-app="messages"><i>💬</i>信息</button><button class="chapter7-phone-app" data-app="browser"><i>🌐</i>浏览器</button><button class="chapter7-phone-app" data-app="xhs"><i>📕</i>小红书</button></div></div><div id="chapter7PhonePage"></div></div><button id="chapter7PutPhoneDown">放下手机</button>';
+        overlay.appendChild(wrap);
+        var lock = wrap.querySelector("#chapter7PhoneLock"), startY = 0;
+        function unlock() { lock.style.transform = "translateY(-100%)"; lock.style.transition = "transform .45s"; wrap.querySelector("#chapter7PhoneHome").style.display = "block"; }
+        lock.addEventListener("touchstart", function(e){ startY = e.touches[0].clientY; }, {passive:true});
+        lock.addEventListener("touchend", function(e){ if (startY - e.changedTouches[0].clientY > 35) unlock(); });
+        lock.addEventListener("mousedown", function(e){ startY = e.clientY; });
+        lock.addEventListener("mouseup", function(e){ if (startY - e.clientY > 20) unlock(); });
+        var page = wrap.querySelector("#chapter7PhonePage"), home = wrap.querySelector("#chapter7PhoneHome");
+        function esc(v){ return chapter7EscapeHtml(replaceChapter7Tokens(v)); }
+        function openApp(name) {
+            var html = '<button class="phone-back">‹</button>';
+            if (name === "notes") { html += '<h3>备忘录</h3>' + (event.notes||[]).map(function(n){return '<div class="phone-card"><b>'+esc(n.title)+'</b>'+n.body.map(esc).join('<br>')+'</div>';}).join(''); }
+            if (name === "messages") { html += '<h3>信息</h3>' + (event.messages||[]).map(function(t){return '<div class="phone-thread-title">'+esc(t.title)+'</div>'+t.items.map(function(m){return '<div class="phone-msg '+m.side+'"><small>'+esc(m.sender)+'</small>'+esc(m.text)+'</div><div style="clear:both"></div>';}).join('');}).join(''); }
+            if (name === "browser") { html += '<h3>浏览器历史记录</h3>' + (event.browser||[]).map(function(x){return '<div class="phone-card">🔍 '+esc(x)+'</div>';}).join(''); }
+            if (name === "xhs") { html += '<h3>小红书</h3>' + (event.xhs||[]).map(function(p){return '<div class="phone-post"><b>'+esc(p.title)+'</b>'+p.lines.map(esc).join('<br>')+'</div>';}).join(''); }
+            page.innerHTML = html; home.style.display = "none"; page.style.display = "block";
+            page.querySelector(".phone-back").onclick = function(){ page.style.display="none"; home.style.display="block"; };
+        }
+        wrap.querySelectorAll("[data-app]").forEach(function(btn){ btn.onclick=function(){openApp(btn.dataset.app);}; });
+        wrap.querySelector("#chapter7PutPhoneDown").onclick = function(){ wrap.remove(); chapter7AdvanceSequence(); };
     }
 
     function chapter7EscapeHtml(value) {
@@ -731,7 +762,7 @@
         title.className = "chapter7-prompt-title";
         title.textContent = event.title || "是否查看上帝视角？";
         wrap.appendChild(title);
-        [{ label: event.yesLabel || "是，查看上帝视角", route: event.yesRoute, perspective: true }, { label: event.noLabel || "否，继续后续剧情", route: event.noRoute, perspective: false }].forEach(function (item) {
+        [{ label: event.yesLabel || "是，查看上帝视角", route: event.yesRoute, perspective: event.yesPerspective !== false }, { label: event.noLabel || "否，继续后续剧情", route: event.noRoute, perspective: false }].forEach(function (item) {
             var button = document.createElement("button");
             button.className = "chapter7-story-option";
             button.innerHTML = "<strong>" + item.label + "</strong>";
