@@ -159,6 +159,11 @@
             showMessageNotification("第七章剧情", '<span style="font-size:28px">📣</span>', "提示", "请先按照提示完成微博操作", function () {});
             return;
         }
+        if (window.chapter7PendingChat) {
+            var pendingLabel = window.chapter7PendingChat.contact === "everybody 棒棒" ? "请先点击群聊并完成聊天" : "请先进入聊天页面并完成聊天";
+            document.getElementById("chapter7Continue").textContent = pendingLabel;
+            return;
+        }
         chapter7AdvanceSequence();
     }
 
@@ -591,19 +596,24 @@
     function chapter7StartChat(contact, messages, incoming, background) {
         if (!chatData[contact]) chatData[contact] = { messages: [], newMsg: false };
         var data = chatData[contact];
+        if (contact === "everybody 棒棒") {
+            data.messages = (data.messages || []).filter(function (message) { return !message.chapter7; });
+        }
         data.chapter7ChatActive = true;
         data.newMsg = true;
+        var chatDate = contact === "everybody 棒棒" ? "2025年6月3日" : "2025年5月31日";
         (incoming || []).forEach(function (message, index) {
             if (message.withdrawn) {
-                chapter7PushMessage(contact, { from: "system", text: message.text, time: chapter7MessageTime(index), date: "2025年5月31日", read: false, chapter7: true, isSystem: true });
+                chapter7PushMessage(contact, { from: "system", text: message.text, time: chapter7MessageTime(index), date: chatDate, read: false, chapter7: true, isSystem: true });
             } else {
-                chapter7PushMessage(contact, { from: message.from, groupSender: message.from, text: replaceChapter7Tokens(message.text), avatar: chapter4GroupAvatarPath(message.from), time: chapter7MessageTime(index), date: "2025年5月31日", read: false, chapter7: true });
+                chapter7PushMessage(contact, { from: message.from, groupSender: message.from, text: replaceChapter7Tokens(message.text).replace(/。$/u, ""), avatar: chapter4GroupAvatarPath(message.from), time: chapter7MessageTime(index), date: chatDate, read: false, chapter7: true });
             }
         });
-        window.chapter7PendingChat = { contact: contact, messages: messages.map(replaceChapter7Tokens), index: 0 };
+        window.chapter7PendingChat = { contact: contact, messages: messages.map(function (text) { return replaceChapter7Tokens(text).replace(/。$/u, ""); }), index: 0, date: chatDate };
         renderChatList();
-        chapter7ShowPage({ type: "page", text: "请点击聊天列表", speaker: "提示", side: "left", bg: background || (window.chapter7CurrentPage && window.chapter7CurrentPage.bg) || "mk.jpg" });
-        document.getElementById("chapter7Continue").textContent = "请点击下方微信进入聊天列表";
+        var hintText = contact === "everybody 棒棒" ? "请点击群聊" : "请点击聊天页面";
+        chapter7ShowPage({ type: "page", text: hintText, speaker: "提示", side: "left", bg: background || (window.chapter7CurrentPage && window.chapter7CurrentPage.bg) || "mk.jpg" });
+        document.getElementById("chapter7Continue").textContent = contact === "everybody 棒棒" ? "请点击群聊" : "请点击下方微信进入聊天页面";
     }
 
     function chapter7StartScriptedChat(contact, entries, background, notifications, preloadFirstIncoming) {
@@ -714,7 +724,7 @@
         }
         var text = pending.messages[pending.index];
         showOptionsModal([text], "选择发送", function () {
-            chapter7PushMessage(pending.contact, { from: "me", text: text, time: chapter7MessageTime(pending.index + 3), date: "2025年5月31日", read: true, chapter7: true });
+            chapter7PushMessage(pending.contact, { from: "me", text: text.replace(/。$/u, ""), time: chapter7MessageTime(pending.index + 3), date: pending.date || "2025年5月31日", read: true, chapter7: true });
             pending.index += 1;
             setTimeout(chapter7ShowNextOutgoingOption, 300);
         });
