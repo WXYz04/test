@@ -55,7 +55,7 @@
             '.chapter7-story-options{position:absolute;left:18px;right:18px;top:50%;transform:translateY(-50%);z-index:22;display:flex;flex-direction:column;gap:12px}.chapter7-story-option{width:100%;padding:14px 16px;background:rgba(5,5,8,.93);border:1px solid rgba(255,255,255,.48);border-radius:3px;color:#fff;text-align:left}.chapter7-story-option strong{display:block;font-size:15px;margin-bottom:5px}.chapter7-story-option span{display:block;font-size:11px;line-height:1.55;color:#bbb}.chapter7-prompt-title{text-align:center;color:#fff;font-size:18px;line-height:1.6;margin-bottom:8px;text-shadow:0 2px 4px #000}.chapter7-ending{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.9);color:#eee;opacity:0;transition:opacity .8s}.chapter7-ending small{font-size:14px;letter-spacing:5px;color:#aaa;margin-bottom:18px}.chapter7-ending strong{font-family:STKaiti,KaiTi,serif;font-size:30px;letter-spacing:4px;text-align:center;padding:0 28px}' +
             '.chapter7-ending-transition{position:absolute;inset:0;z-index:29;display:flex;align-items:center;justify-content:center;background:#050505;color:#fff;font-family:Georgia,Times New Roman,serif;font-size:48px;font-weight:700;letter-spacing:8px;opacity:0;transform:translateY(54px);transition:opacity .85s ease,transform 1.1s ease}.chapter7-ending-transition.show{opacity:1;transform:translateY(0)}' +
             '#chapter7ActionModal{position:fixed;inset:0;z-index:10020;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:24px}#chapter7ActionModal .panel{width:min(330px,88vw);overflow:hidden;border-radius:12px;background:#fff;color:#222;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.3)}#chapter7ActionModal h3{margin:22px 18px 10px;font-size:18px}#chapter7ActionModal p{margin:0 22px 22px;color:#666;font-size:14px;line-height:1.55}#chapter7ActionModal .buttons{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #eee}#chapter7ActionModal button{height:48px;border:0;background:#fff;font-size:15px}#chapter7ActionModal button+button{border-left:1px solid #eee;color:#e34e64;font-weight:600}#chapter7PetNameModal{position:absolute;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);padding:24px}#chapter7PetNameModal .panel{width:min(330px,90%);padding:22px;border-radius:14px;background:#fff;color:#222;box-shadow:0 18px 55px rgba(0,0,0,.38)}#chapter7PetNameModal h3{margin:0 0 8px;text-align:center}#chapter7PetNameModal p{margin:0 0 16px;color:#777;text-align:center;font-size:12px}#chapter7PetNameModal label{display:block;margin:10px 0 5px;font-size:13px}#chapter7PetNameModal input{box-sizing:border-box;width:100%;height:42px;padding:0 12px;border:1px solid #ddd;border-radius:8px;font-size:15px}#chapter7PetNameModal .buttons{display:flex;gap:10px;margin-top:18px}#chapter7PetNameModal button{flex:1;height:42px;border:0;border-radius:8px;background:#eee}#chapter7PetNameModal button.confirm{background:#e85f78;color:#fff}';
-        style.textContent += '#chapter7MiniPhoneWrap{position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.76);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}#chapter7MiniPhone{width:min(310px,82vw);height:min(620px,72vh);border:9px solid #181818;border-radius:32px;background:#f3f3f3;overflow:hidden;box-shadow:0 20px 60px #000;position:relative;color:#222}#chapter7PhoneLock{position:absolute;inset:0;background:linear-gradient(150deg,#2c3347,#9c727b);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:45px 20px;font-size:13px;touch-action:none}#chapter7PhoneLock b{position:absolute;top:70px;font-size:42px;font-weight:300}#chapter7PhoneHome{display:none;height:100%;padding:65px 22px 22px;background:linear-gradient(150deg,#d6ddeb,#e8cad0)}.chapter7-phone-apps{display:grid;grid-template-columns:1fr 1fr;gap:28px 22px}.chapter7-phone-app{border:0;background:none;font-size:13px;color:#222}.chapter7-phone-app i{display:flex;width:58px;height:58px;margin:0 auto 7px;border-radius:14px;background:#fff;align-items:center;justify-content:center;font-style:normal;font-size:27px;box-shadow:0 3px 10px rgba(0,0,0,.18)}#chapter7PhonePage{display:none;height:100%;background:#fff;overflow:auto;padding:52px 15px 18px}#chapter7PhonePage h3{margin:0 0 18px;text-align:center;font-size:17px}#chapter7PhonePage .phone-back{position:absolute;left:18px;top:18px;border:0;background:none;font-size:24px}.phone-card{padding:12px;margin-bottom:12px;border-radius:10px;background:#f2f2f2;font-size:12px;line-height:1.65}.phone-card b{display:block;margin-bottom:5px}.phone-thread-title{margin:18px 0 8px;text-align:center;color:#888;font-size:11px}.phone-msg{max-width:78%;padding:9px 11px;margin:7px 0;border-radius:12px;background:#eee;font-size:12px;line-height:1.5;clear:both}.phone-msg.right{float:right;background:#95ec69}.phone-msg.center{max-width:100%;margin:8px auto;text-align:center;background:none;color:#999}.phone-msg small{display:block;color:#888;margin-bottom:3px}.phone-post{padding:14px 0;border-bottom:1px solid #eee;font-size:12px;line-height:1.65}.phone-post b{display:block;font-size:14px;margin-bottom:7px}#chapter7PutPhoneDown{border:1px solid rgba(255,255,255,.6);border-radius:18px;background:rgba(0,0,0,.7);color:#fff;padding:8px 24px;font-size:13px}';
+        style.textContent += '#chapter7MiniPhoneWrap{position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.76);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}#chapter7MiniPhone{width:min(310px,82vw);height:min(620px,72vh);border:9px solid #181818;border-radius:32px;background:#f3f3f3;overflow:hidden;box-shadow:0 20px 60px #000;position:relative;color:#222}#chapter7PhoneLock{position:absolute;inset:0;background:linear-gradient(150deg,#2c3347,#9c727b);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:45px 20px;font-size:13px;touch-action:none}#chapter7PhoneLock b{position:absolute;top:70px;font-size:42px;font-weight:300}#chapter7PhoneHome{display:none;height:100%;padding:65px 22px 22px;background:linear-gradient(150deg,#d6ddeb,#e8cad0)}.chapter7-phone-apps{display:grid;grid-template-columns:1fr 1fr;gap:28px 22px}.chapter7-phone-app{border:0;background:none;font-size:13px;color:#222}.chapter7-phone-app i{display:flex;width:58px;height:58px;margin:0 auto 7px;border-radius:14px;background:#fff;align-items:center;justify-content:center;font-style:normal;font-size:27px;box-shadow:0 3px 10px rgba(0,0,0,.18)}#chapter7PhonePage{display:none;height:100%;background:#fff;overflow:auto;padding:52px 15px 18px}#chapter7PhonePage h3{margin:0 0 18px;text-align:center;font-size:17px}#chapter7PhonePage .phone-back{position:absolute;left:18px;top:18px;border:0;background:none;font-size:24px}.phone-card{padding:12px;margin-bottom:12px;border-radius:10px;background:#f2f2f2;font-size:12px;line-height:1.65}.phone-card b{display:block;margin-bottom:5px}.phone-thread-row{display:flex;align-items:center;gap:11px;padding:12px 4px;border-bottom:1px solid #eee;cursor:pointer}.phone-thread-row .thread-icon{width:42px;height:42px;border-radius:9px;background:#75a17a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto}.phone-thread-row .thread-main{min-width:0;flex:1}.phone-thread-row b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.phone-thread-row span{display:block;margin-top:4px;color:#999;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.phone-msg{max-width:78%;padding:9px 11px;margin:7px 0;border-radius:12px;background:#eee;font-size:12px;line-height:1.5;clear:both}.phone-msg.right{float:right;background:#95ec69}.phone-msg.center{max-width:100%;margin:8px auto;text-align:center;background:none;color:#999}.phone-msg small{display:block;color:#888;margin-bottom:3px}.phone-post{padding:14px 0;border-bottom:1px solid #eee;font-size:12px;line-height:1.65}.phone-post b{display:block;font-size:14px;margin-bottom:7px}#chapter7PutPhoneDown{border:1px solid rgba(255,255,255,.6);border-radius:18px;background:rgba(0,0,0,.7);color:#fff;padding:8px 24px;font-size:13px}';
         document.head.appendChild(style);
     }
 
@@ -158,6 +158,12 @@
         }
         if (window.chapter7PendingExposureWeibo) {
             showMessageNotification("第七章剧情", '<span style="font-size:28px">📣</span>', "提示", "请先按照提示完成微博操作", function () {});
+            return;
+        }
+        if (window.chapter7PendingRequiredAction && !window.chapter7PendingRequiredAction.confirmed) {
+            var requiredLabel = window.chapter7PendingRequiredAction.actionType === "delete" ? "请先删除张桂源后继续剧情" : "请先退出群聊后继续剧情";
+            document.getElementById("chapter7Continue").textContent = requiredLabel;
+            showMessageNotification("第七章剧情", '<span style="font-size:28px">📖</span>', "提示", requiredLabel, function () {});
             return;
         }
         if (window.chapter7PendingChat) {
@@ -344,7 +350,27 @@
         function openApp(name) {
             var html = '<button class="phone-back">‹</button>';
             if (name === "notes") { html += '<h3>备忘录</h3>' + (event.notes||[]).map(function(n){return '<div class="phone-card"><b>'+esc(n.title)+'</b>'+n.body.map(esc).join('<br>')+'</div>';}).join(''); }
-            if (name === "messages") { html += '<h3>信息</h3>' + (event.messages||[]).map(function(t){return '<div class="phone-thread-title">'+esc(t.title)+'</div>'+t.items.map(function(m){return '<div class="phone-msg '+m.side+'"><small>'+esc(m.sender)+'</small>'+esc(m.text)+'</div><div style="clear:both"></div>';}).join('');}).join(''); }
+            if (name === "messages") {
+                function renderMessageList() {
+                    var listHtml = '<button class="phone-back">‹</button><h3>信息</h3>' + (event.messages || []).map(function(thread, index) {
+                        var title = thread.title === "聊天记录" ? "张桂源" : thread.title.replace(/^\d+\.\s*/, "").replace(/[｜/].*$/, "");
+                        var isGroup = /群聊/.test(thread.title);
+                        var preview = thread.items && thread.items.length ? thread.items[thread.items.length - 1].text : "";
+                        return '<div class="phone-thread-row" data-thread="' + index + '"><i class="thread-icon">' + (isGroup ? '👥' : '👤') + '</i><div class="thread-main"><b>' + esc(title) + '</b><span>' + esc(preview) + '</span></div></div>';
+                    }).join('');
+                    page.innerHTML = listHtml;
+                    page.querySelector(".phone-back").onclick = function(){ page.style.display="none"; home.style.display="block"; };
+                    page.querySelectorAll("[data-thread]").forEach(function(row){ row.onclick=function(){ renderMessageThread((event.messages || [])[Number(row.dataset.thread)]); }; });
+                }
+                function renderMessageThread(thread) {
+                    page.innerHTML = '<button class="phone-back">‹</button><h3>' + esc(thread.title === "聊天记录" ? "张桂源" : thread.title.replace(/^\d+\.\s*/, "")) + '</h3>' + (thread.items || []).map(function(m){return '<div class="phone-msg '+m.side+'"><small>'+esc(m.sender)+'</small>'+esc(m.text)+'</div><div style="clear:both"></div>';}).join('');
+                    page.querySelector(".phone-back").onclick = renderMessageList;
+                    page.scrollTop = 0;
+                }
+                page.style.display = "block"; home.style.display = "none";
+                renderMessageList();
+                return;
+            }
             if (name === "browser") { html += '<h3>浏览器历史记录</h3>' + (event.browser||[]).map(function(x){return '<div class="phone-card">🔍 '+esc(x)+'</div>';}).join(''); }
             if (name === "xhs") { html += '<h3>小红书</h3>' + (event.xhs||[]).map(function(p){return '<div class="phone-post"><b>'+esc(p.title)+'</b>'+p.lines.map(esc).join('<br>')+'</div>';}).join(''); }
             page.innerHTML = html; home.style.display = "none"; page.style.display = "block";
@@ -722,6 +748,7 @@
         input.style.color = "#999";
         renderChatMessages();
         renderChatList();
+        if (window.chapter7PendingRequiredAction && window.chapter7PendingRequiredAction.contact === contact && !window.chapter7PendingRequiredAction.confirmed) chapter7BindRequiredActionControls(window.chapter7PendingRequiredAction);
         if (window.chapter7PendingChat && window.chapter7PendingChat.contact === contact) setTimeout(window.chapter7PendingChat.scripted ? chapter7ShowNextScriptedEntry : chapter7ShowNextOutgoingOption, 350);
     };
 
@@ -863,6 +890,13 @@
         window.chapter7PendingRequiredAction = action;
         switchPage("chat");
         window.openChapter7Chat(contact);
+        chapter7BindRequiredActionControls(action);
+        var input = document.getElementById("chatInputBox");
+        if (input) input.innerText = actionType === "delete" ? "请点击右上角删除好友" : "请点击右上角退出群聊";
+    }
+
+    function chapter7BindRequiredActionControls(action) {
+        if (!action || action.confirmed) return;
         var more = document.getElementById("chatMoreBtn");
         if (more) {
             more.style.display = "block";
@@ -873,11 +907,9 @@
         }
         var back = document.getElementById("chatBackBtn");
         if (back) back.onclick = function () {
-            var message = actionType === "delete" ? "请先删除张桂源继续剧情！" : "请先退出群聊继续剧情！";
+            var message = action.actionType === "delete" ? "请先删除张桂源继续剧情！" : "请先退出群聊继续剧情！";
             showMessageNotification("第七章剧情", '<span style="font-size:28px">📖</span>', "提示", message, function () {});
         };
-        var input = document.getElementById("chatInputBox");
-        if (input) input.innerText = actionType === "delete" ? "请点击右上角删除好友" : "请点击右上角退出群聊";
     }
 
     function chapter7ShowEnding(event) {
