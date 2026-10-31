@@ -104,6 +104,7 @@
         clearInterval(window.chapter7TypingTimer);
         window.chapter7TypingTimer = null;
         window.chapter7CurrentPage = page;
+        if (String(page.text || "").indexOf("最折磨你的，其实并不是这些") === 0) chapter7StartDreamAudio();
         var overlay = document.getElementById("chapter7StoryOverlay");
         if (!overlay) return;
         var backgroundName = page.bg || "wdws.jpg";
@@ -237,6 +238,21 @@
         if (badge) badge.style.display = window.chapter7PerspectiveMode ? "block" : "none";
         if (typeof autoSaveGame === "function") autoSaveGame();
         return true;
+    }
+
+    function chapter7StartDreamAudio() {
+        if (!window.chapter7DreamAudio) {
+            window.chapter7DreamAudio = new Audio("mengya.mp3?v=20261101a");
+            window.chapter7DreamAudio.loop = true;
+            window.chapter7DreamAudio.volume = 0.55;
+        }
+        window.chapter7DreamAudio.play().catch(function () {});
+    }
+
+    function chapter7StopDreamAudio() {
+        if (!window.chapter7DreamAudio) return;
+        window.chapter7DreamAudio.pause();
+        window.chapter7DreamAudio.currentTime = 0;
     }
 
     function chapter7AdvanceSequence() {
@@ -748,6 +764,7 @@
                     return;
                 }
                 localStorage.setItem("chapter7_choice_" + (event.id || "route"), String(index));
+                if (event.id === "main_path") chapter7StopDreamAudio();
                 wrap.remove();
                 chapter7SetRoute(option.route, false);
                 if (typeof autoSaveGame === "function") autoSaveGame();
@@ -907,6 +924,7 @@
     }
 
     function chapter7ExitToHome() {
+        chapter7StopDreamAudio();
         var overlay = document.getElementById("chapter7StoryOverlay");
         if (overlay) overlay.remove();
         window.chapter7SessionActive = false;
