@@ -108,12 +108,12 @@
         var overlay = document.getElementById("chapter7StoryOverlay");
         if (!overlay) return;
         var backgroundName = page.bg || "wdws.jpg";
-        if (backgroundName === "__white__") {
+        if (backgroundName === "__white__" || backgroundName === "__black__") {
             overlay.style.backgroundImage = "none";
-            overlay.style.backgroundColor = "#fff";
+            overlay.style.backgroundColor = backgroundName === "__black__" ? "#000" : "#fff";
         } else {
             var backgroundSource = (window.chapter7EmbeddedBackgrounds && window.chapter7EmbeddedBackgrounds[backgroundName]) || backgroundName;
-            if (!/^data:/.test(backgroundSource) && backgroundSource.indexOf("?") === -1) backgroundSource += "?v=20260831b";
+            if (!/^data:/.test(backgroundSource) && backgroundSource.indexOf("?") === -1) backgroundSource += "?v=20261102a";
             overlay.style.backgroundColor = "#111";
             overlay.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.2)),url("' + backgroundSource + '")';
         }
@@ -213,6 +213,7 @@
         function start(event) {
             if (event.target && event.target.id === "chapter7SkipBtn") return;
             if (event.button !== undefined && event.button !== 0) return;
+            chapter7UnlockDreamAudio();
             window.chapter7SuppressClick = false;
             clearTimeout(window.chapter7LongPressTimer);
             window.chapter7LongPressTimer = setTimeout(function () {
@@ -247,6 +248,7 @@
     }
 
     function chapter7StartDreamAudio() {
+        window.chapter7DreamAudioShouldPlay = true;
         if (!window.chapter7DreamAudio) {
             window.chapter7DreamAudio = new Audio("mengya.mp3?v=20261101a");
             window.chapter7DreamAudio.loop = true;
@@ -255,7 +257,27 @@
         window.chapter7DreamAudio.play().catch(function () {});
     }
 
+    function chapter7UnlockDreamAudio() {
+        if (window.chapter7DreamAudioUnlocked) return;
+        if (!window.chapter7DreamAudio) {
+            window.chapter7DreamAudio = new Audio("mengya.mp3?v=20261102a");
+            window.chapter7DreamAudio.loop = true;
+        }
+        window.chapter7DreamAudio.volume = 0;
+        var promise = window.chapter7DreamAudio.play();
+        if (promise && promise.then) promise.then(function () {
+            window.chapter7DreamAudioUnlocked = true;
+            if (window.chapter7DreamAudioShouldPlay) window.chapter7DreamAudio.volume = 0.55;
+            else {
+                window.chapter7DreamAudio.pause();
+                window.chapter7DreamAudio.currentTime = 0;
+                window.chapter7DreamAudio.volume = 0.55;
+            }
+        }).catch(function () {});
+    }
+
     function chapter7StopDreamAudio() {
+        window.chapter7DreamAudioShouldPlay = false;
         if (!window.chapter7DreamAudio) return;
         window.chapter7DreamAudio.pause();
         window.chapter7DreamAudio.currentTime = 0;
@@ -460,14 +482,20 @@
         var actions = pending.revealing
             ? '<div style="text-align:center;margin-top:12px;padding:10px;color:#999;font-size:13px">评论正在出现…</div>'
             : pending.complete
-            ? '<button id="chapter7ExposureReturn" style="width:100%;margin-top:12px;padding:11px;border:0;border-radius:20px;background:#e85d75;color:#fff">返回剧情页面</button>'
+            ? '<button id="chapter7ExposureReturn" style="width:100%;margin-top:12px;padding:11px;border:0;border-radius:20px;background:#e85d75;color:#fff">返回剧情页面</button>' + (pending.event.phase === "secondPost" && !pending.customPost ? '<button id="chapter7ExposureCustomPost" style="width:100%;margin-top:9px;padding:11px;border:1px solid #e85d75;border-radius:20px;background:#fff;color:#e85d75">发微博</button>' : '')
             : '<button id="chapter7ExposureComment" style="width:100%;margin-top:12px;padding:11px;border:1px solid #e85d75;border-radius:20px;background:#fff;color:#e85d75">点击评论区发送评论</button>';
-        panel.innerHTML = '<div style="display:flex;gap:9px;align-items:center"><div style="width:38px;height:38px;border-radius:50%;overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center">' + chapter7ExposureAvatar() + '</div><div><b>' + chapter7EscapeHtml((player && (player.weiboName || player.name)) || "用户") + '</b><div style="font-size:11px;color:#aaa">刚刚</div></div></div><div style="font-size:14px;line-height:1.65;margin-top:10px;white-space:pre-wrap">' + chapter7EscapeHtml(post.content) + '</div>' + media + '<div style="font-size:12px;color:#999;margin-top:10px">评论区</div><div>' + comments + '</div>' + actions;
+        var customHtml = "";
+        if (pending.customPost) {
+            customHtml = '<div style="margin-top:18px;padding-top:14px;border-top:6px solid #f5f5f5"><div style="display:flex;gap:9px;align-items:center"><div style="width:38px;height:38px;border-radius:50%;overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center">' + chapter7ExposureAvatar() + '</div><div><b>' + chapter7EscapeHtml((player && (player.weiboName || player.name)) || "用户") + '</b><div style="font-size:11px;color:#aaa">刚刚</div></div></div><div style="font-size:14px;line-height:1.65;margin-top:10px;white-space:pre-wrap">' + chapter7EscapeHtml(pending.customPost.content) + '</div><div style="font-size:12px;color:#999;margin-top:10px">评论区</div>' + (pending.customPost.comments || []).map(function (text, index) { return '<div style="padding:7px 0;border-bottom:1px solid #f2f2f2;font-size:13px"><b>网友' + (index + 1) + '</b>：' + chapter7EscapeHtml(text) + '</div>'; }).join('') + (pending.customPost.loading ? '<div style="padding:12px;text-align:center;color:#999;font-size:12px">正在生成评论…</div>' : '') + '</div>';
+        }
+        panel.innerHTML = '<div style="display:flex;gap:9px;align-items:center"><div style="width:38px;height:38px;border-radius:50%;overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center">' + chapter7ExposureAvatar() + '</div><div><b>' + chapter7EscapeHtml((player && (player.weiboName || player.name)) || "用户") + '</b><div style="font-size:11px;color:#aaa">刚刚</div></div></div><div style="font-size:14px;line-height:1.65;margin-top:10px;white-space:pre-wrap">' + chapter7EscapeHtml(post.content) + '</div>' + media + '<div style="font-size:12px;color:#999;margin-top:10px">评论区</div><div>' + comments + '</div>' + actions + customHtml;
         container.prepend(panel);
         var commentButton = document.getElementById("chapter7ExposureComment");
         if (commentButton) commentButton.onclick = chapter7SendExposureComment;
         var returnButton = document.getElementById("chapter7ExposureReturn");
         if (returnButton) returnButton.onclick = chapter7FinishExposureStep;
+        var customButton = document.getElementById("chapter7ExposureCustomPost");
+        if (customButton) customButton.onclick = chapter7ShowCustomExposureComposer;
     }
 
     function chapter7RenderArtistWeiboPanel(active) {
@@ -539,6 +567,7 @@
 
     function chapter7RevealExposureComments(comments, pending) {
         var queue = (comments || []).slice();
+        var revealNumber = 0;
         if (!queue.length) {
             pending.complete = true;
             chapter7RenderExposurePanel();
@@ -555,12 +584,78 @@
                 return;
             }
             window.chapter7ExposurePost.fixedComments.push(queue.shift());
+            revealNumber += 1;
             if (!window.chapter7ExposurePost.timeline) window.chapter7ExposurePost.timeline = [];
             window.chapter7ExposurePost.timeline.push({ kind: "fixed", text: window.chapter7ExposurePost.fixedComments[window.chapter7ExposurePost.fixedComments.length - 1] });
             chapter7RenderExposurePanel();
+            chapter7ShowExposurePrivateMessage(pending.event.phase, revealNumber);
             setTimeout(revealNext, 720);
         }
         setTimeout(revealNext, 520);
+    }
+
+    function chapter7ShowExposurePrivateMessage(phase, number) {
+        var first = ["造谣4000+", "你没马吗这么爱蹭", "公司都澄清了又造谣了？", "丑女能不能去死啊", "你今晚睡觉别闭眼", "小姐姐您貌似只是个素人吧？"];
+        var later = ["求求你了能不能别发了", "您要毁了张桂源吗？", "你是真的喜欢他吗？", "回我一下姐姐", "能不能买照片", "我靠能不能开直播讲啊好刺激", "真的假的啊", "你有毛病吧？和豆包聊爽了？"];
+        var list = phase === "firstPost" ? first : phase === "moreComments" ? later : [];
+        var text = list[number - 1];
+        if (!text) return;
+        showMessageNotification("微博私信", '<span style="font-size:29px">💌</span>', "微博私信", text, function () { switchPage("weibo"); });
+    }
+
+    function chapter7ShowCustomExposureComposer() {
+        var pending = window.chapter7PendingExposureWeibo;
+        if (!pending || pending.customPost) return;
+        var old = document.getElementById("chapter7CustomWeiboModal");
+        if (old) old.remove();
+        var modal = document.createElement("div");
+        modal.id = "chapter7CustomWeiboModal";
+        modal.style.cssText = "position:fixed;inset:0;z-index:10035;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:22px";
+        modal.innerHTML = '<div style="width:min(350px,92vw);background:#fff;border-radius:16px;padding:18px"><div style="font-size:17px;font-weight:700;margin-bottom:12px">发微博</div><textarea maxlength="500" placeholder="写下你想说的话…" style="box-sizing:border-box;width:100%;height:130px;padding:12px;border:1px solid #ddd;border-radius:10px;resize:none;font-size:14px"></textarea><div style="display:flex;gap:10px;margin-top:14px"><button data-role="cancel" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:20px;background:#fff">取消</button><button data-role="send" style="flex:1;padding:10px;border:0;border-radius:20px;background:#e85d75;color:#fff">发送</button></div></div>';
+        document.body.appendChild(modal);
+        modal.querySelector('[data-role="cancel"]').onclick = function () { modal.remove(); };
+        modal.querySelector('[data-role="send"]').onclick = function () {
+            var content = modal.querySelector("textarea").value.trim();
+            if (!content) { alert("请输入内容"); return; }
+            modal.remove();
+            pending.customPost = { content: content, comments: [], loading: true };
+            chapter7RenderExposurePanel();
+            chapter7GenerateCustomExposureReplies(content, function (replies) {
+                if (!window.chapter7PendingExposureWeibo || window.chapter7PendingExposureWeibo !== pending || !pending.customPost) return;
+                pending.customPost.loading = false;
+                var queue = replies.slice(0, 10);
+                function next() {
+                    if (!queue.length || !window.chapter7PendingExposureWeibo || window.chapter7PendingExposureWeibo !== pending) return;
+                    pending.customPost.comments.push(queue.shift());
+                    chapter7RenderExposurePanel();
+                    if (queue.length) setTimeout(next, 520);
+                }
+                next();
+            });
+        };
+    }
+
+    function chapter7GenerateCustomExposureReplies(content, callback) {
+        var fallbackPool = ["所以现在是在承认恋爱吗", "普通同学会发这种话？", "能不能放过他啊", "姐姐你到底想说什么", "又开始蹭了是吧", "公司都回应了还在发", "我只想知道聊天记录真的假的", "不管怎样别网暴素人吧", "张桂源粉丝先冷静一下", "这瓜怎么还没结束", "她也是未成年吧嘴下留情", "到底是谁先对不起谁", "路人看得一脸懵", "能不能把事情一次说清楚", "评论区别骂得太难听了"];
+        function fallback() { return fallbackPool.slice().sort(function () { return Math.random() - 0.5; }).slice(0, 10); }
+        var baseUrl = (localStorage.getItem("api_base_url") || "").replace(/\/+$/, "");
+        var apiKey = localStorage.getItem("api_key") || "";
+        var model = localStorage.getItem("api_model") || "";
+        var customModel = localStorage.getItem("api_custom_model") || "";
+        if (!baseUrl || !apiKey) { callback(fallback()); return; }
+        var endpoint = /\/chat\/completions$/i.test(baseUrl) ? baseUrl : baseUrl + "/chat/completions";
+        var prompt = "背景：一名爱豆被曝光有女友，发帖者就是被曝光的女友，正处在激烈舆论中。她新发了一条微博：\n" + content + "\n请模拟粉丝、路人、质疑者等不同立场，生成恰好10条真实简短的微博评论。允许有情绪和质疑，但不要出现违法威胁、诅咒死亡或极端辱骂。只输出JSON字符串数组，不要解释。";
+        fetch(endpoint, { method:"POST", headers:{"Content-Type":"application/json","Authorization":"Bearer " + apiKey}, body:JSON.stringify({ model:(model === "custom" ? customModel : model) || "deepseek-v4-flash", messages:[{role:"system",content:"你负责生成符合剧情语境的中文微博评论。"},{role:"user",content:prompt}], max_tokens:600, temperature:0.95 }) })
+            .then(function (response) { if (!response.ok) throw new Error("API " + response.status); return response.json(); })
+            .then(function (data) {
+                var raw = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || "";
+                raw = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+                var replies;
+                try { replies = JSON.parse(raw); } catch (error) { replies = raw.split(/\n+/).map(function (line) { return line.replace(/^\s*(?:[-*•]|\d+[.、])\s*/, "").trim(); }).filter(Boolean); }
+                replies = Array.isArray(replies) ? replies.map(String).filter(Boolean).slice(0, 10) : [];
+                if (replies.length < 10) replies = replies.concat(fallback().slice(0, 10 - replies.length));
+                callback(replies);
+            }).catch(function () { callback(fallback()); });
     }
 
     function chapter7ShowExposureCommentModal(entry, callback) {
