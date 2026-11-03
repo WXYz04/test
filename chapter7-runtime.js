@@ -20,6 +20,28 @@
     window.chapter7ExploreChoiceEvent = null;
     window.chapter7DogName = localStorage.getItem("chapter7_dog_name") || "豆包";
     window.chapter7CatName = localStorage.getItem("chapter7_cat_name") || "年糕";
+    window.chapter7RouteBgm = null;
+
+    var chapter7TraceNodes = [
+        { kind: "choice", route: "intro", id: "main_path", title: "中考后的选择", depth: 0 },
+        { kind: "choice", route: "abroad", id: "keep_contact", title: "是否保留联系方式", depth: 1 },
+        { kind: "choice", route: "keep_contact_after_pov", id: "country_after_high_school", title: "高中毕业后的去向", depth: 2 },
+        { kind: "choice", route: "return_china_intro", id: "hotel_invitation", title: "深夜酒店邀约", depth: 3 },
+        { kind: "choice", route: "return_hotel_common", id: "still_like_zhang", title: "是否还喜欢张桂源", depth: 4 },
+        { kind: "choice", route: "return_relationship_common", id: "birthday_livestream", title: "生日直播互动", depth: 5 },
+        { kind: "choice", route: "return_live_common", id: "return_relationship_role", title: "这段关系的定位", depth: 6 },
+        { kind: "ending", title: "败犬", depth: 7 }, { kind: "ending", title: "沉沦夜色", depth: 7 },
+        { kind: "choice", route: "stay_abroad", id: "video_reply", title: "视频后的回复", depth: 3 },
+        { kind: "ending", title: "某年某月某天", depth: 4 }, { kind: "ending", title: "最熟悉的陌生人", depth: 4 },
+        { kind: "ending", title: "陌路", depth: 1 },
+        { kind: "choice", route: "find_zhang_common", id: "find_zhang_persist", title: "寻找张桂源", depth: 1 },
+        { kind: "ending", title: "借过", depth: 2 },
+        { kind: "choice", route: "find_zhang_keep", id: "like_zuoqihan", title: "左奇函的感情", depth: 2 },
+        { kind: "ending", title: "永远在一起", depth: 3 }, { kind: "extra", route: "forever_extra", title: "《永远在一起》番外", depth: 4 },
+        { kind: "ending", title: "归途", depth: 3 }, { kind: "extra", route: "homeward_extra", title: "《归途》番外", depth: 4 },
+        { kind: "choice", route: "no_contact", id: "wedding_style", title: "婚礼风格", depth: 2 },
+        { kind: "ending", title: "凤冠霞帔，共赴白首", depth: 3 }, { kind: "ending", title: "草坪上的誓言", depth: 3 }, { kind: "ending", title: "以余生之名", depth: 3 }
+    ];
 
     function replaceChapter7Tokens(text) {
         var currentPlayer = typeof player !== "undefined" ? player : {};
@@ -42,6 +64,7 @@
         style.textContent =
             '#chapter7StoryOverlay{position:fixed;top:0;bottom:70px;left:50%;transform:translateX(-50%);width:100%;max-width:500px;z-index:94;background:#111 center/cover no-repeat;overflow:hidden}' +
             '#chapter7BackBtn{position:absolute;top:max(18px,env(safe-area-inset-top));left:18px;width:42px;height:42px;border:0;border-radius:50%;background:rgba(0,0,0,.58);color:#fff;font-size:25px;z-index:8}' +
+            '#chapter7TraceBtn{position:absolute;top:max(18px,env(safe-area-inset-top));right:18px;height:42px;padding:0 15px;border:1px solid rgba(255,255,255,.35);border-radius:21px;background:rgba(0,0,0,.58);color:#fff;font-size:13px;z-index:8}' +
             '#chapter7SkipBtn{position:absolute;top:0;left:50%;transform:translate(-50%,-50%);padding:7px 15px;border:1px solid rgba(255,255,255,.45);border-radius:4px;background:rgba(0,0,0,.68);color:#fff;font-size:12px;z-index:9}' +
             '#chapter7PerspectiveBadge{display:none;position:absolute;top:max(66px,calc(env(safe-area-inset-top) + 48px));left:50%;transform:translateX(-50%);padding:6px 14px;border-radius:16px;background:rgba(65,20,20,.82);color:#f2dada;font-family:STKaiti,KaiTi,serif;font-size:13px;letter-spacing:2px;z-index:8}' +
             '#chapter7TextBox{position:absolute;left:14px;right:14px;bottom:14px;min-height:150px;padding:22px 22px 30px;border:1px solid rgba(255,255,255,.24);border-radius:10px;background:rgba(5,5,8,.86);box-shadow:0 8px 28px rgba(0,0,0,.42);color:#fff;cursor:pointer;user-select:none}' +
@@ -56,6 +79,7 @@
             '.chapter7-ending-transition{position:absolute;inset:0;z-index:29;display:flex;align-items:center;justify-content:center;background:#050505;color:#fff;font-family:Georgia,Times New Roman,serif;font-size:48px;font-weight:700;letter-spacing:8px;opacity:0;transform:translateY(54px);transition:opacity .85s ease,transform 1.1s ease}.chapter7-ending-transition.show{opacity:1;transform:translateY(0)}' +
             '#chapter7ActionModal{position:fixed;inset:0;z-index:10020;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:24px}#chapter7ActionModal .panel{width:min(330px,88vw);overflow:hidden;border-radius:12px;background:#fff;color:#222;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.3)}#chapter7ActionModal h3{margin:22px 18px 10px;font-size:18px}#chapter7ActionModal p{margin:0 22px 22px;color:#666;font-size:14px;line-height:1.55}#chapter7ActionModal .buttons{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #eee}#chapter7ActionModal button{height:48px;border:0;background:#fff;font-size:15px}#chapter7ActionModal button+button{border-left:1px solid #eee;color:#e34e64;font-weight:600}#chapter7PetNameModal{position:absolute;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);padding:24px}#chapter7PetNameModal .panel{width:min(330px,90%);padding:22px;border-radius:14px;background:#fff;color:#222;box-shadow:0 18px 55px rgba(0,0,0,.38)}#chapter7PetNameModal h3{margin:0 0 8px;text-align:center}#chapter7PetNameModal p{margin:0 0 16px;color:#777;text-align:center;font-size:12px}#chapter7PetNameModal label{display:block;margin:10px 0 5px;font-size:13px}#chapter7PetNameModal input{box-sizing:border-box;width:100%;height:42px;padding:0 12px;border:1px solid #ddd;border-radius:8px;font-size:15px}#chapter7PetNameModal .buttons{display:flex;gap:10px;margin-top:18px}#chapter7PetNameModal button{flex:1;height:42px;border:0;border-radius:8px;background:#eee}#chapter7PetNameModal button.confirm{background:#e85f78;color:#fff}';
         style.textContent += '#chapter7MiniPhoneWrap{position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.76);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}#chapter7MiniPhone{width:min(310px,82vw);height:min(620px,72vh);border:9px solid #181818;border-radius:32px;background:#f3f3f3;overflow:hidden;box-shadow:0 20px 60px #000;position:relative;color:#222}#chapter7PhoneLock{position:absolute;inset:0;background:linear-gradient(150deg,#2c3347,#9c727b);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:45px 20px;font-size:13px;touch-action:none}#chapter7PhoneLock b{position:absolute;top:70px;font-size:42px;font-weight:300}#chapter7PhoneHome{display:none;height:100%;padding:65px 22px 22px;background:linear-gradient(150deg,#d6ddeb,#e8cad0)}.chapter7-phone-apps{display:grid;grid-template-columns:1fr 1fr;gap:28px 22px}.chapter7-phone-app{border:0;background:none;font-size:13px;color:#222}.chapter7-phone-app i{display:flex;width:58px;height:58px;margin:0 auto 7px;border-radius:14px;background:#fff;align-items:center;justify-content:center;font-style:normal;font-size:27px;box-shadow:0 3px 10px rgba(0,0,0,.18)}#chapter7PhonePage{display:none;height:100%;background:#fff;overflow:auto;padding:52px 15px 18px}#chapter7PhonePage h3{margin:0 0 18px;text-align:center;font-size:17px}#chapter7PhonePage .phone-back{position:absolute;left:18px;top:18px;border:0;background:none;font-size:24px}.phone-card{padding:12px;margin-bottom:12px;border-radius:10px;background:#f2f2f2;font-size:12px;line-height:1.65}.phone-card b{display:block;margin-bottom:5px}.phone-thread-row{display:flex;align-items:center;gap:11px;padding:12px 4px;border-bottom:1px solid #eee;cursor:pointer}.phone-thread-row .thread-icon{width:42px;height:42px;border-radius:9px;background:#75a17a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto}.phone-thread-row .thread-main{min-width:0;flex:1}.phone-thread-row b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.phone-thread-row span{display:block;margin-top:4px;color:#999;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.phone-msg{max-width:78%;padding:9px 11px;margin:7px 0;border-radius:12px;background:#eee;font-size:12px;line-height:1.5;clear:both}.phone-msg.right{float:right;background:#95ec69}.phone-msg.center{max-width:100%;margin:8px auto;text-align:center;background:none;color:#999}.phone-msg small{display:block;color:#888;margin-bottom:3px}.phone-post{padding:14px 0;border-bottom:1px solid #eee;font-size:12px;line-height:1.65}.phone-post b{display:block;font-size:14px;margin-bottom:7px}#chapter7PutPhoneDown{border:1px solid rgba(255,255,255,.6);border-radius:18px;background:rgba(0,0,0,.7);color:#fff;padding:8px 24px;font-size:13px}';
+        style.textContent += '#chapter7TipModal,#chapter7TraceModal{position:absolute;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.76)}#chapter7TipModal .panel{width:min(340px,92%);padding:24px 20px;border:1px solid rgba(255,255,255,.28);border-radius:16px;background:#17171b;color:#fff;text-align:center;box-shadow:0 18px 55px #000}#chapter7TipModal h3{margin:0 0 14px;font-size:20px}#chapter7TipModal p{margin:0;color:#ddd;font-size:14px;line-height:1.9}#chapter7TipModal button{width:100%;margin-top:20px;padding:11px;border:0;border-radius:22px;background:#e85f78;color:#fff;font-size:14px}#chapter7TraceModal{align-items:stretch;padding:14px}#chapter7TraceModal .trace-panel{position:relative;width:100%;max-width:470px;padding:58px 14px 20px;border-radius:16px;background:#11141b;color:#fff;overflow:auto}#chapter7TraceModal .trace-title{position:absolute;top:18px;left:20px;font-size:18px;font-weight:700}#chapter7TraceClose{position:absolute;top:12px;right:12px;width:38px;height:38px;border:0;border-radius:50%;background:#2a2e38;color:#fff;font-size:22px}.chapter7-trace-node{position:relative;display:block;width:calc(100% - var(--indent));margin:0 0 12px var(--indent);padding:11px 13px;border:1px solid #4d5362;border-radius:9px;background:#242832;color:#8b909b;text-align:left}.chapter7-trace-node:before{content:"";position:absolute;right:100%;top:50%;width:calc(var(--indent) + 1px);border-top:1px solid #505766}.chapter7-trace-node.played{border-color:#e86a82;background:linear-gradient(135deg,#472530,#272934);color:#fff;box-shadow:0 0 14px rgba(232,95,120,.18)}.chapter7-trace-node.choice{cursor:pointer}.chapter7-trace-node small{display:block;margin-top:3px;color:#aeb3bd;font-size:10px}';
         document.head.appendChild(style);
     }
 
@@ -82,23 +106,66 @@
         if (old) old.remove();
         var overlay = document.createElement("div");
         overlay.id = "chapter7StoryOverlay";
-        overlay.innerHTML = '<button id="chapter7BackBtn">←</button><div id="chapter7PerspectiveBadge">张桂源视角</div><div id="chapter7TextBox"><button id="chapter7SkipBtn">Skip</button><div id="chapter7NamePlate"></div><div id="chapter7Text"></div><div id="chapter7Continue">点击继续</div></div><div id="chapter7Opening"><div class="chapter-no">第七章</div><div class="chapter-name">梦哑</div></div>';
+        overlay.innerHTML = '<button id="chapter7BackBtn">←</button><button id="chapter7TraceBtn">回溯</button><div id="chapter7PerspectiveBadge">张桂源视角</div><div id="chapter7TextBox"><button id="chapter7SkipBtn">Skip</button><div id="chapter7NamePlate"></div><div id="chapter7Text"></div><div id="chapter7Continue">点击继续</div></div><div id="chapter7Opening"><div class="chapter-no">第七章</div><div class="chapter-name">梦哑</div></div>';
         document.getElementById("gameScreen").appendChild(overlay);
         document.getElementById("chapter7BackBtn").onclick = function (event) {
             event.stopPropagation();
             window.closeChapter7Story();
         };
         document.getElementById("chapter7TextBox").onclick = chapter7HandleTextBoxClick;
+        document.getElementById("chapter7TraceBtn").onclick = function (event) { event.stopPropagation(); chapter7ShowTrace(); };
         installChapter7LongPress();
         document.getElementById("chapter7SkipBtn").onclick = function (event) {
             event.stopPropagation();
             chapter7SkipToNextChoice();
         };
-        var opening = document.getElementById("chapter7Opening");
-        requestAnimationFrame(function () { requestAnimationFrame(function () { opening.style.opacity = "1"; }); });
-        setTimeout(function () { opening.style.opacity = "0"; }, 1750);
-        setTimeout(function () { opening.remove(); chapter7AdvanceSequence(); }, 2500);
+        chapter7ShowTip(function () {
+            var opening = document.getElementById("chapter7Opening");
+            requestAnimationFrame(function () { requestAnimationFrame(function () { opening.style.opacity = "1"; }); });
+            setTimeout(function () { opening.style.opacity = "0"; }, 1750);
+            setTimeout(function () { opening.remove(); chapter7AdvanceSequence(); }, 2500);
+        });
     };
+
+    function chapter7ShowTip(done) {
+        var overlay = document.getElementById("chapter7StoryOverlay"), modal = document.createElement("div");
+        modal.id = "chapter7TipModal";
+        modal.innerHTML = '<div class="panel"><h3>食用提示</h3><p>长按可以进行剧情加速，点击 Skip 能够跳转到下一个选项，左上角的回溯可以快速体验其他结局。<br>含有部分语音和 BGM，可以开启声音食用哦～</p><button type="button">知道了，开始剧情</button></div>';
+        overlay.appendChild(modal);
+        modal.querySelector("button").onclick = function () { modal.remove(); done(); };
+    }
+
+    function chapter7NodePlayed(node) {
+        if (node.kind === "ending") return localStorage.getItem("chapter7_ending_" + node.title) === "1";
+        if (node.kind === "choice") return localStorage.getItem("chapter7_choice_" + node.id) !== null;
+        return localStorage.getItem("chapter7_route_" + node.route) === "1";
+    }
+    function chapter7ShowTrace() {
+        var overlay = document.getElementById("chapter7StoryOverlay");
+        if (!overlay || document.getElementById("chapter7TraceModal")) return;
+        var modal = document.createElement("div");
+        modal.id = "chapter7TraceModal";
+        modal.innerHTML = '<div class="trace-panel"><div class="trace-title">剧情回溯</div><button id="chapter7TraceClose">×</button><div id="chapter7TraceTree"></div></div>';
+        overlay.appendChild(modal);
+        var tree = modal.querySelector("#chapter7TraceTree");
+        chapter7TraceNodes.forEach(function (node) {
+            var played = chapter7NodePlayed(node), button = document.createElement("button");
+            button.className = "chapter7-trace-node " + node.kind + (played ? " played" : "");
+            button.style.setProperty("--indent", (node.depth * 18) + "px");
+            button.innerHTML = '<b>' + (node.kind === "ending" && !played ? "？？？" : chapter7EscapeHtml(node.title)) + '</b><small>' + (node.kind === "choice" ? "选项分歧 · 点击跳转" : node.kind === "extra" ? "番外" : "结局") + '</small>';
+            if (node.kind === "choice") button.onclick = function () {
+                var sequence = window.chapter7Routes[node.route] || [];
+                var index = sequence.findIndex(function (event) { return event.type === "choice" && event.id === node.id; });
+                if (index < 0) return;
+                modal.remove();
+                overlay.querySelectorAll(".chapter7-story-options,.chapter7-ending,.chapter7-ending-transition").forEach(function (element) { element.remove(); });
+                window.chapter7PendingChat = null; window.chapter7PendingRequiredAction = null; window.chapter7PendingExposureWeibo = null;
+                chapter7SetRoute(node.route, false); window.chapter7SequenceIndex = index; chapter7AdvanceSequence();
+            }; else button.disabled = true;
+            tree.appendChild(button);
+        });
+        modal.querySelector("#chapter7TraceClose").onclick = function () { modal.remove(); };
+    }
 
     function chapter7ShowPage(page) {
         clearInterval(window.chapter7TypingTimer);
@@ -107,7 +174,7 @@
         if (String(page.text || "").indexOf("最折磨你的，其实并不是这些") === 0) chapter7StartDreamAudio();
         var overlay = document.getElementById("chapter7StoryOverlay");
         if (!overlay) return;
-        var backgroundName = page.bg || "wdws.jpg";
+        var backgroundName = page.text === "学校那边的情况也越来越糟。" ? "bj1.jpg" : (page.bg || "wdws.jpg");
         if (backgroundName === "__white__" || backgroundName === "__black__") {
             overlay.style.backgroundImage = "none";
             overlay.style.backgroundColor = backgroundName === "__black__" ? "#000" : "#fff";
@@ -240,6 +307,7 @@
         window.chapter7RouteId = routeId;
         window.chapter7SequenceIndex = 0;
         window.chapter7Sequence = window.chapter7Routes[routeId];
+        localStorage.setItem("chapter7_route_" + routeId, "1");
         if (typeof perspective === "boolean") window.chapter7PerspectiveMode = perspective;
         var badge = document.getElementById("chapter7PerspectiveBadge");
         if (badge) badge.style.display = window.chapter7PerspectiveMode ? "block" : "none";
@@ -330,7 +398,44 @@
             chapter7ShowEmbeddedPhone(event);
         } else if (event.type === "petNamePrompt") {
             chapter7ShowPetNamePrompt();
+        } else if (event.type === "audioStart") {
+            chapter7StartRouteBgm(event);
+            chapter7AdvanceSequence();
+        } else if (event.type === "audioFadeOut") {
+            chapter7FadeRouteBgm(event.duration || 1800);
+            chapter7AdvanceSequence();
         }
+    }
+
+    function chapter7StartRouteBgm(event) {
+        chapter7FadeRouteBgm(250);
+        var audio = new Audio(event.src || "bxna-small.mp3");
+        audio.loop = true;
+        audio.volume = typeof event.volume === "number" ? event.volume : 0.48;
+        audio.onerror = function () {
+            if (audio.dataset.fallback) return;
+            audio.dataset.fallback = "1";
+            audio.src = "bxna.mp3";
+            audio.play().catch(function () {});
+        };
+        window.chapter7RouteBgm = audio;
+        audio.play().catch(function () {});
+    }
+
+    function chapter7FadeRouteBgm(duration) {
+        var audio = window.chapter7RouteBgm;
+        if (!audio) return;
+        var startVolume = audio.volume, started = Date.now();
+        var timer = setInterval(function () {
+            var ratio = Math.min(1, (Date.now() - started) / duration);
+            audio.volume = Math.max(0, startVolume * (1 - ratio));
+            if (ratio >= 1) {
+                clearInterval(timer);
+                audio.pause();
+                audio.currentTime = 0;
+                if (window.chapter7RouteBgm === audio) window.chapter7RouteBgm = null;
+            }
+        }, 60);
     }
 
     function chapter7ShowPetNamePrompt() {
@@ -664,7 +769,7 @@
         var modal = document.createElement("div");
         modal.id = "chapter7ExposureCommentModal";
         modal.style.cssText = "position:fixed;inset:0;z-index:10030;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:22px";
-        modal.innerHTML = '<div style="width:min(340px,92vw);background:#fff;border-radius:16px;padding:18px;box-shadow:0 16px 48px rgba(0,0,0,.3)"><div style="font-weight:700;font-size:16px;margin-bottom:12px">发送评论</div><div style="padding:12px;border:1px solid #eee;border-radius:10px;font-size:14px;line-height:1.6;word-break:break-word">' + chapter7EscapeHtml(entry.text) + (entry.image ? '<div style="margin-top:9px;color:#999;font-size:12px">附带图片：' + chapter7EscapeHtml(entry.image) + '</div>' : '') + '</div><div style="display:flex;gap:10px;margin-top:16px"><button type="button" data-role="cancel" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#666">取消</button><button type="button" data-role="send" style="flex:1;padding:10px;border:0;border-radius:20px;background:#e85d75;color:#fff">发送</button></div></div>';
+        modal.innerHTML = '<div style="width:min(340px,92vw);background:#fff;border-radius:16px;padding:18px;box-shadow:0 16px 48px rgba(0,0,0,.3)"><div style="font-weight:700;font-size:16px;margin-bottom:12px">发送评论</div><div style="padding:12px;border:1px solid #eee;border-radius:10px;font-size:14px;line-height:1.6;word-break:break-word">' + chapter7EscapeHtml(entry.text) + (entry.image ? '<div style="margin-top:9px;color:#999;font-size:12px">附带照片</div>' : '') + '</div><div style="display:flex;gap:10px;margin-top:16px"><button type="button" data-role="cancel" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#666">取消</button><button type="button" data-role="send" style="flex:1;padding:10px;border:0;border-radius:20px;background:#e85d75;color:#fff">发送</button></div></div>';
         document.body.appendChild(modal);
         modal.querySelector('[data-role="cancel"]').onclick = function () { modal.remove(); };
         modal.querySelector('[data-role="send"]').onclick = function () {
@@ -1052,6 +1157,7 @@
 
     function chapter7ExitToHome() {
         chapter7StopDreamAudio();
+        chapter7FadeRouteBgm(700);
         var overlay = document.getElementById("chapter7StoryOverlay");
         if (overlay) overlay.remove();
         window.chapter7SessionActive = false;
