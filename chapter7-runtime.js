@@ -23,24 +23,30 @@
     window.chapter7RouteBgm = null;
 
     var chapter7TraceNodes = [
-        { kind: "choice", route: "intro", id: "main_path", title: "中考后的选择", depth: 0 },
-        { kind: "choice", route: "abroad", id: "keep_contact", title: "是否保留联系方式", depth: 1 },
-        { kind: "choice", route: "keep_contact_after_pov", id: "country_after_high_school", title: "高中毕业后的去向", depth: 2 },
-        { kind: "choice", route: "return_china_intro", id: "hotel_invitation", title: "深夜酒店邀约", depth: 3 },
-        { kind: "choice", route: "return_hotel_common", id: "still_like_zhang", title: "是否还喜欢张桂源", depth: 4 },
-        { kind: "choice", route: "return_relationship_common", id: "birthday_livestream", title: "生日直播互动", depth: 5 },
-        { kind: "choice", route: "return_live_common", id: "return_relationship_role", title: "这段关系的定位", depth: 6 },
-        { kind: "ending", title: "败犬", depth: 7 }, { kind: "ending", title: "沉沦夜色", depth: 7 },
-        { kind: "choice", route: "stay_abroad", id: "video_reply", title: "视频后的回复", depth: 3 },
-        { kind: "ending", title: "某年某月某天", depth: 4 }, { kind: "ending", title: "最熟悉的陌生人", depth: 4 },
-        { kind: "ending", title: "陌路", depth: 1 },
-        { kind: "choice", route: "find_zhang_common", id: "find_zhang_persist", title: "寻找张桂源", depth: 1 },
-        { kind: "ending", title: "借过", depth: 2 },
-        { kind: "choice", route: "find_zhang_keep", id: "like_zuoqihan", title: "左奇函的感情", depth: 2 },
-        { kind: "ending", title: "永远在一起", depth: 3 }, { kind: "extra", route: "forever_extra", title: "《永远在一起》番外", depth: 4 },
-        { kind: "ending", title: "归途", depth: 3 }, { kind: "extra", route: "homeward_extra", title: "《归途》番外", depth: 4 },
-        { kind: "choice", route: "no_contact", id: "wedding_style", title: "婚礼风格", depth: 2 },
-        { kind: "ending", title: "凤冠霞帔，共赴白首", depth: 3 }, { kind: "ending", title: "草坪上的誓言", depth: 3 }, { kind: "ending", title: "以余生之名", depth: 3 }
+        { key:"root", kind:"choice", route:"intro", id:"main_path", title:"中考后的选择", x:30, y:430 },
+        { key:"contact", parent:"root", kind:"choice", route:"abroad", id:"keep_contact", title:"是否保留联系方式", x:250, y:170 },
+        { key:"country", parent:"contact", kind:"choice", route:"keep_contact_after_pov", id:"country_after_high_school", title:"高中毕业后的去向", x:470, y:80 },
+        { key:"hotel", parent:"country", kind:"choice", route:"return_china_intro", id:"hotel_invitation", title:"深夜酒店邀约", x:690, y:20 },
+        { key:"like", parent:"hotel", kind:"choice", route:"return_hotel_common", id:"still_like_zhang", title:"是否还喜欢张桂源", x:910, y:20 },
+        { key:"live", parent:"like", kind:"choice", route:"return_relationship_common", id:"birthday_livestream", title:"生日直播互动", x:1130, y:20 },
+        { key:"role", parent:"live", kind:"choice", route:"return_live_common", id:"return_relationship_role", title:"这段关系的定位", x:1350, y:20 },
+        { key:"loser", parent:"role", kind:"ending", title:"败犬", x:1570, y:0 },
+        { key:"sinking", parent:"role", kind:"ending", title:"沉沦夜色", x:1570, y:80 },
+        { key:"video", parent:"country", kind:"choice", route:"stay_abroad", id:"video_reply", title:"视频后的回复", x:690, y:160 },
+        { key:"some_day", parent:"video", kind:"ending", title:"某年某月某天", x:910, y:125 },
+        { key:"stranger", parent:"video", kind:"ending", title:"最熟悉的陌生人", x:910, y:205 },
+        { key:"wedding", parent:"contact", kind:"choice", route:"no_contact", id:"wedding_style", title:"婚礼风格", x:470, y:300 },
+        { key:"chinese", parent:"wedding", kind:"ending", title:"凤冠霞帔，共赴白首", x:690, y:260 },
+        { key:"lawn", parent:"wedding", kind:"ending", title:"草坪上的誓言", x:690, y:340 },
+        { key:"western", parent:"wedding", kind:"ending", title:"以余生之名", x:690, y:420 },
+        { key:"expose", parent:"root", kind:"ending", title:"陌路", x:250, y:500 },
+        { key:"find", parent:"root", kind:"choice", route:"find_zhang_common", id:"find_zhang_persist", title:"寻找张桂源", x:250, y:700 },
+        { key:"borrow", parent:"find", kind:"ending", title:"借过", x:470, y:580 },
+        { key:"left", parent:"find", kind:"choice", route:"find_zhang_keep", id:"like_zuoqihan", title:"左奇函的感情", x:470, y:760 },
+        { key:"forever", parent:"left", kind:"ending", title:"永远在一起", x:690, y:680 },
+        { key:"forever_extra", parent:"forever", kind:"extra", route:"forever_extra", title:"《永远在一起》番外", x:910, y:680 },
+        { key:"homeward", parent:"left", kind:"ending", title:"归途", x:690, y:840 },
+        { key:"homeward_extra", parent:"homeward", kind:"extra", route:"homeward_extra", title:"《归途》番外", x:910, y:840 }
     ];
 
     function replaceChapter7Tokens(text) {
@@ -79,7 +85,7 @@
             '.chapter7-ending-transition{position:absolute;inset:0;z-index:29;display:flex;align-items:center;justify-content:center;background:#050505;color:#fff;font-family:Georgia,Times New Roman,serif;font-size:48px;font-weight:700;letter-spacing:8px;opacity:0;transform:translateY(54px);transition:opacity .85s ease,transform 1.1s ease}.chapter7-ending-transition.show{opacity:1;transform:translateY(0)}' +
             '#chapter7ActionModal{position:fixed;inset:0;z-index:10020;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:24px}#chapter7ActionModal .panel{width:min(330px,88vw);overflow:hidden;border-radius:12px;background:#fff;color:#222;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.3)}#chapter7ActionModal h3{margin:22px 18px 10px;font-size:18px}#chapter7ActionModal p{margin:0 22px 22px;color:#666;font-size:14px;line-height:1.55}#chapter7ActionModal .buttons{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #eee}#chapter7ActionModal button{height:48px;border:0;background:#fff;font-size:15px}#chapter7ActionModal button+button{border-left:1px solid #eee;color:#e34e64;font-weight:600}#chapter7PetNameModal{position:absolute;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);padding:24px}#chapter7PetNameModal .panel{width:min(330px,90%);padding:22px;border-radius:14px;background:#fff;color:#222;box-shadow:0 18px 55px rgba(0,0,0,.38)}#chapter7PetNameModal h3{margin:0 0 8px;text-align:center}#chapter7PetNameModal p{margin:0 0 16px;color:#777;text-align:center;font-size:12px}#chapter7PetNameModal label{display:block;margin:10px 0 5px;font-size:13px}#chapter7PetNameModal input{box-sizing:border-box;width:100%;height:42px;padding:0 12px;border:1px solid #ddd;border-radius:8px;font-size:15px}#chapter7PetNameModal .buttons{display:flex;gap:10px;margin-top:18px}#chapter7PetNameModal button{flex:1;height:42px;border:0;border-radius:8px;background:#eee}#chapter7PetNameModal button.confirm{background:#e85f78;color:#fff}';
         style.textContent += '#chapter7MiniPhoneWrap{position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.76);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}#chapter7MiniPhone{width:min(310px,82vw);height:min(620px,72vh);border:9px solid #181818;border-radius:32px;background:#f3f3f3;overflow:hidden;box-shadow:0 20px 60px #000;position:relative;color:#222}#chapter7PhoneLock{position:absolute;inset:0;background:linear-gradient(150deg,#2c3347,#9c727b);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:45px 20px;font-size:13px;touch-action:none}#chapter7PhoneLock b{position:absolute;top:70px;font-size:42px;font-weight:300}#chapter7PhoneHome{display:none;height:100%;padding:65px 22px 22px;background:linear-gradient(150deg,#d6ddeb,#e8cad0)}.chapter7-phone-apps{display:grid;grid-template-columns:1fr 1fr;gap:28px 22px}.chapter7-phone-app{border:0;background:none;font-size:13px;color:#222}.chapter7-phone-app i{display:flex;width:58px;height:58px;margin:0 auto 7px;border-radius:14px;background:#fff;align-items:center;justify-content:center;font-style:normal;font-size:27px;box-shadow:0 3px 10px rgba(0,0,0,.18)}#chapter7PhonePage{display:none;height:100%;background:#fff;overflow:auto;padding:52px 15px 18px}#chapter7PhonePage h3{margin:0 0 18px;text-align:center;font-size:17px}#chapter7PhonePage .phone-back{position:absolute;left:18px;top:18px;border:0;background:none;font-size:24px}.phone-card{padding:12px;margin-bottom:12px;border-radius:10px;background:#f2f2f2;font-size:12px;line-height:1.65}.phone-card b{display:block;margin-bottom:5px}.phone-thread-row{display:flex;align-items:center;gap:11px;padding:12px 4px;border-bottom:1px solid #eee;cursor:pointer}.phone-thread-row .thread-icon{width:42px;height:42px;border-radius:9px;background:#75a17a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto}.phone-thread-row .thread-main{min-width:0;flex:1}.phone-thread-row b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.phone-thread-row span{display:block;margin-top:4px;color:#999;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.phone-msg{max-width:78%;padding:9px 11px;margin:7px 0;border-radius:12px;background:#eee;font-size:12px;line-height:1.5;clear:both}.phone-msg.right{float:right;background:#95ec69}.phone-msg.center{max-width:100%;margin:8px auto;text-align:center;background:none;color:#999}.phone-msg small{display:block;color:#888;margin-bottom:3px}.phone-post{padding:14px 0;border-bottom:1px solid #eee;font-size:12px;line-height:1.65}.phone-post b{display:block;font-size:14px;margin-bottom:7px}#chapter7PutPhoneDown{border:1px solid rgba(255,255,255,.6);border-radius:18px;background:rgba(0,0,0,.7);color:#fff;padding:8px 24px;font-size:13px}';
-        style.textContent += '#chapter7TipModal,#chapter7TraceModal{position:absolute;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.76)}#chapter7TipModal .panel{width:min(340px,92%);padding:24px 20px;border:1px solid rgba(255,255,255,.28);border-radius:16px;background:#17171b;color:#fff;text-align:center;box-shadow:0 18px 55px #000}#chapter7TipModal h3{margin:0 0 14px;font-size:20px}#chapter7TipModal p{margin:0;color:#ddd;font-size:14px;line-height:1.9}#chapter7TipModal button{width:100%;margin-top:20px;padding:11px;border:0;border-radius:22px;background:#e85f78;color:#fff;font-size:14px}#chapter7TraceModal{align-items:stretch;padding:14px}#chapter7TraceModal .trace-panel{position:relative;width:100%;max-width:470px;padding:58px 14px 20px;border-radius:16px;background:#11141b;color:#fff;overflow:auto}#chapter7TraceModal .trace-title{position:absolute;top:18px;left:20px;font-size:18px;font-weight:700}#chapter7TraceClose{position:absolute;top:12px;right:12px;width:38px;height:38px;border:0;border-radius:50%;background:#2a2e38;color:#fff;font-size:22px}.chapter7-trace-node{position:relative;display:block;width:calc(100% - var(--indent));margin:0 0 12px var(--indent);padding:11px 13px;border:1px solid #4d5362;border-radius:9px;background:#242832;color:#8b909b;text-align:left}.chapter7-trace-node:before{content:"";position:absolute;right:100%;top:50%;width:calc(var(--indent) + 1px);border-top:1px solid #505766}.chapter7-trace-node.played{border-color:#e86a82;background:linear-gradient(135deg,#472530,#272934);color:#fff;box-shadow:0 0 14px rgba(232,95,120,.18)}.chapter7-trace-node.choice{cursor:pointer}.chapter7-trace-node small{display:block;margin-top:3px;color:#aeb3bd;font-size:10px}';
+        style.textContent += '#chapter7TipModal,#chapter7TraceModal{position:absolute;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.76)}#chapter7TipModal .panel{width:min(340px,92%);padding:24px 20px;border:1px solid rgba(255,255,255,.28);border-radius:16px;background:#17171b;color:#fff;text-align:center;box-shadow:0 18px 55px #000}#chapter7TipModal h3{margin:0 0 14px;font-size:20px}#chapter7TipModal p{margin:0;color:#ddd;font-size:14px;line-height:1.9}#chapter7TipModal button{width:100%;margin-top:20px;padding:11px;border:0;border-radius:22px;background:#e85f78;color:#fff;font-size:14px}#chapter7TraceModal{padding:0;background:#f7f3f8}#chapter7TraceModal .trace-panel{position:relative;width:100%;height:100%;background:linear-gradient(#faf8fb,#f4eff6);color:#222;overflow:hidden;touch-action:none}#chapter7TraceModal .trace-title{position:absolute;z-index:4;top:17px;left:20px;font-size:18px;font-weight:700;color:#382d3d}#chapter7TraceHint{position:absolute;z-index:4;top:44px;left:20px;color:#8d8091;font-size:11px}#chapter7TraceClose{position:absolute;z-index:5;top:13px;right:14px;width:38px;height:38px;border:0;border-radius:50%;background:#fff;color:#4f4053;font-size:22px;box-shadow:0 3px 14px rgba(73,47,78,.16)}#chapter7TraceViewport{position:absolute;inset:70px 0 0;overflow:hidden;cursor:grab}#chapter7TraceViewport.dragging{cursor:grabbing}#chapter7TraceStage{position:absolute;left:0;top:0;width:1800px;height:930px;transform-origin:0 0;will-change:transform}#chapter7TraceLines{position:absolute;inset:0;width:1800px;height:930px;overflow:visible}.chapter7-trace-line{fill:none;stroke:#8a728f;stroke-width:2}.chapter7-trace-node{position:absolute;width:176px;min-height:58px;padding:11px 13px;border:1px solid #cdbdd2;border-radius:9px;background:#eadff0;color:#58495d;text-align:center;box-shadow:0 3px 9px rgba(83,56,88,.11)}.chapter7-trace-node.played{border-color:#df6480;background:linear-gradient(135deg,#f59ab0,#dd667f);color:#fff;box-shadow:0 0 16px rgba(224,86,116,.28)}.chapter7-trace-node.choice{cursor:pointer}.chapter7-trace-node.choice:not(.played){background:#f5d9a5;border-color:#d8ae5d;color:#624c24}.chapter7-trace-node.extra:not(.played){background:#e5d9e9}.chapter7-trace-node small{display:block;margin-top:4px;color:inherit;font-size:10px;opacity:.74}';
         document.head.appendChild(style);
     }
 
@@ -145,13 +151,23 @@
         if (!overlay || document.getElementById("chapter7TraceModal")) return;
         var modal = document.createElement("div");
         modal.id = "chapter7TraceModal";
-        modal.innerHTML = '<div class="trace-panel"><div class="trace-title">剧情回溯</div><button id="chapter7TraceClose">×</button><div id="chapter7TraceTree"></div></div>';
+        modal.innerHTML = '<div class="trace-panel"><div class="trace-title">剧情回溯</div><div id="chapter7TraceHint">拖动查看 · 双指缩放 · 点击分歧跳转</div><button id="chapter7TraceClose">×</button><div id="chapter7TraceViewport"><div id="chapter7TraceStage"><svg id="chapter7TraceLines" viewBox="0 0 1800 930"></svg><div id="chapter7TraceTree"></div></div></div></div>';
         overlay.appendChild(modal);
-        var tree = modal.querySelector("#chapter7TraceTree");
+        var tree = modal.querySelector("#chapter7TraceTree"), lines = modal.querySelector("#chapter7TraceLines");
+        var nodeMap = {};
+        chapter7TraceNodes.forEach(function (node) { nodeMap[node.key] = node; });
+        chapter7TraceNodes.forEach(function (node) {
+            if (!node.parent || !nodeMap[node.parent]) return;
+            var parent = nodeMap[node.parent], startX = parent.x + 176, startY = parent.y + 29, endX = node.x, endY = node.y + 29, middle = (startX + endX) / 2;
+            var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("class", "chapter7-trace-line");
+            path.setAttribute("d", "M" + startX + " " + startY + " C" + middle + " " + startY + "," + middle + " " + endY + "," + endX + " " + endY);
+            lines.appendChild(path);
+        });
         chapter7TraceNodes.forEach(function (node) {
             var played = chapter7NodePlayed(node), button = document.createElement("button");
             button.className = "chapter7-trace-node " + node.kind + (played ? " played" : "");
-            button.style.setProperty("--indent", (node.depth * 18) + "px");
+            button.style.left = node.x + "px"; button.style.top = node.y + "px";
             button.innerHTML = '<b>' + (node.kind === "ending" && !played ? "？？？" : chapter7EscapeHtml(node.title)) + '</b><small>' + (node.kind === "choice" ? "选项分歧 · 点击跳转" : node.kind === "extra" ? "番外" : "结局") + '</small>';
             if (node.kind === "choice") button.onclick = function () {
                 var sequence = window.chapter7Routes[node.route] || [];
@@ -164,6 +180,24 @@
             }; else button.disabled = true;
             tree.appendChild(button);
         });
+        var viewport = modal.querySelector("#chapter7TraceViewport"), stage = modal.querySelector("#chapter7TraceStage");
+        var traceScale = Math.min(.72, Math.max(.48, viewport.clientWidth / 850)), traceX = 18, traceY = 10, pointers = {}, lastDistance = 0, lastCenter = null;
+        function renderTransform() { stage.style.transform = "translate(" + traceX + "px," + traceY + "px) scale(" + traceScale + ")"; }
+        function pointerCenter() { var values = Object.keys(pointers).map(function (key) { return pointers[key]; }); return { x:(values[0].x+values[1].x)/2, y:(values[0].y+values[1].y)/2 }; }
+        viewport.onpointerdown = function (event) { pointers[event.pointerId] = {x:event.clientX,y:event.clientY}; viewport.setPointerCapture(event.pointerId); if (Object.keys(pointers).length === 1) viewport.classList.add("dragging"); };
+        viewport.onpointermove = function (event) {
+            var previous = pointers[event.pointerId]; if (!previous) return;
+            pointers[event.pointerId] = {x:event.clientX,y:event.clientY}; var keys = Object.keys(pointers);
+            if (keys.length === 1 && !event.target.closest(".chapter7-trace-node")) { traceX += event.clientX-previous.x; traceY += event.clientY-previous.y; renderTransform(); }
+            if (keys.length >= 2) {
+                var a=pointers[keys[0]], b=pointers[keys[1]], distance=Math.hypot(a.x-b.x,a.y-b.y), center=pointerCenter();
+                if (lastDistance && lastCenter) { var nextScale=Math.min(2.4,Math.max(.35,traceScale*(distance/lastDistance))); traceX=center.x-(center.x-traceX)*(nextScale/traceScale)+(center.x-lastCenter.x); traceY=center.y-(center.y-traceY)*(nextScale/traceScale)+(center.y-lastCenter.y); traceScale=nextScale; renderTransform(); }
+                lastDistance=distance; lastCenter=center;
+            }
+        };
+        function releasePointer(event) { delete pointers[event.pointerId]; viewport.classList.remove("dragging"); if (Object.keys(pointers).length < 2) { lastDistance=0; lastCenter=null; } }
+        viewport.onpointerup = releasePointer; viewport.onpointercancel = releasePointer;
+        renderTransform();
         modal.querySelector("#chapter7TraceClose").onclick = function () { modal.remove(); };
     }
 
