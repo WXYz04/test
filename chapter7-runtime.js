@@ -52,6 +52,7 @@
     function replaceChapter7Tokens(text) {
         var currentPlayer = typeof player !== "undefined" ? player : {};
         var playerName = currentPlayer.name || "你";
+        var playerNickname = currentPlayer.nickname || currentPlayer.name || "你";
         var wechatName = currentPlayer.wechatName || currentPlayer.name || "你";
         var chars = Array.from(playerName);
         var lastChar = chars.length ? chars[chars.length - 1] : "你";
@@ -59,6 +60,7 @@
             .replace(/\{\{PLAYER_WECHAT_NAME\}\}/g, wechatName)
             .replace(/\{\{PLAYER_LAST_CHAR\}\}/g, lastChar)
             .replace(/\{\{PLAYER_NAME\}\}/g, playerName)
+            .replace(/\{\{PLAYER_NICKNAME\}\}/g, playerNickname)
             .replace(/\{\{DOG_NAME\}\}/g, window.chapter7DogName || "豆包")
             .replace(/\{\{CAT_NAME\}\}/g, window.chapter7CatName || "年糕");
     }
@@ -396,7 +398,11 @@
         } else if (event.type === "privateChat") {
             chapter7StartChat(event.contact || "张桂源", event.messages || [], [], event.bg);
         } else if (event.type === "scriptedChat") {
-            chapter7StartScriptedChat(event.contact || "WXYz", event.entries || [], event.bg, event.notifications || [], !!event.preloadFirstIncoming);
+            chapter7StartScriptedChat(event.contact || "WXYz", event.entries || [], event.bg, event.notifications || [], !!event.preloadFirstIncoming, event.preloadCount || 0, event.choice || null);
+        } else if (event.type === "friendRequestChat") {
+            chapter7ShowStoryFriendRequest(event, true);
+        } else if (event.type === "friendRequestOnly") {
+            chapter7ShowStoryFriendRequest(event, false);
         } else if (event.type === "exploreChoice") {
             chapter7ShowExploreChoice(event);
         } else if (event.type === "exploreReturn") {
@@ -443,7 +449,10 @@
 
     function chapter7StartRouteBgm(event) {
         chapter7FadeRouteBgm(250);
-        var audio = new Audio(event.src || "bxna-small.mp3");
+        var source = event.src || "bxna-small.mp3";
+        if (source.indexOf("?") === -1) source += "?v=20261104f";
+        var audio = new Audio(source);
+        audio.preload = "auto";
         audio.loop = true;
         audio.volume = typeof event.volume === "number" ? event.volume : 0.48;
         audio.onerror = function () {
@@ -453,7 +462,25 @@
             audio.play().catch(function () {});
         };
         window.chapter7RouteBgm = audio;
-        audio.play().catch(function () {});
+        function playRouteBgm() {
+            if (window.chapter7RouteBgm !== audio) return;
+            var promise = audio.play();
+            if (promise && promise.catch) promise.catch(function () {
+                window.chapter7PendingBgmResume = audio;
+            });
+        }
+        playRouteBgm();
+        if (!window.chapter7BgmResumeBound) {
+            window.chapter7BgmResumeBound = true;
+            document.addEventListener("pointerdown", function () {
+                var pending = window.chapter7PendingBgmResume;
+                if (!pending || pending !== window.chapter7RouteBgm) return;
+                var promise = pending.play();
+                if (promise && promise.then) promise.then(function () {
+                    if (window.chapter7PendingBgmResume === pending) window.chapter7PendingBgmResume = null;
+                }).catch(function () {});
+            }, true);
+        }
     }
 
     function chapter7FadeRouteBgm(duration) {
@@ -855,6 +882,48 @@
         setTimeout(function () { chapter7ShowFriendRequests(items, index + 1); }, 900);
     }
 
+    function chapter7ShowStoryFriendRequest(event, startChatAfterAccept) {
+        var contact = event.contact || event.displayName || "新朋友";
+        var displayName = event.displayName || contact;
+        var request = { name: displayName, intro: event.intro || "申请添加你为好友", avatar: event.avatar || "" };
+        if (typeof friendRequests !== "undefined" && Array.isArray(friendRequests) && !friendRequests.some(function (item) { return item.name === displayName; })) {
+            friendRequests.push(request);
+        }
+        if (typeof hasNewFriendRequest !== "undefined") hasNewFriendRequest = true;
+        var redDot = document.getElementById("friendRedDot");
+        if (redDot) redDot.style.display = "block";
+        showMessageNotification("好友申请", event.avatar ? '<img src="' + event.avatar + '" style="width:42px;height:42px;border-radius:9px;object-fit:cover">' : '<span style="font-size:30px">👤</span>', displayName, event.intro || "申请添加你为好友", function () {});
+
+        var old = document.getElementById("chapter7FriendRequestModal");
+        if (old) old.remove();
+        var modal = document.createElement("div");
+        modal.id = "chapter7FriendRequestModal";
+        modal.style.cssText = "position:fixed;inset:0;z-index:10030;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.48);padding:24px";
+        modal.innerHTML = '<div style="width:min(340px,90vw);background:#fff;border-radius:16px;padding:22px;color:#222;box-shadow:0 18px 55px rgba(0,0,0,.35)">' +
+            '<div style="font-size:18px;font-weight:700;margin-bottom:18px">好友申请</div>' +
+            '<div style="display:flex;align-items:center;gap:13px;margin-bottom:22px"><img src="' + (event.avatar || "default_avatar.png") + '" style="width:52px;height:52px;border-radius:12px;object-fit:cover"><div><b style="font-size:16px">' + displayName + '</b><div style="margin-top:5px;color:#888;font-size:13px">' + (event.intro || "申请添加你为好友") + '</div></div></div>' +
+            '<button id="chapter7AcceptFriend" style="width:100%;height:44px;border:0;border-radius:22px;background:#e85d75;color:#fff;font-size:15px;font-weight:600">接受</button></div>';
+        document.body.appendChild(modal);
+        modal.querySelector("#chapter7AcceptFriend").onclick = function () {
+            if (typeof friends !== "undefined" && Array.isArray(friends) && friends.indexOf(contact) === -1) friends.push(contact);
+            if (typeof friendRequests !== "undefined" && Array.isArray(friendRequests)) friendRequests = friendRequests.filter(function (item) { return item.name !== displayName; });
+            if (typeof hasNewFriendRequest !== "undefined") hasNewFriendRequest = typeof friendRequests !== "undefined" && friendRequests.length > 0;
+            if (redDot) redDot.style.display = (typeof hasNewFriendRequest !== "undefined" && hasNewFriendRequest) ? "block" : "none";
+            if (!chatData[contact]) chatData[contact] = { messages: [], newMsg: false };
+            if (typeof renderChatList === "function") renderChatList();
+            modal.remove();
+            if (startChatAfterAccept) {
+                var entries = event.entries || [];
+                var notices = entries.slice(0, event.preloadCount || 2).map(function (entry) { return { text: entry.text || "" }; });
+                chapter7StartScriptedChat(contact, entries, event.bg, notices, false, event.preloadCount || 2, null);
+            } else {
+                showMessageNotification("好友申请", event.avatar ? '<img src="' + event.avatar + '" style="width:42px;height:42px;border-radius:9px;object-fit:cover">' : '<span style="font-size:30px">👤</span>', displayName, "已添加到聊天列表，请返回剧情", function () {});
+                chapter7AdvanceSequence();
+            }
+            if (typeof autoSaveGame === "function") autoSaveGame();
+        };
+    }
+
     function chapter7MessageTime(offset) {
         var total = 7 * 60 + 18 + offset;
         return String(Math.floor(total / 60)).padStart(2, "0") + ":" + String(total % 60).padStart(2, "0");
@@ -892,19 +961,20 @@
         document.getElementById("chapter7Continue").textContent = contact === "everybody 棒棒" ? "请点击群聊" : "请点击下方微信进入聊天页面";
     }
 
-    function chapter7StartScriptedChat(contact, entries, background, notifications, preloadFirstIncoming) {
+    function chapter7StartScriptedChat(contact, entries, background, notifications, preloadFirstIncoming, preloadCount, choice) {
         if (!chatData[contact]) chatData[contact] = { messages: [], newMsg: false };
         chatData[contact].chapter7ChatActive = true;
         chatData[contact].newMsg = true;
         var normalized = entries.map(function (entry) { return Object.assign({}, entry, { text: replaceChapter7Tokens(entry.text || "") }); });
         var startIndex = 0;
-        if (preloadFirstIncoming && normalized[0] && normalized[0].from !== "me") {
-            var first = normalized[0];
+        var requestedPreload = Math.max(preloadFirstIncoming ? 1 : 0, Number(preloadCount) || 0);
+        while (startIndex < requestedPreload && normalized[startIndex] && normalized[startIndex].from !== "me") {
+            var first = normalized[startIndex];
             var firstContent = first.image ? '<img src="' + first.image + '" style="width:170px;max-width:100%;border-radius:10px;display:block" onerror="this.outerHTML=\'[图片]\'">' : first.text;
-            chapter7PushMessage(contact, { from: "other", text: firstContent, time: chapter7MessageTime(3), date: "", read: false, chapter7: true });
-            startIndex = 1;
+            chapter7PushMessage(contact, { from: "other", text: firstContent, time: chapter7MessageTime(startIndex + 3), date: "", read: false, chapter7: true });
+            startIndex += 1;
         }
-        window.chapter7PendingChat = { contact: contact, entries: normalized, index: startIndex, scripted: true };
+        window.chapter7PendingChat = { contact: contact, entries: normalized, index: startIndex, scripted: true, choice: choice || null, nextRoute: null };
         renderChatList();
         chapter7ShowPage({ type: "page", text: "请点击聊天列表", speaker: "提示", side: "left", bg: background || (window.chapter7CurrentPage && window.chapter7CurrentPage.bg) || "__white__" });
         document.getElementById("chapter7Continue").textContent = "请点击下方微信进入聊天列表";
@@ -919,13 +989,50 @@
     }
 
     function chapter7FinishScriptedChat(pending) {
+        if (pending.choice) {
+            chapter7ShowChoiceInChat(pending);
+            return;
+        }
         var data = chatData[pending.contact];
         if (data) data.chapter7ChatActive = false;
         window.chapter7PendingChat = null;
         var input = document.getElementById("chatInputBox");
         if (input) input.innerText = "发送完成，请返回剧情页面";
+        if (pending.nextRoute) chapter7SetRoute(pending.nextRoute, false);
         showMessageNotification("第七章剧情", '<span style="font-size:30px">📖</span>', "第七章剧情", "聊天完成，请返回剧情页面继续", function () { switchPage("story"); });
         if (typeof autoSaveGame === "function") autoSaveGame();
+    }
+
+    function chapter7ShowChoiceInChat(pending) {
+        var box = document.getElementById("chatMessages");
+        if (!box || document.getElementById("chapter7ChatChoice")) return;
+        var choice = pending.choice;
+        var wrap = document.createElement("div");
+        wrap.id = "chapter7ChatChoice";
+        wrap.style.cssText = "align-self:center;width:88%;margin:14px auto;padding:12px;border-radius:12px;background:rgba(255,255,255,.92);box-shadow:0 3px 14px rgba(0,0,0,.12)";
+        var title = document.createElement("div");
+        title.textContent = "请选择回复";
+        title.style.cssText = "font-size:12px;color:#888;text-align:center;margin-bottom:9px";
+        wrap.appendChild(title);
+        (choice.options || []).forEach(function (option, index) {
+            var button = document.createElement("button");
+            button.textContent = option.title;
+            button.style.cssText = "display:block;width:100%;height:40px;margin-top:8px;border:1px solid #e85d75;border-radius:20px;background:#fff;color:#d94f68;font-size:14px";
+            button.onclick = function () {
+                localStorage.setItem("chapter7_choice_" + (choice.id || "chat"), String(index));
+                wrap.remove();
+                pending.choice = null;
+                pending.entries = (option.entries || []).map(function (entry) { return Object.assign({}, entry, { text: replaceChapter7Tokens(entry.text || "") }); });
+                pending.index = 0;
+                pending.nextRoute = option.route || null;
+                chapter7ShowNextScriptedEntry();
+            };
+            wrap.appendChild(button);
+        });
+        box.appendChild(wrap);
+        box.scrollTop = box.scrollHeight;
+        var input = document.getElementById("chatInputBox");
+        if (input) input.innerText = "请直接在聊天页面选择回复";
     }
 
     function chapter7ShowNextScriptedEntry() {
