@@ -444,21 +444,25 @@
         } else if (event.type === "audioFadeOut") {
             chapter7FadeRouteBgm(event.duration || 1800);
             chapter7AdvanceSequence();
+        } else if (event.type === "backgroundHotspot") {
+            chapter7ShowBackgroundHotspot(event);
         }
     }
 
     function chapter7StartRouteBgm(event) {
         chapter7FadeRouteBgm(250);
         var source = event.src || "bxna-small.mp3";
-        if (source.indexOf("?") === -1) source += "?v=20261104f";
+        if (source.indexOf("?") === -1) source += "?v=20261104h";
         var audio = new Audio(source);
         audio.preload = "auto";
         audio.loop = true;
         audio.volume = typeof event.volume === "number" ? event.volume : 0.48;
         audio.onerror = function () {
             if (audio.dataset.fallback) return;
+            var fallback = event.fallbackSrc || (source.indexOf("bxna") !== -1 ? "bxna.mp3?v=20261104h" : "");
+            if (!fallback) return;
             audio.dataset.fallback = "1";
-            audio.src = "bxna.mp3";
+            audio.src = fallback;
             audio.play().catch(function () {});
         };
         window.chapter7RouteBgm = audio;
@@ -497,6 +501,38 @@
                 if (window.chapter7RouteBgm === audio) window.chapter7RouteBgm = null;
             }
         }, 60);
+    }
+
+    function chapter7ShowBackgroundHotspot(event) {
+        var overlay = document.getElementById("chapter7StoryOverlay");
+        var textBox = document.getElementById("chapter7TextBox");
+        if (!overlay || !textBox) return;
+        overlay.style.backgroundImage = event.bg && event.bg !== "__white__" && event.bg !== "__black__" ? 'url("' + event.bg + '")' : "none";
+        overlay.style.backgroundColor = event.bg === "__black__" ? "#000" : "#fff";
+        textBox.style.display = "none";
+        var old = document.getElementById("chapter7BackgroundHotspot");
+        if (old) old.remove();
+        var wrap = document.createElement("div");
+        wrap.id = "chapter7BackgroundHotspot";
+        wrap.style.cssText = "position:absolute;inset:0;z-index:35;cursor:pointer";
+        wrap.innerHTML = '<div style="position:absolute;left:50%;top:66%;width:2px;height:76px;background:rgba(255,255,255,.9);transform:translateX(-50%);box-shadow:0 0 8px rgba(0,0,0,.45)"></div>' +
+            '<button style="position:absolute;left:50%;top:calc(66% + 68px);transform:translateX(-50%);min-width:112px;height:42px;padding:0 18px;border:1px solid rgba(255,255,255,.95);border-radius:22px;background:rgba(255,255,255,.92);color:#333;font-size:14px;font-weight:600;box-shadow:0 4px 18px rgba(0,0,0,.25);animation:chapter7HotspotPulse 1.15s ease-in-out infinite">' + replaceChapter7Tokens(event.label || "继续") + '</button>';
+        overlay.appendChild(wrap);
+        if (!document.getElementById("chapter7HotspotStyle")) {
+            var style = document.createElement("style");
+            style.id = "chapter7HotspotStyle";
+            style.textContent = "@keyframes chapter7HotspotPulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.08)}}";
+            document.head.appendChild(style);
+        }
+        wrap.onclick = function (clickEvent) {
+            clickEvent.stopPropagation();
+            overlay.style.backgroundImage = event.targetBg ? 'url("' + event.targetBg + '")' : overlay.style.backgroundImage;
+            wrap.remove();
+            setTimeout(function () {
+                textBox.style.display = "block";
+                chapter7AdvanceSequence();
+            }, Number(event.pause) || 1000);
+        };
     }
 
     function chapter7ShowPetNamePrompt() {
