@@ -455,7 +455,7 @@
     function chapter7StartRouteBgm(event) {
         chapter7FadeRouteBgm(250);
         var source = event.src || "bxna-small.mp3";
-        if (source.indexOf("?") === -1) source += "?v=20261105a";
+        if (source.indexOf("?") === -1) source += "?v=20261105b";
         var audio = new Audio(source);
         audio.preload = "auto";
         audio.loop = true;
