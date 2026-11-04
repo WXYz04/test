@@ -444,6 +444,9 @@
         } else if (event.type === "audioFadeOut") {
             chapter7FadeRouteBgm(event.duration || 1800);
             chapter7AdvanceSequence();
+        } else if (event.type === "audioStop") {
+            chapter7StopRouteBgm();
+            chapter7AdvanceSequence();
         } else if (event.type === "backgroundHotspot") {
             chapter7ShowBackgroundHotspot(event);
         }
@@ -452,7 +455,7 @@
     function chapter7StartRouteBgm(event) {
         chapter7FadeRouteBgm(250);
         var source = event.src || "bxna-small.mp3";
-        if (source.indexOf("?") === -1) source += "?v=20261104h";
+        if (source.indexOf("?") === -1) source += "?v=20261105a";
         var audio = new Audio(source);
         audio.preload = "auto";
         audio.loop = true;
@@ -501,6 +504,15 @@
                 if (window.chapter7RouteBgm === audio) window.chapter7RouteBgm = null;
             }
         }, 60);
+    }
+
+    function chapter7StopRouteBgm() {
+        var audio = window.chapter7RouteBgm;
+        window.chapter7PendingBgmResume = null;
+        window.chapter7RouteBgm = null;
+        if (!audio) return;
+        audio.pause();
+        try { audio.currentTime = 0; } catch (error) {}
     }
 
     function chapter7ShowBackgroundHotspot(event) {
