@@ -458,7 +458,7 @@
         if (source.indexOf("?") === -1) source += "?v=20261105b";
         var audio = new Audio(source);
         audio.preload = "auto";
-        audio.loop = true;
+        audio.loop = event.loop !== false;
         audio.volume = typeof event.volume === "number" ? event.volume : 0.48;
         audio.onerror = function () {
             if (audio.dataset.fallback) return;
