@@ -398,7 +398,7 @@
         } else if (event.type === "privateChat") {
             chapter7StartChat(event.contact || "张桂源", event.messages || [], [], event.bg);
         } else if (event.type === "scriptedChat") {
-            chapter7StartScriptedChat(event.contact || "WXYz", event.entries || [], event.bg, event.notifications || [], !!event.preloadFirstIncoming, event.preloadCount || 0, event.choice || null);
+            chapter7StartScriptedChat(event.contact || "WXYz", event.entries || [], event.bg, event.notifications || [], !!event.preloadFirstIncoming, event.preloadCount || 0, event.choice || null, !!event.addToChatList);
         } else if (event.type === "friendRequestChat") {
             chapter7ShowStoryFriendRequest(event, true);
         } else if (event.type === "friendRequestOnly") {
@@ -1009,8 +1009,9 @@
         document.getElementById("chapter7Continue").textContent = contact === "everybody 棒棒" ? "请点击群聊" : "请点击下方微信进入聊天页面";
     }
 
-    function chapter7StartScriptedChat(contact, entries, background, notifications, preloadFirstIncoming, preloadCount, choice) {
+    function chapter7StartScriptedChat(contact, entries, background, notifications, preloadFirstIncoming, preloadCount, choice, addToChatList) {
         if (!chatData[contact]) chatData[contact] = { messages: [], newMsg: false };
+        if (addToChatList && typeof friends !== "undefined" && Array.isArray(friends) && friends.indexOf(contact) === -1) friends.push(contact);
         chatData[contact].chapter7ChatActive = true;
         chatData[contact].newMsg = true;
         var normalized = entries.map(function (entry) { return Object.assign({}, entry, { text: replaceChapter7Tokens(entry.text || "") }); });
