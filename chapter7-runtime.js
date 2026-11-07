@@ -992,6 +992,38 @@
         if (box) box.scrollTop = box.scrollHeight;
     }
 
+    function chapter7ScriptedEntryContent(entry) {
+        if (entry.image) return '<img src="' + entry.image + '" style="width:170px;max-width:100%;border-radius:10px;display:block" onerror="this.outerHTML=\'[图片]\'">';
+        if (entry.audio) {
+            var seconds = Number(entry.duration) || 6;
+            return '<button type="button" class="chapter7-voice-message" data-src="' + chapter7EscapeHtml(entry.audio) + '" onclick="playChapter7VoiceMessage(this)" style="width:154px;height:54px;padding:0 18px;border:0;border-radius:6px;background:#fff;color:#111;display:flex;align-items:center;gap:15px;font-size:17px;box-shadow:none"><span style="font-size:27px;line-height:1">◖))</span><span>' + seconds + '&quot;</span></button>';
+        }
+        return entry.text;
+    }
+
+    window.playChapter7VoiceMessage = function (button) {
+        var src = button && button.getAttribute("data-src");
+        if (!src) return;
+        if (window.chapter7VoiceAudio) {
+            window.chapter7VoiceAudio.pause();
+            window.chapter7VoiceAudio.currentTime = 0;
+        }
+        var audio = new Audio(src);
+        window.chapter7VoiceAudio = audio;
+        button.style.opacity = ".65";
+        audio.onended = function () { button.style.opacity = "1"; };
+        audio.onerror = function () { button.style.opacity = "1"; };
+        var promise = audio.play();
+        if (promise && promise.catch) promise.catch(function () { button.style.opacity = "1"; });
+    };
+
+    function chapter7SetTypingStatus(visible) {
+        var status = document.getElementById("chatTypingStatus");
+        if (status) status.style.display = visible ? "block" : "none";
+        var input = document.getElementById("chatInputBox");
+        if (input && input.innerText === "对方正在输入中...") input.innerText = "";
+    }
+
     function chapter7StartChat(contact, messages, incoming, background) {
         if (!chatData[contact]) chatData[contact] = { messages: [], newMsg: false };
         var data = chatData[contact];
@@ -1025,7 +1057,7 @@
         var requestedPreload = Math.max(preloadFirstIncoming ? 1 : 0, Number(preloadCount) || 0);
         while (startIndex < requestedPreload && normalized[startIndex] && normalized[startIndex].from !== "me") {
             var first = normalized[startIndex];
-            var firstContent = first.image ? '<img src="' + first.image + '" style="width:170px;max-width:100%;border-radius:10px;display:block" onerror="this.outerHTML=\'[图片]\'">' : first.text;
+            var firstContent = chapter7ScriptedEntryContent(first);
             chapter7PushMessage(contact, { from: "other", text: firstContent, time: chapter7MessageTime(startIndex + 3), date: "", read: false, chapter7: true });
             startIndex += 1;
         }
@@ -1051,6 +1083,7 @@
         var data = chatData[pending.contact];
         if (data) data.chapter7ChatActive = false;
         window.chapter7PendingChat = null;
+        chapter7SetTypingStatus(false);
         var input = document.getElementById("chatInputBox");
         if (input) input.innerText = "发送完成，请返回剧情页面";
         if (pending.nextRoute) chapter7SetRoute(pending.nextRoute, false);
@@ -1110,11 +1143,11 @@
             return;
         }
         var wait = Math.min(1800, 650 + String(entry.text || "").length * 45);
-        var input = document.getElementById("chatInputBox");
-        if (input) input.innerText = "对方正在输入中...";
+        chapter7SetTypingStatus(true);
         setTimeout(function () {
             if (!window.chapter7PendingChat || window.chapter7PendingChat !== pending) return;
-            var content = entry.image ? '<img src="' + entry.image + '" style="width:170px;max-width:100%;border-radius:10px;display:block" onerror="this.outerHTML=\'[图片]\'">' : entry.text;
+            chapter7SetTypingStatus(false);
+            var content = chapter7ScriptedEntryContent(entry);
             chapter7PushMessage(pending.contact, { from: "other", text: content, time: chapter7MessageTime(pending.index + 3), date: "", read: false, chapter7: true });
             pending.index += 1;
             setTimeout(chapter7ShowNextScriptedEntry, 360);
