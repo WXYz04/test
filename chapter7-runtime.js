@@ -9,6 +9,8 @@
     window.chapter7TypingText = "";
     window.chapter7TypingPosition = 0;
     window.chapter7PendingChat = null;
+    window.chapter7ChatGateActive = false;
+    window.chapter7ChatGateContact = "";
     window.chapter7PendingRequiredAction = null;
     window.chapter7PendingExposureWeibo = null;
     window.chapter7ExposurePost = null;
@@ -122,6 +124,8 @@
         window.chapter7SequenceIndex = 0;
         window.chapter7CurrentPage = null;
         window.chapter7PendingChat = null;
+        window.chapter7ChatGateActive = false;
+        window.chapter7ChatGateContact = "";
         window.chapter7VisitedPlaces = {};
         window.chapter7ExploreChoiceEvent = null;
         ensureChapter7Style();
@@ -310,9 +314,10 @@
             showMessageNotification("第七章剧情", '<span style="font-size:28px">📖</span>', "提示", requiredLabel, function () {});
             return;
         }
-        if (window.chapter7PendingChat) {
-            var pendingContactName = window.chapter7PendingChat.contact === "20100319" ? "2010那个号" : window.chapter7PendingChat.contact;
-            var pendingLabel = window.chapter7PendingChat.contact === "everybody 棒棒" ? "请先点击群聊并完成聊天" : "请先点击聊天页面给" + pendingContactName + "发信息并完成聊天";
+        if (window.chapter7PendingChat || window.chapter7ChatGateActive) {
+            var gateContact = window.chapter7PendingChat ? window.chapter7PendingChat.contact : window.chapter7ChatGateContact;
+            var pendingContactName = gateContact === "20100319" ? "2010那个号" : gateContact;
+            var pendingLabel = gateContact === "everybody 棒棒" ? "请先点击群聊并完成聊天" : "请先点击聊天页面给" + pendingContactName + "发信息并完成聊天";
             document.getElementById("chapter7Continue").textContent = pendingLabel;
             return;
         }
@@ -661,7 +666,17 @@
             page.querySelector(".phone-back").onclick = function(){ page.style.display="none"; home.style.display="block"; };
         }
         wrap.querySelectorAll("[data-app]").forEach(function(btn){ btn.onclick=function(){openApp(btn.dataset.app);}; });
-        wrap.querySelector("#chapter7PutPhoneDown").onclick = function(){ wrap.remove(); chapter7AdvanceSequence(); };
+        wrap.querySelector("#chapter7PutPhoneDown").onclick = function(){
+            wrap.remove();
+            if (event.afterBg) {
+                var nextBackground = (window.chapter7EmbeddedBackgrounds && window.chapter7EmbeddedBackgrounds[event.afterBg]) || event.afterBg;
+                overlay.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.2)),url("' + nextBackground + '")';
+                overlay.style.backgroundSize = "cover";
+                overlay.style.backgroundPosition = "center center";
+                overlay.style.backgroundRepeat = "no-repeat";
+            }
+            chapter7AdvanceSequence();
+        };
     }
 
     function chapter7EscapeHtml(value) {
@@ -1089,6 +1104,8 @@
     }
 
     function chapter7StartChat(contact, messages, incoming, background) {
+        window.chapter7ChatGateActive = true;
+        window.chapter7ChatGateContact = contact;
         if (!chatData[contact]) chatData[contact] = { messages: [], newMsg: false };
         var data = chatData[contact];
         if (contact === "everybody 棒棒") {
@@ -1113,6 +1130,8 @@
     }
 
     function chapter7StartScriptedChat(contact, entries, background, notifications, preloadFirstIncoming, preloadCount, choice, addToChatList) {
+        window.chapter7ChatGateActive = true;
+        window.chapter7ChatGateContact = contact;
         if (!chatData[contact]) chatData[contact] = { messages: [], newMsg: false };
         if (addToChatList && typeof friends !== "undefined" && Array.isArray(friends) && friends.indexOf(contact) === -1) friends.push(contact);
         chatData[contact].chapter7ChatActive = true;
@@ -1149,6 +1168,8 @@
         var data = chatData[pending.contact];
         if (data) data.chapter7ChatActive = false;
         window.chapter7PendingChat = null;
+        window.chapter7ChatGateActive = false;
+        window.chapter7ChatGateContact = "";
         chapter7SetTypingStatus(false);
         var input = document.getElementById("chatInputBox");
         if (input) input.innerText = "发送完成，请返回剧情页面";
@@ -1254,6 +1275,8 @@
             var data = chatData[pending.contact];
             data.chapter7ChatActive = false;
             window.chapter7PendingChat = null;
+            window.chapter7ChatGateActive = false;
+            window.chapter7ChatGateContact = "";
             var input = document.getElementById("chatInputBox");
             if (input) input.innerText = "发送完成，请返回剧情页面";
             showMessageNotification("第七章剧情", '<span style="font-size:30px">📖</span>', "第七章剧情", "信息已发送，请返回剧情页面继续", function () { switchPage("story"); });
