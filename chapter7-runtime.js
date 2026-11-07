@@ -158,11 +158,11 @@
     function chapter7ShowTip(done) {
         var overlay = document.getElementById("chapter7StoryOverlay"), modal = document.createElement("div");
         modal.id = "chapter7TipModal";
-        modal.innerHTML = '<div class="panel"><h3>食用提示</h3><p>长按可以进行剧情加速，点击 Skip 能够跳转到下一个选项，左上角的回溯可以快速体验其他结局。<br>含有部分语音和 BGM，可以开启声音食用哦～</p><div class="chapter7-load-row"><span class="chapter7-load-spinner"></span><span class="chapter7-load-status">图片很多，请耐心等待<br>正在加载 0%</span></div><button type="button" disabled>图片加载中…</button></div>';
+        modal.innerHTML = '<div class="panel"><h3>食用提示</h3><p>长按可以进行剧情加速，点击 Skip 能够跳转到下一个选项，左上角的回溯可以快速体验其他结局。<br>含有部分语音和 BGM，可以开启声音食用哦～<br>如果出现长时间黑屏，就是背景没有加载出来，请退出去重进。</p><div class="chapter7-load-row"><span class="chapter7-load-spinner"></span><span class="chapter7-load-status">正在加载前段剧情背景 0%</span></div><button type="button" disabled>图片加载中…</button></div>';
         overlay.appendChild(modal);
         var button = modal.querySelector("button"), status = modal.querySelector(".chapter7-load-status"), spinner = modal.querySelector(".chapter7-load-spinner");
         chapter7PreloadBackgrounds(function (loaded, total) {
-            status.innerHTML = '图片很多，请耐心等待<br>正在加载 ' + (total ? Math.round(loaded * 100 / total) : 100) + '%（' + loaded + '/' + total + '）';
+            status.textContent = '正在加载前段剧情背景 ' + (total ? Math.round(loaded * 100 / total) : 100) + '%（' + loaded + '/' + total + '）';
         }).then(function () {
             spinner.classList.add("done");
             spinner.textContent = "✓";
@@ -262,18 +262,7 @@
         var overlay = document.getElementById("chapter7StoryOverlay");
         if (!overlay) return;
         var backgroundName = page.text === "学校那边的情况也越来越糟。" ? "bj1.jpg" : (page.bg || "wdws.jpg");
-        if (backgroundName === "__white__" || backgroundName === "__black__") {
-            overlay.style.backgroundImage = "none";
-            overlay.style.backgroundColor = backgroundName === "__black__" ? "#000" : "#fff";
-        } else {
-            var backgroundSource = (window.chapter7EmbeddedBackgrounds && window.chapter7EmbeddedBackgrounds[backgroundName]) || backgroundName;
-            if (!/^data:/.test(backgroundSource) && backgroundSource.indexOf("?") === -1) backgroundSource += "?v=20261102a";
-            overlay.style.backgroundColor = "#111";
-            overlay.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.2)),url("' + backgroundSource + '")';
-            overlay.style.backgroundSize = "cover";
-            overlay.style.backgroundPosition = "center center";
-            overlay.style.backgroundRepeat = "no-repeat";
-        }
+        chapter7ApplyBackground(overlay, backgroundName);
         var plate = document.getElementById("chapter7NamePlate");
         var text = document.getElementById("chapter7Text");
         var hint = document.getElementById("chapter7Continue");
@@ -298,6 +287,33 @@
                 hint.textContent = "点击继续";
             }
         }, 34);
+    }
+
+    function chapter7ApplyBackground(overlay, backgroundName) {
+        window.chapter7BackgroundRequestId = (window.chapter7BackgroundRequestId || 0) + 1;
+        var requestId = window.chapter7BackgroundRequestId;
+        if (backgroundName === "__white__" || backgroundName === "__black__") {
+            overlay.style.backgroundImage = "none";
+            overlay.style.backgroundColor = backgroundName === "__black__" ? "#000" : "#fff";
+            return;
+        }
+        var backgroundSource = (window.chapter7EmbeddedBackgrounds && window.chapter7EmbeddedBackgrounds[backgroundName]) || backgroundName;
+        if (!/^data:/.test(backgroundSource) && backgroundSource.indexOf("?") === -1) backgroundSource += "?v=20261107m";
+        var image = new Image();
+        image.decoding = "async";
+        image.onload = function () {
+            if (requestId !== window.chapter7BackgroundRequestId || !document.body.contains(overlay)) return;
+            overlay.style.backgroundColor = "#111";
+            overlay.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.2)),url("' + backgroundSource + '")';
+            overlay.style.backgroundSize = "cover";
+            overlay.style.backgroundPosition = "center center";
+            overlay.style.backgroundRepeat = "no-repeat";
+        };
+        image.onerror = function () {};
+        image.src = backgroundSource;
+        window.chapter7OnDemandBackgrounds = window.chapter7OnDemandBackgrounds || [];
+        window.chapter7OnDemandBackgrounds.push(image);
+        if (window.chapter7OnDemandBackgrounds.length > 24) window.chapter7OnDemandBackgrounds.shift();
     }
 
     function chapter7HandleTextBoxClick() {
@@ -1090,28 +1106,38 @@
 
     function chapter7PreloadBackgrounds(progress) {
         if (window.chapter7BackgroundsPreloadPromise) return window.chapter7BackgroundsPreloadPromise;
-        var names = {};
+        var names = {}, list = [];
         function scan(value) {
-            if (!value) return;
+            if (!value || list.length >= 12) return;
             if (typeof value === "string") {
-                if (/\.(?:png|jpe?g|webp|gif)(?:\?.*)?$/i.test(value) && value !== "__white__" && value !== "__black__") names[value] = true;
+                if (/\.(?:png|jpe?g|webp|gif)(?:\?.*)?$/i.test(value) && value !== "__white__" && value !== "__black__" && !names[value]) {
+                    names[value] = true;
+                    list.push(value);
+                }
                 return;
             }
             if (Array.isArray(value)) { value.forEach(scan); return; }
             if (typeof value === "object") Object.keys(value).forEach(function (key) { scan(value[key]); });
         }
-        Object.keys(window.chapter7Routes || {}).forEach(function (routeId) {
-            scan(window.chapter7Routes[routeId]);
-        });
-        var list = Object.keys(names), loaded = 0;
+        scan((window.chapter7Routes && window.chapter7Routes.intro) || []);
+        var loaded = 0;
         window.chapter7PreloadedImages = window.chapter7PreloadedImages || [];
         window.chapter7BackgroundsPreloadPromise = Promise.all(list.map(function (name) {
             return new Promise(function (resolve) {
                 var source = (window.chapter7EmbeddedBackgrounds && window.chapter7EmbeddedBackgrounds[name]) || name;
+                if (!/^data:/.test(source) && source.indexOf("?") === -1) source += "?v=20261107m";
                 var image = new Image();
                 window.chapter7PreloadedImages.push(image);
                 image.decoding = "async";
-                var finish = function () { loaded += 1; if (progress) progress(loaded, list.length); resolve(); };
+                var settled = false, timer = setTimeout(finish, 6000);
+                function finish() {
+                    if (settled) return;
+                    settled = true;
+                    clearTimeout(timer);
+                    loaded += 1;
+                    if (progress) progress(loaded, list.length);
+                    resolve();
+                }
                 image.onload = finish;
                 image.onerror = finish;
                 image.src = source;
