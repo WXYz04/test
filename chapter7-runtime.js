@@ -576,6 +576,11 @@
         wrap.innerHTML = '<div id="chapter7MiniPhone"><div id="chapter7PhoneLock"><b>22:18</b><span>向上滑动解锁</span></div><div id="chapter7PhoneHome"><div class="chapter7-phone-apps"><button class="chapter7-phone-app" data-app="notes"><i>📝</i>备忘录</button><button class="chapter7-phone-app" data-app="messages"><i>💬</i>信息</button><button class="chapter7-phone-app" data-app="browser"><i>🌐</i>浏览器</button><button class="chapter7-phone-app" data-app="xhs"><i>📕</i>小红书</button></div></div><div id="chapter7PhonePage"></div></div><button id="chapter7PutPhoneDown">放下手机</button>';
         overlay.appendChild(wrap);
         var lock = wrap.querySelector("#chapter7PhoneLock"), startY = 0;
+        if (event.lockImage) {
+            lock.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.18),rgba(0,0,0,.38)),url("' + String(event.lockImage).replace(/"/g, "") + '")';
+            lock.style.backgroundSize = "cover";
+            lock.style.backgroundPosition = "center";
+        }
         function unlock() { lock.style.transform = "translateY(-100%)"; lock.style.transition = "transform .45s"; wrap.querySelector("#chapter7PhoneHome").style.display = "block"; }
         lock.addEventListener("touchstart", function(e){ startY = e.touches[0].clientY; }, {passive:true});
         lock.addEventListener("touchend", function(e){ if (startY - e.changedTouches[0].clientY > 35) unlock(); });
@@ -589,7 +594,7 @@
             if (name === "messages") {
                 function renderMessageList() {
                     var listHtml = '<button class="phone-back">‹</button><h3>信息</h3>' + (event.messages || []).map(function(thread, index) {
-                        var title = thread.title === "聊天记录" ? "张桂源" : thread.title.replace(/^\d+\.\s*/, "").replace(/[｜/].*$/, "");
+                        var title = thread.displayName || (thread.title === "聊天记录" ? "张桂源" : thread.title.replace(/^\d+\.\s*/, "").replace(/[｜/].*$/, ""));
                         var isGroup = /群聊/.test(thread.title);
                         var preview = thread.items && thread.items.length ? thread.items[thread.items.length - 1].text : "";
                         return '<div class="phone-thread-row" data-thread="' + index + '"><i class="thread-icon">' + (isGroup ? '👥' : '👤') + '</i><div class="thread-main"><b>' + esc(title) + '</b><span>' + esc(preview) + '</span></div></div>';
@@ -599,7 +604,8 @@
                     page.querySelectorAll("[data-thread]").forEach(function(row){ row.onclick=function(){ renderMessageThread((event.messages || [])[Number(row.dataset.thread)]); }; });
                 }
                 function renderMessageThread(thread) {
-                    page.innerHTML = '<button class="phone-back">‹</button><h3>' + esc(thread.title === "聊天记录" ? "张桂源" : thread.title.replace(/^\d+\.\s*/, "")) + '</h3>' + (thread.items || []).map(function(m){return '<div class="phone-msg '+m.side+'"><small>'+esc(m.sender)+'</small>'+esc(m.text)+'</div><div style="clear:both"></div>';}).join('');
+                    var title = thread.displayName || (thread.title === "聊天记录" ? "张桂源" : thread.title.replace(/^\d+\.\s*/, ""));
+                    page.innerHTML = '<button class="phone-back">‹</button><h3>' + esc(title) + '</h3>' + (thread.items || []).map(function(m){return '<div class="phone-msg '+m.side+'">'+(thread.hideSenderNames ? '' : '<small>'+esc(m.sender)+'</small>')+esc(m.text)+'</div><div style="clear:both"></div>';}).join('');
                     page.querySelector(".phone-back").onclick = renderMessageList;
                     page.scrollTop = 0;
                 }
