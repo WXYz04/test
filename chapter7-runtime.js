@@ -23,17 +23,19 @@
     window.chapter7RouteBgm = null;
 
     var chapter7TraceNodes = [
-        { key:"root", kind:"choice", route:"intro", id:"main_path", title:"中考后的选择", x:30, y:430 },
-        { key:"contact", parent:"root", kind:"choice", route:"abroad", id:"keep_contact", title:"是否保留联系方式", x:250, y:170 },
-        { key:"country", parent:"contact", kind:"choice", route:"keep_contact_after_pov", id:"country_after_high_school", title:"高中毕业后的去向", x:470, y:80 },
-        { key:"hotel", parent:"country", kind:"choice", route:"return_china_intro", id:"hotel_invitation", title:"深夜酒店邀约", x:690, y:20 },
-        { key:"like", parent:"hotel", kind:"choice", route:"return_hotel_common", id:"still_like_zhang", title:"是否还喜欢张桂源", x:910, y:20 },
-        { key:"live", parent:"like", kind:"choice", route:"return_relationship_common", id:"birthday_livestream", title:"生日直播互动", x:1130, y:20 },
-        { key:"role", parent:"live", kind:"choice", route:"return_live_common", id:"return_relationship_role", title:"这段关系的定位", x:1350, y:20 },
-        { key:"video", parent:"country", kind:"choice", route:"stay_abroad", id:"video_reply", title:"视频后的回复", x:690, y:160 },
-        { key:"wedding", parent:"contact", kind:"choice", route:"no_contact", id:"wedding_style", title:"婚礼风格", x:470, y:300 },
-        { key:"find", parent:"root", kind:"choice", route:"find_zhang_common", id:"find_zhang_persist", title:"寻找张桂源", x:250, y:700 },
-        { key:"left", parent:"find", kind:"choice", route:"find_zhang_keep", id:"like_zuoqihan", title:"左奇函的感情", x:470, y:760 }
+        { key:"root", kind:"choice", route:"intro", id:"main_path", title:"三条分线", x:30, y:410 },
+        { key:"abroadLine", parent:"root", kind:"choice", route:"intro", id:"main_path", title:"出国线", x:250, y:90 },
+        { key:"contact", parent:"abroadLine", kind:"choice", route:"abroad", id:"keep_contact", title:"是否继续联系", x:470, y:35 },
+        { key:"country", parent:"contact", kind:"choice", route:"keep_contact_after_pov", id:"country_after_high_school", title:"大学在哪读？", x:690, y:35 },
+        { key:"hotel", parent:"country", kind:"choice", route:"return_china_intro", id:"hotel_invitation", title:"是否去酒店", x:910, y:0 },
+        { key:"like", parent:"hotel", kind:"choice", route:"return_hotel_common", id:"still_like_zhang", title:"是否还喜欢张桂源", x:1130, y:0 },
+        { key:"live", parent:"like", kind:"choice", route:"return_relationship_common", id:"birthday_livestream", title:"生日直播互动", x:1350, y:0 },
+        { key:"role", parent:"live", kind:"choice", route:"return_live_common", id:"return_relationship_role", title:"关系定位", x:1570, y:0 },
+        { key:"video", parent:"country", kind:"choice", route:"stay_abroad", id:"video_reply", title:"视频后的回复", x:910, y:125 },
+        { key:"contactLine", parent:"root", kind:"choice", route:"intro", id:"main_path", title:"联系线", x:250, y:430 },
+        { key:"persist", parent:"contactLine", kind:"choice", route:"find_zhang_common", id:"find_zhang_persist", title:"是否坚持", x:470, y:430 },
+        { key:"left", parent:"persist", kind:"choice", route:"find_zhang_keep", id:"like_zuoqihan", title:"是否喜欢上左奇函", x:690, y:430 },
+        { key:"exposureLine", parent:"root", kind:"choice", route:"intro", id:"main_path", title:"曝光线", x:250, y:730 }
     ];
 
     var chapter7EndingGroups = [
@@ -82,7 +84,7 @@
         var style = document.createElement("style");
         style.id = "chapter7StoryStyle";
         style.textContent =
-            '#chapter7StoryOverlay{position:fixed;top:0;bottom:70px;left:50%;transform:translateX(-50%);width:100%;max-width:500px;z-index:94;background:#111 center/cover no-repeat;overflow:hidden}' +
+            '#chapter7StoryOverlay{position:fixed;top:0;bottom:70px;left:50%;transform:translateX(-50%);width:100%;max-width:500px;z-index:94;background-color:#111;background-position:center!important;background-size:cover!important;background-repeat:no-repeat!important;overflow:hidden}' +
             '#chapter7BackBtn{position:absolute;top:max(18px,env(safe-area-inset-top));left:18px;width:42px;height:42px;border:0;border-radius:50%;background:rgba(0,0,0,.58);color:#fff;font-size:25px;z-index:8}' +
             '#chapter7TraceBtn,#chapter7EndingBookBtn{position:absolute;right:18px;height:42px;padding:0 15px;border:1px solid rgba(255,255,255,.35);border-radius:21px;background:rgba(0,0,0,.58);color:#fff;font-size:13px;z-index:8}#chapter7TraceBtn{top:max(18px,env(safe-area-inset-top))}#chapter7EndingBookBtn{top:max(66px,calc(env(safe-area-inset-top) + 48px))}' +
             '#chapter7SkipBtn{position:absolute;top:0;left:50%;transform:translate(-50%,-50%);padding:7px 15px;border:1px solid rgba(255,255,255,.45);border-radius:4px;background:rgba(0,0,0,.68);color:#fff;font-size:12px;z-index:9}' +
@@ -100,6 +102,7 @@
             '#chapter7ActionModal{position:fixed;inset:0;z-index:10020;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:24px}#chapter7ActionModal .panel{width:min(330px,88vw);overflow:hidden;border-radius:12px;background:#fff;color:#222;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.3)}#chapter7ActionModal h3{margin:22px 18px 10px;font-size:18px}#chapter7ActionModal p{margin:0 22px 22px;color:#666;font-size:14px;line-height:1.55}#chapter7ActionModal .buttons{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #eee}#chapter7ActionModal button{height:48px;border:0;background:#fff;font-size:15px}#chapter7ActionModal button+button{border-left:1px solid #eee;color:#e34e64;font-weight:600}#chapter7PetNameModal{position:absolute;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);padding:24px}#chapter7PetNameModal .panel{width:min(330px,90%);padding:22px;border-radius:14px;background:#fff;color:#222;box-shadow:0 18px 55px rgba(0,0,0,.38)}#chapter7PetNameModal h3{margin:0 0 8px;text-align:center}#chapter7PetNameModal p{margin:0 0 16px;color:#777;text-align:center;font-size:12px}#chapter7PetNameModal label{display:block;margin:10px 0 5px;font-size:13px}#chapter7PetNameModal input{box-sizing:border-box;width:100%;height:42px;padding:0 12px;border:1px solid #ddd;border-radius:8px;font-size:15px}#chapter7PetNameModal .buttons{display:flex;gap:10px;margin-top:18px}#chapter7PetNameModal button{flex:1;height:42px;border:0;border-radius:8px;background:#eee}#chapter7PetNameModal button.confirm{background:#e85f78;color:#fff}';
         style.textContent += '#chapter7MiniPhoneWrap{position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.76);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}#chapter7MiniPhone{width:min(310px,82vw);height:min(620px,72vh);border:9px solid #181818;border-radius:32px;background:#f3f3f3;overflow:hidden;box-shadow:0 20px 60px #000;position:relative;color:#222}#chapter7PhoneLock{position:absolute;inset:0;background:linear-gradient(150deg,#2c3347,#9c727b);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:45px 20px;font-size:13px;touch-action:none}#chapter7PhoneLock b{position:absolute;top:70px;font-size:42px;font-weight:300}#chapter7PhoneHome{display:none;height:100%;padding:65px 22px 22px;background:linear-gradient(150deg,#d6ddeb,#e8cad0)}.chapter7-phone-apps{display:grid;grid-template-columns:1fr 1fr;gap:28px 22px}.chapter7-phone-app{border:0;background:none;font-size:13px;color:#222}.chapter7-phone-app i{display:flex;width:58px;height:58px;margin:0 auto 7px;border-radius:14px;background:#fff;align-items:center;justify-content:center;font-style:normal;font-size:27px;box-shadow:0 3px 10px rgba(0,0,0,.18)}#chapter7PhonePage{display:none;height:100%;background:#fff;overflow:auto;padding:52px 15px 18px}#chapter7PhonePage h3{margin:0 0 18px;text-align:center;font-size:17px}#chapter7PhonePage .phone-back{position:absolute;left:18px;top:18px;border:0;background:none;font-size:24px}.phone-card{padding:12px;margin-bottom:12px;border-radius:10px;background:#f2f2f2;font-size:12px;line-height:1.65}.phone-card b{display:block;margin-bottom:5px}.phone-thread-row{display:flex;align-items:center;gap:11px;padding:12px 4px;border-bottom:1px solid #eee;cursor:pointer}.phone-thread-row .thread-icon{width:42px;height:42px;border-radius:9px;background:#75a17a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto}.phone-thread-row .thread-main{min-width:0;flex:1}.phone-thread-row b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.phone-thread-row span{display:block;margin-top:4px;color:#999;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.phone-msg{max-width:78%;padding:9px 11px;margin:7px 0;border-radius:12px;background:#eee;font-size:12px;line-height:1.5;clear:both}.phone-msg.right{float:right;background:#95ec69}.phone-msg.center{max-width:100%;margin:8px auto;text-align:center;background:none;color:#999}.phone-msg small{display:block;color:#888;margin-bottom:3px}.phone-post{padding:14px 0;border-bottom:1px solid #eee;font-size:12px;line-height:1.65}.phone-post b{display:block;font-size:14px;margin-bottom:7px}#chapter7PutPhoneDown{border:1px solid rgba(255,255,255,.6);border-radius:18px;background:rgba(0,0,0,.7);color:#fff;padding:8px 24px;font-size:13px}';
         style.textContent += '#chapter7TipModal,#chapter7TraceModal,#chapter7EndingBookModal{position:absolute;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.76)}#chapter7TipModal .panel{width:min(340px,92%);padding:24px 20px;border:1px solid rgba(255,255,255,.28);border-radius:16px;background:#17171b;color:#fff;text-align:center;box-shadow:0 18px 55px #000}#chapter7TipModal h3{margin:0 0 14px;font-size:20px}#chapter7TipModal p{margin:0;color:#ddd;font-size:14px;line-height:1.9}#chapter7TipModal button{width:100%;margin-top:20px;padding:11px;border:0;border-radius:22px;background:#e85f78;color:#fff;font-size:14px}#chapter7TraceModal{padding:0;background:#f7f3f8}#chapter7TraceModal .trace-panel{position:relative;width:100%;height:100%;background:linear-gradient(#faf8fb,#f4eff6);color:#222;overflow:hidden;touch-action:none}#chapter7TraceModal .trace-title{position:absolute;z-index:4;top:17px;left:20px;font-size:18px;font-weight:700;color:#382d3d}#chapter7TraceHint{position:absolute;z-index:4;top:44px;left:20px;color:#8d8091;font-size:11px}#chapter7TraceClose{position:absolute;z-index:5;top:13px;right:14px;width:38px;height:38px;border:0;border-radius:50%;background:#fff;color:#4f4053;font-size:22px;box-shadow:0 3px 14px rgba(73,47,78,.16)}#chapter7TraceViewport{position:absolute;inset:70px 0 0;overflow:hidden;cursor:grab}#chapter7TraceViewport.dragging{cursor:grabbing}#chapter7TraceStage{position:absolute;left:0;top:0;width:1800px;height:930px;transform-origin:0 0;will-change:transform}#chapter7TraceLines{position:absolute;inset:0;width:1800px;height:930px;overflow:visible}.chapter7-trace-line{fill:none;stroke:#8a728f;stroke-width:2}.chapter7-trace-node{position:absolute;width:176px;min-height:58px;padding:11px 13px;border:1px solid #cdbdd2;border-radius:9px;background:#eadff0;color:#58495d;text-align:center;box-shadow:0 3px 9px rgba(83,56,88,.11)}.chapter7-trace-node.played{border-color:#df6480;background:linear-gradient(135deg,#f59ab0,#dd667f);color:#fff;box-shadow:0 0 16px rgba(224,86,116,.28)}.chapter7-trace-node.choice{cursor:pointer}.chapter7-trace-node.choice:not(.played){background:#f5d9a5;border-color:#d8ae5d;color:#624c24}.chapter7-trace-node small{display:block;margin-top:4px;color:inherit;font-size:10px;opacity:.74}#chapter7EndingBookModal{padding:18px;background:rgba(12,8,14,.9)}#chapter7EndingBookModal .book{position:relative;width:min(390px,96%);max-height:88%;overflow:auto;padding:24px 18px;border-radius:16px;background:#f8f3f8;color:#332a35}#chapter7EndingBookModal h2{margin:0 0 18px;text-align:center}#chapter7EndingBookClose{position:absolute;right:12px;top:10px;width:34px;height:34px;border:0;border-radius:50%;background:#fff;font-size:20px}.chapter7-ending-group{margin:0 0 16px;padding:14px;border:1px solid #dfd1e2;border-radius:12px;background:#fff}.chapter7-ending-group h3{display:flex;justify-content:space-between;margin:0 0 10px;font-size:15px}.chapter7-ending-entry{padding:8px 10px;margin-top:7px;border-radius:8px;background:#eee7f0;color:#918594}.chapter7-ending-entry.unlocked{background:#f3b1c1;color:#653445;font-weight:600}';
+        style.textContent += '.chapter7-voice-message.playing .chapter7-voice-waves i{animation:chapter7VoiceWave .62s ease-in-out infinite alternate}.chapter7-voice-message.playing .chapter7-voice-waves i:nth-child(2){animation-delay:.12s}.chapter7-voice-message.playing .chapter7-voice-waves i:nth-child(3){animation-delay:.24s}@keyframes chapter7VoiceWave{from{transform:scaleY(.4);opacity:.45}to{transform:scaleY(1);opacity:1}}';
         document.head.appendChild(style);
     }
 
@@ -128,6 +131,7 @@
         overlay.id = "chapter7StoryOverlay";
         overlay.innerHTML = '<button id="chapter7BackBtn">←</button><button id="chapter7TraceBtn">回溯</button><button id="chapter7EndingBookBtn">结局</button><div id="chapter7PerspectiveBadge">张桂源视角</div><div id="chapter7TextBox"><button id="chapter7SkipBtn">Skip</button><div id="chapter7NamePlate"></div><div id="chapter7Text"></div><div id="chapter7Continue">点击继续</div></div><div id="chapter7Opening"><div class="chapter-no">第七章</div><div class="chapter-name">梦哑</div></div>';
         document.getElementById("gameScreen").appendChild(overlay);
+        chapter7PreloadBackgrounds();
         document.getElementById("chapter7BackBtn").onclick = function (event) {
             event.stopPropagation();
             window.closeChapter7Story();
@@ -253,6 +257,9 @@
             if (!/^data:/.test(backgroundSource) && backgroundSource.indexOf("?") === -1) backgroundSource += "?v=20261102a";
             overlay.style.backgroundColor = "#111";
             overlay.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.2)),url("' + backgroundSource + '")';
+            overlay.style.backgroundSize = "cover";
+            overlay.style.backgroundPosition = "center center";
+            overlay.style.backgroundRepeat = "no-repeat";
         }
         var plate = document.getElementById("chapter7NamePlate");
         var text = document.getElementById("chapter7Text");
@@ -1033,7 +1040,7 @@
         if (entry.image) return '<img src="' + entry.image + '" style="width:170px;max-width:100%;border-radius:10px;display:block" onerror="this.outerHTML=\'[图片]\'">';
         if (entry.audio) {
             var seconds = Number(entry.duration) || 6;
-            return '<button type="button" class="chapter7-voice-message" data-src="' + chapter7EscapeHtml(entry.audio) + '" onclick="playChapter7VoiceMessage(this)" style="width:154px;height:54px;padding:0 18px;border:0;border-radius:6px;background:#fff;color:#111;display:flex;align-items:center;gap:15px;font-size:17px;box-shadow:none"><span style="font-size:27px;line-height:1">◖))</span><span>' + seconds + '&quot;</span></button>';
+            return '<button type="button" class="chapter7-voice-message" data-src="' + chapter7EscapeHtml(entry.audio) + '" onclick="playChapter7VoiceMessage(this)" style="width:auto;min-width:96px;height:42px;padding:0 13px;border:0;border-radius:8px;background:#fff;color:#111;display:flex;align-items:center;gap:9px;font-size:15px;box-shadow:none"><span class="chapter7-voice-waves" style="display:inline-flex;align-items:center;gap:2px"><i style="display:block;width:3px;height:10px;border-radius:3px;background:currentColor"></i><i style="display:block;width:3px;height:17px;border-radius:3px;background:currentColor"></i><i style="display:block;width:3px;height:24px;border-radius:3px;background:currentColor"></i></span><span>' + seconds + '&quot;</span></button>';
         }
         return entry.text;
     }
@@ -1045,14 +1052,34 @@
             window.chapter7VoiceAudio.pause();
             window.chapter7VoiceAudio.currentTime = 0;
         }
-        var audio = new Audio(src);
+        document.querySelectorAll(".chapter7-voice-message.playing").forEach(function (item) { item.classList.remove("playing"); });
+        var audio = new Audio();
+        audio.preload = "auto";
+        audio.src = src + (src.indexOf("?") >= 0 ? "&" : "?") + "replay=" + Date.now();
         window.chapter7VoiceAudio = audio;
-        button.style.opacity = ".65";
-        audio.onended = function () { button.style.opacity = "1"; };
-        audio.onerror = function () { button.style.opacity = "1"; };
+        button.classList.add("playing");
+        audio.onended = function () { button.classList.remove("playing"); };
+        audio.onerror = function () { button.classList.remove("playing"); };
         var promise = audio.play();
-        if (promise && promise.catch) promise.catch(function () { button.style.opacity = "1"; });
+        if (promise && promise.catch) promise.catch(function () { button.classList.remove("playing"); });
     };
+
+    function chapter7PreloadBackgrounds() {
+        if (window.chapter7BackgroundsPreloaded) return;
+        window.chapter7BackgroundsPreloaded = true;
+        var names = {};
+        Object.keys(window.chapter7Routes || {}).forEach(function (routeId) {
+            (window.chapter7Routes[routeId] || []).forEach(function (event) {
+                if (event && event.bg && event.bg !== "__white__" && event.bg !== "__black__") names[event.bg] = true;
+            });
+        });
+        Object.keys(names).forEach(function (name) {
+            var source = (window.chapter7EmbeddedBackgrounds && window.chapter7EmbeddedBackgrounds[name]) || name;
+            var image = new Image();
+            image.decoding = "async";
+            image.src = source;
+        });
+    }
 
     function chapter7SetTypingStatus(visible) {
         var status = document.getElementById("chatTypingStatus");
