@@ -108,7 +108,29 @@
         document.head.appendChild(style);
     }
 
+    function chapter7StopAllPreviousAudio() {
+        if (typeof chapter5StopBgm === "function") chapter5StopBgm();
+        if (typeof chapter6Bgm !== "undefined" && chapter6Bgm) {
+            chapter6Bgm.pause();
+            try { chapter6Bgm.currentTime = 0; } catch (error) {}
+            chapter6Bgm = null;
+            if (typeof chapter6BgmName !== "undefined") chapter6BgmName = "";
+        }
+        chapter7StopRouteBgm();
+        chapter7StopDreamAudio();
+        if (window.chapter7VoiceAudio) {
+            window.chapter7VoiceAudio.pause();
+            try { window.chapter7VoiceAudio.currentTime = 0; } catch (error) {}
+            window.chapter7VoiceAudio = null;
+        }
+        document.querySelectorAll("audio").forEach(function (audio) {
+            audio.pause();
+            try { audio.currentTime = 0; } catch (error) {}
+        });
+    }
+
     window.openChapter7Story = function () {
+        chapter7StopAllPreviousAudio();
         if (window.chapter7EndingReached) {
             window.chapter7SessionActive = false;
             window.chapter7EndingReached = false;
